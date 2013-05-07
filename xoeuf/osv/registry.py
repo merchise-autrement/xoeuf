@@ -127,7 +127,7 @@ class CursorManager(Context):
 
 
 class ModelsManager(MutableMapping):
-    '''Xœuf Models manager for a particular :param:`registry` database.
+    '''Xœuf models manager for a particular :param:`registry` database.
 
     The mapping is essentially a mapping between model names and model
     instances.
@@ -365,7 +365,8 @@ class Registry(ModuleType):
             db_name = str(db_name)
             self = cls.instances.get(db_name)    # Only one per database
             if not self:
-                wrapped = manager.get(db_name)
+                wrapped = manager.get(db_name,
+                                      update_module=cls._update_module())
                 self = super(Registry, cls).__new__(cls, db_name)
                 self.db_name = db_name
                 self.wrapped = wrapped
@@ -416,7 +417,8 @@ class Registry(ModuleType):
         cls = type(self)
         with manager.registries_lock:
             try:
-                self.wrapped = manager.new(self.db_name)
+                self.wrapped = manager.new(self.db_name,
+                                           update_module=cls._update_module())
             except:
                 del self.wrapped
                 del cls.instances[self.db_name]
@@ -517,11 +519,23 @@ class Registry(ModuleType):
             ctx['tz'] = read('/etc/timezone').strip() or 'America/Havana'
         return ctx
 
+    @staticmethod
+    def _update_module():
+        '''Use the same mechanism as "openerp.cli.server.preload_registry" for
+        determining when to argument "update_module" must be True or False.
+
+        '''
+        # TODO: Find out if is it needed
+        from openerp.tools import config
+        return bool(config['init'] or config['update'])
+
 
 class ModuleLoader(object):
     '''A database loader as a module using PEP-302 (New Import Hooks) protocol.
 
     '''
+    # TODO: Move "ModuleLoader" to "pool" and assign to all loaded modules the
+    #       "__package__" attribute.
     default_context = {}
 
     def __init__(self, db_name, base):
@@ -539,9 +553,8 @@ class ModuleLoader(object):
             res.__loader__ = self
             res.__name__ = self.db_name
             res.__file__ = self.get_filename(fullname)
-            self.__all__ = slist('db_name', 'uid', 'context', 'connection',
-                                 'cursor', 'models')
-            # TODO: Maybe next is not needed
+            res.__all__ = slist('db_name', 'uid', 'context', 'connection',
+                                'cursor', 'raw_cursor', 'models')
             sys.modules[str('.'.join((__name__, self.db_name)))] = res
         else:
             assert res is self.registry

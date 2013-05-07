@@ -1,7 +1,7 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
+# -*- encoding: utf-8 -*-
 #----------------------------------------------------------------------
-# xoeuf
+# xoeuf.cli.app
 #----------------------------------------------------------------------
 # Copyright (c) 2013 Merchise Autrement
 # All rights reserved.
@@ -21,20 +21,25 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 # MA 02110-1301, USA.
 #
-# Created on 2013-05-01
+# Created on 7 mai 2013
 
-'''Xœuf are basic services for OpenERP and Open Object.
+'''An example of an application that use "xoeuf.cli"
 
-The name is composed by:
-  * x: The starting letter for almost all Merchise projects.
-  * oe: Open and ERP initials.
-  * œuf: Is "egg" in french.
+It behaves similar to "openerp-server"script.
 
 '''
-
-# TODO: I was thinking in "œil", "cœur", "nœud", of course starting with "X"
 
 from __future__ import (division as _py3_division,
                         print_function as _py3_print,
                         unicode_literals as _py3_unicode,
                         absolute_import as _py3_abs_import)
+
+from xoeuf.cli import DEFAULT_COMMAND
+from xoutil.cli.app import main
+
+__docstring_format__ = 'rst'
+__author__ = 'med'
+
+
+if __name__ == "__main__":
+    main(default=DEFAULT_COMMAND)

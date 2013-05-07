@@ -25,7 +25,7 @@
 
 '''Xœuf Configuration Service.
 
-Define the class :class:`OptionsManager` which is a singleton that wraps
+Define the class :class:`MetaOptions` which is a singleton that wraps
 "openerp.tools.config", it's instanced automatically at the end of this
 module.
 
@@ -46,120 +46,243 @@ from __future__ import (division as _py3_division,
                         absolute_import as _py3_abs_import)
 
 from collections import MutableMapping
-from xoutil.names import strlist as _strs
-
+from xoutil.objects import metaclass
 
 __docstring_format__ = 'rst'
 __author__ = 'med'
 
 
 DEFAULT_COMMAND = str('server')
+_SECTION_SEP = str('.')
 
 
-# TODO: OpenERP must migrate to use "argparse" instead "optparse".
-class OptionsManager(MutableMapping):
-    '''A singleton that wraps "openerp.tools.config".
+class MetaOptions(type):
+    __singleton__ = None
 
-    Initialize the server options by load configuration file
-    (:param:`config_file`) and extra variables given in :param:`options`.
-
-    Xœuf server options wraps base "openerp.tools.config".
-
-    First time, command line arguments are parsed; the method :method:`load`
-    can be used to apply additional options.
-
-    '''
-    __slots__ = _strs('_wrapped')
-
-    def __new__(cls):
-        self = getattr(cls, '__singleton__', False)
-        if not self:
-            self = super(OptionsManager, cls).__new__(cls)
-            cls.__singleton__ = self
+    def __new__(cls, name, bases, attrs):
+        if cls.__singleton__ is None:
             from openerp.tools import config
-            self._wrapped = config
-            self._parse_config()
-        return self
-
-    @property
-    def misc(self):
-        return self._wrapped.misc
+            attrs['__new__'] = None     # can't be instantiated!
+            attrs['wrapped'] = config
+            self = super(MetaOptions, cls).__new__(cls, name, bases, attrs)
+            cls.__singleton__ = self
+            return self
+        else:
+            msg = ('Only one configuration instance allowed:\n'
+                   '\tdefining "%s", already defined "%s"!')
+            TypeError(msg % (name, cls.__singleton__.__name__))
 
     def __dir__(self):
-        return (list(self._wrapped.options) + list(self.__dict__) +
-                list(type(self).__dict__))
+        return (list(self.wrapped.options) + list(self.__dict__))
+
+    def __hash__(self):
+        from xoutil.names import nameof
+        return hash(nameof(self, inner=True, full=True))
+
+    def __eq__(self, other):
+        return other is self
+
+    def __ne__(self, other):
+        return not (self == other)
 
     def __len__(self):
-        return len(self._wrapped.options)
+        res = len(self.wrapped.options)
+        for section in self.wrapped.misc:
+            res += len(self.wrapped.misc[section])
+        return res
+
+    def __contains__(self, option):
+        if _SECTION_SEP in option:
+            section, option = option.split(_SECTION_SEP)
+            return option in self.wrapped.misc.get(section, {})
+        else:
+            return option in self.wrapped.options
 
     def __iter__(self):
-        return iter(self._wrapped.options)
+        for option in self.wrapped.options:
+            yield option
+        for section in self.wrapped.misc:
+            for option in self.wrapped.misc[section]:
+                yield _SECTION_SEP.join((section, option))
 
-    def __getitem__(self, key):
-        if '.' in key:
-            section, option = key.split('.')
-            return self._wrapped.misc[section][option]
+    def __getitem__(self, option):
+        if _SECTION_SEP in option:
+            section, option = option.split(_SECTION_SEP)
+            return self.wrapped.misc[section][option]
         else:
-            return self._wrapped[key]
-    __getattr__ = __getitem__
+            return self.wrapped[option]
 
-    def __setitem__(self, key, value):
-        if value in ('True', 'true'):
-            value = True
-        elif value in ('False', 'false'):
-            value = False
-        elif value == 'None':
-            value = None
-        if '.' in key:
-            section, option = key.split('.')
-            self._wrapped.misc[section][str(option)] = value
+    def __setitem__(self, option, value):
+        from xoutil.compat import str_base
+        if isinstance(option, str_base):
+            option = str(option)
+            if value in ('True', 'true'):
+                value = True
+            elif value in ('False', 'false'):
+                value = False
+            elif value == 'None':
+                value = None
+            if _SECTION_SEP in option:
+                section, option = option.split(_SECTION_SEP)
+                self.wrapped.misc[section][option] = value
+            else:
+                self.wrapped[option] = value
         else:
-            self._wrapped[str(key)] = value
+            msg = 'option name must be str, "%s" of type "%s" is provided!'
+            raise TypeError(msg % (option, type(option).__name__))
+
+    def __delitem__(self, option):
+        if _SECTION_SEP in option:
+            section, option = option.split(_SECTION_SEP)
+            del self.wrapped.misc[section][option]
+        elif option not in self.wrapped.casts:
+            del self.wrapped.options[option]
+        else:
+            raise KeyError('read only option "%s"!' % option)
+
+    def __getattr__(self, name):
+        from xoutil import Unset
+        res = self.wrapped.options.get(name, Unset)
+        if res is not Unset:
+            return res
+        else:
+            msg = "'%s' has no attribute '%s'"
+            raise AttributeError(msg % (self.__name__, name))
 
     def __setattr__(self, name, value):
-        if name in type(self).__slots__:
-            super(OptionsManager, self).__setattr__(name, value)
-        else:
+        if not name in self.__dict__ and name in self.wrapped.options:
             self[name] = value
+        else:
+            super(MetaOptions, self).__setattr__(name, value)
 
-    def __delitem__(self, key):
-        raise NotImplementedError("Can't delete options members.")
+    def get(self, option, default=None):
+        '''returns options[option] if option in options, else default
 
-    def load(self, config_file):
-        '''Update options with the ones in a configuration file.'''
-        if config_file:
-            from xoutil.fs import normalize_path
-            config_file = normalize_path(config_file)
-        self._wrapped.config_file = config_file
-        self._wrapped.load()
+            :param:default is None if not given.
 
-    def _parse_config(self):
-        '''Intended to be called in constructor.'''
-        PROGRAM_NAME = str('program_name')
-        if PROGRAM_NAME not in self:      # command args parsed?
-            import sys
-            self[PROGRAM_NAME] = sys.argv[0]
-            args = sys.argv[1:]
-            # Isolate "addons-path" if exists
-            i = 0
-            while i < len(args) and not args[i].startswith('--addons-path='):
-                i += 1
-            addons_path = [args.pop(i)] if i < len(args) else []
-            # Check for a command
-            COMMAND = str('command')
-            COMMAND_ARGS = str('command_args')
-            if args and not args[0].startswith("-"):
-                self._wrapped.parse_config(addons_path)
-                command = args[0]
-                args = args[1:]
+        '''
+        if _SECTION_SEP in option:
+            from xoutil import Unset
+            section, option = option.split(_SECTION_SEP)
+            misc = self.wrapped.misc.get(section, Unset)
+            return default if misc is Unset else misc.get(option, default)
+        else:
+            return self.wrapped.options.get(option, default)
+
+    def keys(self):
+        '''return a set-like object providing a view on options' keys'''
+        from collections import KeysView
+        return KeysView(self)
+
+    def items(self):
+        '''return a set-like object providing a view on options' items'''
+        from collections import ItemsView
+        return ItemsView(self)
+
+    def values(self):
+        '''return an object providing a view on options' values'''
+        from collections import ValuesView
+        return ValuesView(self)
+
+    def pop(self, option, *args):
+        '''options.pop(option[,default]) -> remove specified option name and
+        return the corresponding option value.
+
+        If option is not found, default is returned if given, otherwise
+        KeyError is raised.
+        '''
+        count = len(args)
+        if count <= 1:
+            from xoutil import Unset
+            default = Unset if count == 0 else args[0]
+            if _SECTION_SEP in option:
+                section, option = option.split(_SECTION_SEP)
+                misc = self.wrapped.misc.get(section, Unset)
+                if misc is not Unset:
+                    if default is Unset:
+                        return misc.pop(option)
+                    else:
+                        return misc.pop(option, default)
+                else:
+                    raise KeyError(option)
             else:
-                print('='*50, addons_path)
-                self._wrapped.parse_config(args)
-                command = None
-            if command in (None, DEFAULT_COMMAND):
-                args += addons_path
-            self[COMMAND] = command
-            self[COMMAND_ARGS] = args
+                if default is Unset:
+                    return self.wrapped.options.pop(option)
+                else:
+                    return self.wrapped.option.pop(option, default)
+        else:
+            msg = 'pop expected at most 2 arguments, got %s'
+            raise TypeError(msg % count + 1)
+
+    def update(self, *args, **kwargs):
+        '''Update options from dict/iterable or keyword arguments
+
+        If a positional argument (other) is present:
+
+          - If has a "keys" method, does::
+            for option in other:
+                options[option] = other[option]
+
+          - If not, does::
+            for option, value in other:
+                options[option] = value
+
+        In either case, this is followed by::
+            for option in kwargs:
+                options[option] = kwargs[option]
+
+        '''
+        count = len(args)
+        if count <= 1:
+            if args:
+                other = args[0]
+                if hasattr(other, 'keys'):
+                    for option in other:
+                        self[option] = other[option]
+                else:
+                    for option, value in other:
+                        self[option] = value
+            for option in kwargs:
+                self[option] = kwargs[option]
+        else:
+            msg = 'update expected at most 1 positional argument, got %s'
+            raise TypeError(msg % count)
+
+    def setdefault(self, option, *args):
+        '''return options.get(`option`, `default`)
+
+        also set options[`option`] = `default` if `option` not in options
+
+        if `default` is not given, will try to find the default value
+        configured, is not an standard option, then will use None.
+        '''
+        count = len(args)
+        if count <= 1:
+            from xoutil import Unset
+            default = Unset if count == 0 else args[0]
+            if _SECTION_SEP in option:
+                default = None if count == 0 else args[0]
+                section, option = option.split(_SECTION_SEP)
+                return self.wrapped.misc[section].setdefault(option, default)
+            else:
+                if count == 0:
+                    opt = self.wrapped.casts.get(option)
+                    default = opt.my_default if opt else None
+                else:
+                    default = args[0]
+                return self.wrapped.options.setdefault(option, default)
+        else:
+            msg = 'setdefault expected at most 2 arguments, got %s'
+            raise TypeError(msg % count + 1)
 
 
-options = OptionsManager()
+MutableMapping.register(MetaOptions)
+
+
+class options(metaclass(MetaOptions)):
+    '''Xœuf server options is a singleton that wraps "openerp.tools.config".'''
+
+
+del MetaOptions
+del metaclass
+del MutableMapping
