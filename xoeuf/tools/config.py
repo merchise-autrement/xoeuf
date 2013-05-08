@@ -14,17 +14,17 @@
 '''Xœuf Configuration Service.
 
 Define the class :class:`MetaOptions` which is a singleton that wraps
-"openerp.tools.config", it's instanced automatically at the end of this
+``openerp.tools.config``, it's instanced automatically at the end of this
 module.
 
-If Xœuf Services are called from an application with arguments, they are
-parsed and loaded the first time this module is used.
+If Xœuf Services are called from an application with arguments, they are parsed
+and loaded the first time this module is used.
 
 If a command is invoked, it's looked in all OpenERP configured modules (addons)
 and its arguments are parsed and it's executed.
 
 You can update or load all options by calling in any time either the method
-:method:`load` or the method :method:`update`.
+:meth:`!options.load` or the method :meth:`!options.update`.
 
 '''
 
@@ -268,7 +268,10 @@ MutableMapping.register(MetaOptions)
 
 
 class options(metaclass(MetaOptions)):
-    '''Xœuf server options is a singleton that wraps "openerp.tools.config".'''
+    '''The single instance of :class:`MetaOptions` that wraps
+    ``openerp.tools.config``.
+
+    '''
 
 
 del MetaOptions

@@ -11,9 +11,13 @@
 #
 # Created on 7 mai 2013
 
-'''An example of an application that use "xoeuf.cli"
+'''An example of an application that use :mod:`xoeuf.cli`.
 
-It behaves similar to "openerp-server"script.
+It behaves similar to "openerp-server" script. This module does not provide any
+external facilities, but uses :func:`xoutil:xoutil.cli.app.main` to run the
+OpenERP server. Usage::
+
+  $ python server.py [options...]
 
 '''
 
