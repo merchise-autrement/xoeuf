@@ -290,6 +290,6 @@ intersphinx_mapping = {
     'xoutil': ('http://xoutil.readthedocs.org/en/latest/', None),
 }
 
-intersphins_cache_limit = 60
+intersphinx_cache_limit = 60
 
 autosummary_generate = True
