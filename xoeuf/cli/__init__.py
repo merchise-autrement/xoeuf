@@ -3,8 +3,11 @@
 #----------------------------------------------------------------------
 # xoeuf.cli
 #----------------------------------------------------------------------
-# Copyright (c) 2013 Merchise Autrement
+# Copyright (c) 2013 Merchise Autrement and Contributors
 # All rights reserved.
+#
+# This is free software; you can redistribute it and/or modify it under
+# the terms of the LICENCE attached in the distribution package.
 #
 # Created on 26 avr. 2013
 
