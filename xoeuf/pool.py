@@ -37,7 +37,7 @@ from __future__ import (division as _py3_division,
                         absolute_import as _py3_abs_import)
 
 
-from os.path import splitext as _splitext
+from os.path import splitext
 
 
 
@@ -48,6 +48,7 @@ __author__ = 'med'
 def db_names():
     '''Each database can be imported as "from xoeuf.pool import <db-name>".
     '''
+    # TODO: Register mechanisms for remote hosts
     from xoeuf.osv.registry import Registry
     return Registry.get_all_db_names()
 
@@ -73,8 +74,8 @@ class ModuleHook(object):
             raise ImportError(msg)
 
 
-__path__ = [_splitext(__file__)[0]]
+__path__ = [splitext(__file__)[0]]
 
 import sys
 sys.path_hooks.append(ModuleHook)
-del sys, ModuleHook, _splitext
+del sys, ModuleHook, splitext

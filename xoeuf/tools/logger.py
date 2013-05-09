@@ -39,8 +39,8 @@ DEFAULT_LOGGER_NAME = str('xoeuf')
 
 
 def get_logger(name=None):
-    '''If a :param:`name` is given, is normally getter, otherwise look for the
-    upper module name.
+    '''If a `name` is given, is normally getter, otherwise look for the upper
+    module name.
 
     '''
     from logging import getLogger
