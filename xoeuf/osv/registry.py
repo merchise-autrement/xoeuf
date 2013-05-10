@@ -42,64 +42,66 @@ __author__ = 'med'
 
 
 
-class CursorManager(Context):
-    '''Xœuf version of an OpenERP cursor.
-
-    This is transactional and represent an :mod:`execution context
-    <xoutil:xoutil.context>`.
+# TODO: Allow to change "openerp.tools.config" per context level
+#       Implement for this "push" and "pop" methods in "xoeuf.tools.config"
+class TransactionManager(Context):
+    '''Xœuf Execution Context that manage an OpenERP connection: when enter the
+    context a database cursor is obtained, when exit the context the
+    transaction is managed.
 
     Use always as part of a database Registry::
 
         >>> reg = Registry(db_name='test')
         >>> users = reg.res_users
         >>> uid = 1
-        >>> with reg.cursor(foo='bar') as cr:   # Define context variables
+        >>> with reg(foo='bar') as cr:   # Define context variables
         ...     ids = users.search(cr, uid, [('partner_id', 'like', 'Med%')])
         ...     for rec in users.read(cr, uid, ids):
         ...         name = rec['partner_id'][1]
         ...         mail = rec['user_email']
         ...         print('"%s" <%s>' % (name, mail))
 
-    If :param:`managed` is True (the default), then "commit" or "rollback" is
-    called on exit of all level of contexts::
+    If `transactional` is True, then "commit" or "rollback" is called on
+    exiting the level::
 
-        >>> with reg.cursor() as cr1:    # commit after this is exited
-        ...     ids = users.search(cr1, uid, [('partner_id', 'like', 'Med%')])
-        ...     with reg.cursor() as cr2:   # No commit on exit
-        ...         assert cr1 is cr2
+        >>> with reg(transactional=True) as cr:  # commit after this is exited
+        ...     ids = users.search(cr, uid, [('partner_id', 'like', 'Med%')])
+        ...     with reg() as cr2:   # Reuse the same cursor of parent context
+        ...         assert cr is cr2
         ...         for rec in users.read(cr, uid, ids):
         ...             name = rec['partner_id'][1]
         ...             mail = rec['user_email']
         ...             print('"%s" <%s>' % (name, mail))
 
+    First level contexts are always transactionals.
+
     '''
 
-    __slots__ = slist('_registry', '_wrapped', '_managed')
+    __slots__ = slist('_registry', '_wrapped')
 
     default_context = {}    # TODO: ...
 
     def __new__(cls, registry, **kwargs):
         with manager.registries_lock:
-            self = super(CursorManager, cls).__new__(cls, registry.context_name,
-                                                     **kwargs)
+            _super = super(TransactionManager, cls)
+            self = _super.__new__(cls, registry.context_name, **kwargs)
             if self.count == 0:
                 self._registry = registry
                 self._wrapped = None
-                super(CursorManager, self).__init__(registry.context_name,
-                                                    **kwargs)
             else:
                 assert self._registry == registry and self._wrapped
             return self
 
     def __init__(self, registry, **kwargs):
-        pass
+        super(TransactionManager, self).__init__(registry.context_name,
+                                                 **kwargs)
 
     def __enter__(self):
-        ctx = super(CursorManager, self).__enter__()
+        ctx = super(TransactionManager, self).__enter__()
         assert ctx is self
         if not self._wrapped:
             assert self.count == 1
-            self._wrapped = self._registry.connection.cursor()
+            self._wrapped = self._registry.cursor
             self._wrapped._wrapper = self
         return self._wrapped
 
@@ -112,11 +114,12 @@ class CursorManager(Context):
                 else:
                     self._wrapped.commit()
                 self._wrapped.close()
-        return super(CursorManager, self).__exit__(exc_type, exc_val, exc_tb)
+        return super(TransactionManager, self).__exit__(exc_type, exc_val,
+                                                        exc_tb)
 
 
 class ModelsManager(MutableMapping):
-    '''Xœuf models manager for a particular :param:`registry` database.
+    '''Xœuf models manager for a particular `registry` database.
 
     The mapping is essentially a mapping between model names and model
     instances.
@@ -145,12 +148,12 @@ class ModelsManager(MutableMapping):
     def __str__(self):
         name = type(self).__name__
         db = self._registry.db_name
-        return str('<%s for %s DB with %s models>' % (name, db, len(self)))
+        return str('<Database %s for "%s" with %s models>' % (name, db, len(self)))
 
     def __repr__(self):
         name = type(self).__name__
         db = self._registry.db_name
-        return str('<%s for "%s" DB>' % (name, db))
+        return str('<Database %s for "%s">' % (name, db))
 
     def __hash__(self):
         return hash(repr(self))
@@ -354,8 +357,7 @@ class Registry(ModuleType):
             db_name = str(db_name)
             self = cls.instances.get(db_name)    # Only one per database
             if not self:
-                wrapped = manager.get(db_name,
-                                      update_module=cls._update_module())
+                wrapped = manager.get(db_name)
                 self = super(Registry, cls).__new__(cls, db_name)
                 self.db_name = db_name
                 self.wrapped = wrapped
@@ -406,8 +408,7 @@ class Registry(ModuleType):
         cls = type(self)
         with manager.registries_lock:
             try:
-                self.wrapped = manager.new(self.db_name,
-                                           update_module=cls._update_module())
+                self.wrapped = manager.new(self.db_name)
             except:
                 del self.wrapped
                 del cls.instances[self.db_name]
@@ -427,25 +428,26 @@ class Registry(ModuleType):
         '''In OpenERP is named "db".'''
         return self.wrapped.db
 
-    def cursor(self, **kwargs):
-        '''Create a cursor context.
+    def __call__(self, **kwargs):
+        '''Create a execution context.
 
-        To use it as a cursor::
+        To use it as a managed cursor::
 
         >>> reg = Registry('my_db')
         >>> users = reg.res_users
-        >>> with reg.cursor(foo='bar') as cr:   # Define context variables
+        >>> with reg(foo='bar') as cr:   # Define context variables
         ...     ids = users.search(cr, 1, [('partner_id', 'like', 'Med%')])
         ...     for rec in users.read(cr, uid, ids):
         ...         name = rec['partner_id'][1]
         ...         mail = rec['user_email']
         ...         print('"%s" <%s>' % (name, mail))
         '''
-        return CursorManager(self, **kwargs)
+        return TransactionManager(self, **kwargs)
 
-    def raw_cursor(self):
+    @property
+    def cursor(self):
         '''Return a not managed cursor, callers are responsible of
-        transactions and for close it.
+        transactions and of closing it.
 
         '''
         return self.connection.cursor()
@@ -466,7 +468,7 @@ class Registry(ModuleType):
         '''Obtain the current cursor execution context if one exits, else
         return None.
         '''
-        ctx = CursorManager[self.context_name]
+        ctx = TransactionManager[self.context_name]
         return ctx or None
 
     @property
@@ -492,7 +494,7 @@ class Registry(ModuleType):
             # Environment language could not be installed.
             # So, check and obtain 'lang' from DB
             langs = self.models.res_lang
-            with self.cursor() as cr:
+            with self() as cr:
                 uid = self.uid
                 ok = langs.search(cr, uid, [('code', '=', lang)])
                 if not ok:
@@ -519,48 +521,9 @@ class Registry(ModuleType):
         return bool(config['init'] or config['update'])
 
 
-class ModuleLoader(object):
-    '''A database loader as a module using PEP-302 (New Import Hooks) protocol.
+# Discarding not neeeded globals
+del Context
+del MutableMapping
+del ModuleType
+del aliases
 
-    '''
-    # TODO: Move "ModuleLoader" to "pool" and assign to all loaded modules the
-    #       "__package__" attribute.
-    default_context = {}
-
-    def __init__(self, db_name, base):
-        self.registry = Registry(db_name, **self.default_context)
-        self._inner = self.registry.wrapped      # Force check database
-        self.db_name = db_name
-        self.base = base
-
-    def load_module(self, fullname):
-        import sys
-        self._check(fullname)
-        res = sys.modules.get(fullname, None)
-        if res is None:
-            res = self.registry
-            res.__loader__ = self
-            res.__name__ = self.db_name
-            res.__file__ = self.get_filename(fullname)
-            res.__all__ = slist('db_name', 'uid', 'context', 'connection',
-                                'cursor', 'raw_cursor', 'models')
-            sys.modules[str('.'.join((__name__, self.db_name)))] = res
-        else:
-            assert res is self.registry
-        return res
-
-    def get_filename(self, fullname):
-        assert self._check(fullname, asserting=True)
-        return str('<%s>' % fullname)
-
-    def _check(self, fullname, asserting=False):
-        sep = str('.')
-        local = sep.join((self.base, self.db_name))
-        if local == fullname:
-            return fullname
-        else:
-            if asserting:
-                return False
-            else:
-                msg = 'Using loader for DB "%s" for manage "%s"!'
-                raise ImportError(msg % (self.db_name, fullname))

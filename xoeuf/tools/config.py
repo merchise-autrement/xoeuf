@@ -146,7 +146,7 @@ class MetaOptions(type):
     def get(self, option, default=None):
         '''returns options[option] if option in options, else default
 
-            :param:default is None if not given.
+            default is None if not given.
 
         '''
         if _SECTION_SEP in option:
