@@ -101,7 +101,7 @@ class TransactionManager(Context):
         assert ctx is self
         if not self._wrapped:
             assert self.count == 1
-            self._wrapped = self._registry.cursor()
+            self._wrapped = self._registry.cursor
             self._wrapped._wrapper = self
         return self._wrapped
 
@@ -148,12 +148,12 @@ class ModelsManager(MutableMapping):
     def __str__(self):
         name = type(self).__name__
         db = self._registry.db_name
-        return str('<%s for %s DB with %s models>' % (name, db, len(self)))
+        return str('<Database %s for "%s" with %s models>' % (name, db, len(self)))
 
     def __repr__(self):
         name = type(self).__name__
         db = self._registry.db_name
-        return str('<%s for "%s" DB>' % (name, db))
+        return str('<Database %s for "%s">' % (name, db))
 
     def __hash__(self):
         return hash(repr(self))
@@ -444,6 +444,7 @@ class Registry(ModuleType):
         '''
         return TransactionManager(self, **kwargs)
 
+    @property
     def cursor(self):
         '''Return a not managed cursor, callers are responsible of
         transactions and of closing it.
