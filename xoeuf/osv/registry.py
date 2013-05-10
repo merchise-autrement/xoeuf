@@ -88,14 +88,13 @@ class TransactionManager(Context):
             if self.count == 0:
                 self._registry = registry
                 self._wrapped = None
-                super(TransactionManager, self).__init__(registry.context_name,
-                                                    **kwargs)
             else:
                 assert self._registry == registry and self._wrapped
             return self
 
     def __init__(self, registry, **kwargs):
-        pass
+        super(TransactionManager, self).__init__(registry.context_name,
+                                                 **kwargs)
 
     def __enter__(self):
         ctx = super(TransactionManager, self).__enter__()
@@ -521,55 +520,9 @@ class Registry(ModuleType):
         return bool(config['init'] or config['update'])
 
 
-class ModuleLoader(object):
-    '''A database loader as a module using PEP-302 (New Import Hooks) protocol.
-
-    '''
-    # TODO: Move "ModuleLoader" to "pool" and assign to all loaded modules the
-    #       "__package__" attribute.
-    default_context = {}
-
-    def __init__(self, db_name, base):
-        self.registry = Registry(db_name, **self.default_context)
-        self._inner = self.registry.wrapped      # Force check database
-        self.db_name = db_name
-        self.base = base
-
-    def load_module(self, fullname):
-        import sys
-        self._check(fullname)
-        res = sys.modules.get(fullname, None)
-        if res is None:
-            res = self.registry
-            res.__loader__ = self
-            res.__name__ = self.db_name
-            res.__file__ = self.get_filename(fullname)
-            res.__all__ = slist('db_name', 'uid', 'context', 'connection',
-                                'cursor', 'models')
-            sys.modules[str('.'.join((__name__, self.db_name)))] = res
-        else:
-            assert res is self.registry
-        return res
-
-    def get_filename(self, fullname):
-        assert self._check(fullname, asserting=True)
-        return str('<%s>' % fullname)
-
-    def _check(self, fullname, asserting=False):
-        sep = str('.')
-        local = sep.join((self.base, self.db_name))
-        if local == fullname:
-            return fullname
-        else:
-            if asserting:
-                return False
-            else:
-                msg = 'Using loader for DB "%s" for manage "%s"!'
-                raise ImportError(msg % (self.db_name, fullname))
-
-
 # Discarding not neeeded globals
 del Context
 del MutableMapping
 del ModuleType
 del aliases
+
