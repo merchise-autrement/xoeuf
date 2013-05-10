@@ -14,7 +14,7 @@
 '''Xœuf Models registry for OpenERP databases.
 
 If OpenERP is properly installed and configured, then all databases can be
-found and settled as submodules of "xoeuf.pool".
+found as submodules of :mod:`xoeuf.pool`.
 
 Through this registry you can obtain a database from a customized
 configuration.
@@ -45,7 +45,8 @@ __author__ = 'med'
 class CursorManager(Context):
     '''Xœuf version of an OpenERP cursor.
 
-    This is transactional and represent an execution context.
+    This is transactional and represent an :mod:`execution context
+    <xoutil:xoutil.context>`.
 
     Use always as part of a database Registry::
 
