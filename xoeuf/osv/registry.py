@@ -14,7 +14,7 @@
 '''Xœuf Models registry for OpenERP databases.
 
 If OpenERP is properly installed and configured, then all databases can be
-found and settled as submodules of "xoeuf.pool".
+found as submodules of :mod:`xoeuf.pool`.
 
 Through this registry you can obtain a database from a customized
 configuration.
