@@ -14,7 +14,7 @@
 '''Xœuf Models registry for OpenERP databases.
 
 If OpenERP is properly installed and configured, then all databases can be
-found and settled as submodules of "xoeuf.pool".
+found as submodules of :mod:`xoeuf.pool`.
 
 Through this registry you can obtain a database from a customized
 configuration.
@@ -146,9 +146,8 @@ class ModelsManager(MutableMapping):
         return self
 
     def __str__(self):
-        name = type(self).__name__
-        db = self._registry.db_name
-        return str('<Database %s for "%s" with %s models>' % (name, db, len(self)))
+        args = (type(self).__name__, self._registry.db_name, len(self))
+        return str('<Database %s for "%s" with %s models>' % args)
 
     def __repr__(self):
         name = type(self).__name__
@@ -526,4 +525,3 @@ del Context
 del MutableMapping
 del ModuleType
 del aliases
-
