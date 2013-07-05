@@ -42,6 +42,15 @@ __author__ = 'med'
 
 
 
+def _valid_model_base(model):
+    from openerp.osv.orm import BaseModel
+    if not isinstance(model, BaseModel):
+        msg = 'Inappropriate type "%s" for model value!\tMRO=%s'
+        t = type(value)
+        raise TypeError(msg % (t.__name__, t.mro()))
+
+
+
 # TODO: Allow to change "openerp.tools.config" per context level
 #       Implement for this "push" and "pop" methods in "xoeuf.tools.config"
 class TransactionManager(Context):
@@ -226,12 +235,8 @@ class ModelsManager(MutableMapping):
     def __setitem__(self, model_name, model):
         from xoutil.validators.identifiers import is_valid_full_identifier
         if is_valid_full_identifier(model_name):
-            from openerp.osv.orm import Model
-            if isinstance(model, Model):
-                self.wrapped[model_name] = model
-            else:
-                msg = 'Inappropriate argument type "%s" for model!'
-                raise TypeError(msg % type(model).__name__)
+            _valid_model_base(model)
+            self.wrapped[model_name] = model
         else:
             msg = 'Inappropriate model name "%s"!'
             raise ValueError(msg % model_name)
@@ -317,14 +322,8 @@ class ModelsManager(MutableMapping):
         if value in (None, False, Unset):
             return value
         else:
-            from openerp.osv.orm import BaseModel
-            if isinstance(value, BaseModel):
-                return value
-            else:
-                msg = ('Inappropriate argument type "%s" for model value!'
-                       '\n\tMRO=%s')
-                _t = type(value)
-                raise TypeError(msg % (_t.__name__, _t.mro()))
+            _valid_model_base(value)
+            return value
 
     @staticmethod
     def _get_pop(method, model_name, *args):
