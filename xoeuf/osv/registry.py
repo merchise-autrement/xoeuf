@@ -317,12 +317,14 @@ class ModelsManager(MutableMapping):
         if value in (None, False, Unset):
             return value
         else:
-            from openerp.osv.orm import Model
-            if isinstance(value, Model):
+            from openerp.osv.orm import BaseModel
+            if isinstance(value, BaseModel):
                 return value
             else:
-                msg = 'Inappropriate argument type "%s" for model value!'
-                raise TypeError(msg % type(value).__name__)
+                msg = ('Inappropriate argument type "%s" for model value!'
+                       '\n\tMRO=%s')
+                _t = type(value)
+                raise TypeError(msg % (_t.__name__, _t.mro()))
 
     @staticmethod
     def _get_pop(method, model_name, *args):
