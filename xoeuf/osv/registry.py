@@ -32,7 +32,7 @@ from collections import MutableMapping
 from xoutil import Unset
 from xoutil.names import strlist as slist
 from xoutil.context import Context
-from xoutil.decorator import aliases
+from xoutil.decorator import aliases, memoized_property
 from openerp import SUPERUSER_ID
 from openerp.modules.registry import RegistryManager as manager
 
@@ -145,13 +145,9 @@ class ModelsManager(MutableMapping):
     def __new__(cls, registry):
         '''Create, or return if already exists, a instance of a models manager.
         '''
-        if registry._models:
-            self = registry._models
-        else:
-            self = super(ModelsManager, cls).__new__(cls)
-            registry._models = self
-            self._registry = registry
-            self._mapping = None    # for "__invert__" operator cache
+        self = super(ModelsManager, cls).__new__(cls)
+        self._registry = registry
+        self._mapping = None    # for "__invert__" operator cache
         return self
 
     def __str__(self):
@@ -363,7 +359,6 @@ class Registry(ModuleType):
                 self.wrapped = wrapped
                 self._default_context = kwargs
                 self.uid = SUPERUSER_ID
-                self._models = None
                 self._cardinality = 1
                 cls.instances[db_name] = self
             else:
@@ -452,12 +447,9 @@ class Registry(ModuleType):
         '''
         return self.connection.cursor()
 
-    @property
+    @memoized_property
     def models(self):
-        if self._models:
-            return self._models
-        else:
-            return ModelsManager(self)
+        return ModelsManager(self)
 
     @property
     def context_name(self):
