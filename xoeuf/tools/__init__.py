@@ -8,7 +8,7 @@
 # This is free software; you can redistribute it and/or modify it under
 # the terms of the LICENCE attached in the distribution package.
 #
-# @created: 20/04/2013
+# @created: 2013-04-20
 
 '''Xœuf tools for Open Object (OpenERP) models.
 
