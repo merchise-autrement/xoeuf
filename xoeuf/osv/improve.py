@@ -24,12 +24,14 @@ from __future__ import (division as _py3_division,
                         absolute_import)
 
 
-def _integrate_search_read():
+def _integrate_search():
     '''Add the method ``search_read`` to ``ModelBase``'''
     from openerp.osv.orm import BaseModel
-    from xoeuf.osv.orm import search_read
+    from xoeuf.osv.orm import search_read, search_browse
     BaseModel.search_read = search_read
+    BaseModel.search_browse = search_browse
 
-_integrate_search_read()
 
-del _integrate_search_read
+_integrate_search()
+
+del _integrate_search

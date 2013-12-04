@@ -102,7 +102,7 @@ def search_read(self, cr, uid, *args, **kwargs):
             (name is 'ABC' AND (language is NOT english) AND
              (country is Belgium OR Germany))
 
-        '''
+    '''
     from xoutil.objects import get_and_del_first_of as _get
     # Convert all positional to keyword arguments
     for pos, arg in enumerate(args):
@@ -110,12 +110,67 @@ def search_read(self, cr, uid, *args, **kwargs):
     # Get all arguments or default values
     domain = _get(kwargs, 3, 'domain', 'args', default=[])
     fields = _get(kwargs, 4, 'fields', default=[])
-    context = _get(kwargs, 5, 'context', default={})
+    ctx = _get(kwargs, 5, 'context', default={})
     offset = _get(kwargs, 'offset', default=0)
     limit = _get(kwargs, 'limit', default=None)
     order = _get(kwargs, 'order', default=None)
     assert not kwargs, \
       "Invalid %s arguments: %s" % (len(kwargs), kwargs.keys())
     # Do it
-    ids = self.search(cr, uid, domain, offset, limit, order, context)
-    return self.read(cr, uid, ids, fields, context) if ids else []
+    ids = self.search(cr, uid, domain, offset=offset, limit=limit,
+                      order=order, context=ctx)
+    return self.read(cr, uid, ids, fields=fields, context=ctx) if ids else []
+
+
+def search_browse(self, cr, uid, *args, **kwargs):
+    '''
+    Search based on a domain and with the returned ids browse corresponding
+    records or return None if nothing is found.
+
+    Parameters:
+
+      :param self: model to operate in
+      :param cr: database cursor
+      :param uid: current user id
+
+    Other optional arguments can be passed by position or by name:
+
+    - ``domain``: list of tuples specifying the search domain (See below). An
+      empty list or no argument can be used to match all records. Could be
+      passed by position after ``uid``. Use ``args`` as an alias in arguments
+      by name (``kwargs``).
+
+    - ``offset``: number of results to skip in the returned values
+      (default: ``0``).
+
+    - ``limit``: max number of records to return (default: unlimited)
+
+    - ``order``: columns to sort by (default: ``self._order=id``)
+
+    - ``context``: context arguments in a dictionary, like lang, time
+      zone. Could be passed by position after ``fields``.
+
+    :return: object or list of objects requested or None
+
+    :raise AccessError:
+      * if user tries to bypass access rules for read on the requested object
+
+    See :func:`search_read` for how to express a search domain.
+
+    '''
+    from xoutil.objects import get_and_del_first_of as _get
+    # Convert all positional to keyword arguments
+    for pos, arg in enumerate(args):
+        kwargs[pos + 3] = arg
+    # Get all arguments or default values
+    domain = _get(kwargs, 3, 'domain', 'args', default=[])
+    ctx = _get(kwargs, 4, 'context', default={})
+    offset = _get(kwargs, 'offset', default=0)
+    limit = _get(kwargs, 'limit', default=None)
+    order = _get(kwargs, 'order', default=None)
+    assert not kwargs, \
+      "Invalid %s arguments: %s" % (len(kwargs), kwargs.keys())
+    # Do it
+    ids = self.search(cr, uid, domain, offset=offset, limit=limit,
+                      order=order, context=ctx)
+    return self.browse(cr, uid, ids, context=ctx) if ids else None
