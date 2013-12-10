@@ -12,9 +12,10 @@
 
 '''Xœuf extensions for Open Object (OpenERP) models.
 
-This module improve OpenERP object services (OSV) with some extensions:
+This module improve `OpenERP` object services (OSV) with some extensions
+related to model programming or shell (Command Line Interface) use:
 
-- Add the method ``search_read`` to ``ModelBase``.
+- Integrate methods `search_read` and ``search_browse`` to `ModelBase`.
 
 '''
 
@@ -23,15 +24,19 @@ from __future__ import (division as _py3_division,
                         unicode_literals as _py3_unicode,
                         absolute_import)
 
+from xoutil.names import strlist as strs
 
-def _integrate_search():
-    '''Add the method ``search_read`` to ``ModelBase``'''
+
+__all__ = strs('integrate_search')
+
+del strs
+
+
+def integrate_search():
+    '''Integrate methods `search_read` and ``search_browse`` to `ModelBase`.
+
+    '''
     from openerp.osv.orm import BaseModel
     from xoeuf.osv.orm import search_read, search_browse
     BaseModel.search_read = search_read
     BaseModel.search_browse = search_browse
-
-
-_integrate_search()
-
-del _integrate_search
