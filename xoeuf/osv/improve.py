@@ -27,7 +27,7 @@ from __future__ import (division as _py3_division,
 from xoutil.names import strlist as strs
 
 
-__all__ = strs('integrate_search')
+__all__ = strs('integrate_search', 'fix_documentations')
 
 del strs
 
@@ -40,3 +40,22 @@ def integrate_search():
     from xoeuf.osv.orm import search_read, search_browse
     BaseModel.search_read = search_read
     BaseModel.search_browse = search_browse
+
+
+def fix_documentations(db):
+    '''Fixes all models documentation from a given data-base.
+
+    This function may be useful for shells or Python Command Line Interfaces
+    (CLI).
+
+    '''
+    from xoutil.objects import (fix_class_documentation,
+                                fix_method_documentation)
+    ignore = ('object', 'AbstractModel', 'BaseModel', 'Model',
+              'TransientModel')
+    models = db.models
+    for model in models.values():
+        cls = model.__class__
+        fix_class_documentation(cls, ignore=ignore, deep=10)
+        for attr_name in dir(cls):
+            fix_method_documentation(cls, attr_name, deep=3)
