@@ -51,8 +51,8 @@ def search_read(self, cr, uid, *args, **kwargs):
     - ``context``: context arguments in a dictionary, like lang, time
       zone. Could be passed by position after ``fields``.
 
-    :return: list of dictionaries((dictionary per record asked)) with
-    requested field values
+    :return: dictionary or list of dictionaries((one per record asked)) with
+             requested field values.
     :rtype: [{‘name_of_the_field’: value, ...}, ...]
 
     :raise AccessError:
@@ -119,6 +119,8 @@ def search_read(self, cr, uid, *args, **kwargs):
     # Do it
     ids = self.search(cr, uid, domain, offset=offset, limit=limit,
                       order=order, context=ctx)
+    if len(ids) == 1:
+        ids = ids[0]
     return self.read(cr, uid, ids, fields=fields, context=ctx) if ids else []
 
 
@@ -173,4 +175,6 @@ def search_browse(self, cr, uid, *args, **kwargs):
     # Do it
     ids = self.search(cr, uid, domain, offset=offset, limit=limit,
                       order=order, context=ctx)
+    if len(ids) == 1:
+        ids = ids[0]
     return self.browse(cr, uid, ids, context=ctx) if ids else None
