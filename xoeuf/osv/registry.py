@@ -410,6 +410,46 @@ class Registry(ModuleType):
                 # TODO: Manage the module in "sys.modules"
                 raise
 
+    def salt_shell(self, **kwargs):
+        '''Assign common shell global variables.
+
+        It only function properly if the client of this function is a shell
+        running in a terminal (like `IPython`) and working with a `Pythn`
+        version with support for ``sys._getframe``.
+
+        Also fix documentations and execute special tools
+        ``fix_documentations`` and ``integrate_search``.
+        '''
+        from sys import _getframe
+        from xoutil import Unset
+        from xoeuf.osv.improve import fix_documentations, integrate_search
+        CURSOR_NAME = str('cr')
+        ROOT_USER_NAME = str('uid')
+        MODELS_NAME = str('models')
+        CONTEXT_NAME = str('context')
+        close_names = (CURSOR_NAME, )
+        names = (CURSOR_NAME, ROOT_USER_NAME, MODELS_NAME, CONTEXT_NAME)
+        update_names = (CONTEXT_NAME, )
+        f = _getframe(1)
+        vars = f.f_locals
+        for name in close_names:
+            if name in vars:
+                var = vars[name]
+                try:
+                    var.close()
+                except:
+                    pass
+        for name in names:
+            var = getattr(self, name, Unset)
+            if var is not Unset:
+                vars[name] = var
+        for name in update_names:
+            var = vars.get(name, {})
+            var.update(kwargs)
+            vars[name] = var
+        fix_documentations(self)
+        integrate_search()
+
     @staticmethod
     def get_all_db_names():
         '''Return all database names presents in the connected host.'''
@@ -446,6 +486,8 @@ class Registry(ModuleType):
 
         '''
         return self.connection.cursor()
+
+    cr = cursor    # An alias
 
     @memoized_property
     def models(self):

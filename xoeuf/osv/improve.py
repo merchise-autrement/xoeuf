@@ -51,11 +51,13 @@ def fix_documentations(db):
     '''
     from xoutil.objects import (fix_class_documentation,
                                 fix_method_documentation)
-    ignore = ('object', 'AbstractModel', 'BaseModel', 'Model',
-              'TransientModel')
-    models = db.models
-    for model in models.values():
-        cls = model.__class__
-        fix_class_documentation(cls, ignore=ignore, deep=10)
-        for attr_name in dir(cls):
-            fix_method_documentation(cls, attr_name, deep=3)
+    if not getattr(db, '__documentation_fixed', False):
+        setattr(db, '__documentation_fixed', True)
+        ignore = ('object', 'AbstractModel', 'BaseModel', 'Model',
+                  'TransientModel')
+        models = db.models
+        for model in models.values():
+            cls = model.__class__
+            fix_class_documentation(cls, ignore=ignore, deep=10)
+            for attr_name in dir(cls):
+                fix_method_documentation(cls, attr_name, deep=3)

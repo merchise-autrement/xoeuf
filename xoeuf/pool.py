@@ -27,6 +27,7 @@ from __future__ import (division as _py3_division,
 
 from os.path import splitext
 from xoutil.names import strlist as slist
+from xoutil.modules import modulemethod
 
 
 __docstring_format__ = 'rst'
@@ -41,11 +42,17 @@ def db_names():
     return Registry.get_all_db_names()
 
 
+@modulemethod
+def __dir__(self):
+    res = [self.db_names.__name__]
+    res.extend(self.db_names())
+    return res
+
+
 class ModuleManager(object):
     '''Import Hooks for OpenERP databases.
-    '''
 
-    '''A database finder and loader as a module using PEP-302 (New Import
+    A database finder and loader as a module using PEP-302 (New Import
     Hooks) protocol.
 
     Import Hook for OpenERP databases.
@@ -115,4 +122,4 @@ __path__ = [splitext(__file__)[0]]
 
 import sys
 sys.path_hooks.append(ModuleManager.hook)
-del sys, ModuleManager, splitext
+del sys, ModuleManager, splitext, modulemethod
