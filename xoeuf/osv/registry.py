@@ -417,8 +417,13 @@ class Registry(ModuleType):
         running in a terminal (like `IPython`) and working with a `Pythn`
         version with support for ``sys._getframe``.
 
+        Keyword parameters are models to be assigned, for example
+        ``db.salt_shell(_='hr.contract', users_obj='res.users')``. Especial
+        name ``_`` is replaced by ``self``.
+
         Also fix documentations and execute special tools
         ``fix_documentations`` and ``integrate_search``.
+
         '''
         from sys import _getframe
         from xoutil import Unset
@@ -429,7 +434,6 @@ class Registry(ModuleType):
         CONTEXT_NAME = str('context')
         close_names = (CURSOR_NAME, )
         names = (CURSOR_NAME, ROOT_USER_NAME, MODELS_NAME, CONTEXT_NAME)
-        update_names = (CONTEXT_NAME, )
         f = _getframe(1)
         vars = f.f_locals
         for name in close_names:
@@ -443,10 +447,16 @@ class Registry(ModuleType):
             var = getattr(self, name, Unset)
             if var is not Unset:
                 vars[name] = var
-        for name in update_names:
-            var = vars.get(name, {})
-            var.update(kwargs)
-            vars[name] = var
+        if kwargs:
+            models = getattr(self, MODELS_NAME)
+            for kwname in kwargs:
+                model_name = kwargs[kwname]
+                model = models.get(model_name, Unset)
+                if not model:
+                    model = getattr(models, model_name, Unset)
+                if model:
+                    var_name = 'self' if kwname == '_' else kwname
+                    vars[var_name] = model
         fix_documentations(self)
         integrate_search()
 
