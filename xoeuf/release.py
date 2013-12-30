@@ -44,7 +44,7 @@ def dev_tag_installed():
     import pkg_resources
     tag_start_regex = re.compile(r'[^\d\.]')
     try:
-        dist = pkg_resources.get_distribution('xoeuvre')
+        dist = pkg_resources.get_distribution('xoeuf')
         version = dist.version
         match = tag_start_regex.search(version)
         if match:
