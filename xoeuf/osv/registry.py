@@ -422,13 +422,13 @@ class Registry(ModuleType):
         name ``_`` is replaced by ``self``.
 
         Also fix documentations and execute special tools
-        ``fix_documentations`` and ``integrate_extension_methods``.
+        ``fix_documentations`` and ``integrate_extensions``.
 
         '''
         from sys import _getframe
         from xoutil import Unset
         from xoeuf.osv.improve import (fix_documentations,
-                                       integrate_extension_methods)
+                                       integrate_extensions)
         CURSOR_NAME = str('cr')
         ROOT_USER_NAME = str('uid')
         MODELS_NAME = str('models')
@@ -459,7 +459,7 @@ class Registry(ModuleType):
                     var_name = 'self' if kwname == '_' else kwname
                     vars[var_name] = model
         fix_documentations(self)
-        integrate_extension_methods()
+        integrate_extensions()
 
     @staticmethod
     def get_all_db_names():

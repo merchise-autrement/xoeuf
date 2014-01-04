@@ -16,7 +16,7 @@ This module define functions to improve `OpenERP` object services (OSV) with
 some extensions related to model programming or shell (Command Line Interface)
 use:
 
-- :func:`integrate_extension_methods` -  integrate all methods defined as
+- :func:`integrate_extensions` -  integrate all methods defined as
   functions in module ``xoeuf.osv.model_extensions`` to `ModelBase`.
 
 - :func:`fix_documentations` - Fixes all models documentation from a given
@@ -32,14 +32,18 @@ from __future__ import (division as _py3_division,
 from xoutil.names import strlist as strs
 
 
-__all__ = strs('integrate_extension_methods', 'fix_documentations')
+__all__ = strs('integrate_extensions', 'fix_documentations')
 
 del strs
 
 
-def integrate_extension_methods():
+def integrate_extensions():
     '''Integrate all functions defined in ``xoeuf.osv.model_extensions`` as
     new `ModelBase` methods.
+
+    It can be used in Python modules like::
+
+       from xoeuf.osv.improve import integrate_extensions as _; _(); del _
 
     :return: extended `BaseModel`
 
