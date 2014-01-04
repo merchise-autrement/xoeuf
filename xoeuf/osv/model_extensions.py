@@ -192,6 +192,9 @@ def search_browse(self, cr, uid, *args, **kwargs):
 def field_value(self, cr, uid, ids, field_name, context=None):
     '''Read a field value for a set of objects.
 
+    This method is very protective, if any ``False`` is passed as `ids`,
+    ``False`` is returned without raising errors.
+
     Parameters:
 
       :param self: model to operate in
@@ -211,7 +214,7 @@ def field_value(self, cr, uid, ids, field_name, context=None):
                       See method :func:`read` for more details.
 
       :return: a value if only one id is specified or a dictionary if more
-               than one. ``None`` is returned when no record is associated
+               than one. ``False`` is returned when no record is associated
                with the ids.
 
       :rtype: same type of field or ``{id: value, ...}``
@@ -221,14 +224,20 @@ def field_value(self, cr, uid, ids, field_name, context=None):
                             the requested object
 
     '''
-    data = self.read(cr, uid, ids, ['id', field_name], context=context)
-    if type(data) is dict:
-        return data.get(field_name)
-    else:
-        count = len(data)
-        if count == 0:
-            return None
-        elif count == 1:
-            return data[0][field_name]
+    if ids:
+        data = self.read(cr, uid, ids, ['id', field_name], context=context)
+        dt = type(data)
+        if dt is dict:
+            return data.get(field_name, False)
+        elif dt is list:
+            count = len(data)
+            if count == 0:
+                return False
+            elif count == 1:
+                return data[0][field_name]
+            else:
+                return {item['id']: item[field_name] for item in data}
         else:
-            return {item['id']: item[field_name] for item in data}
+            return data
+    else:
+        return False
