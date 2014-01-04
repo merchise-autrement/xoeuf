@@ -2,7 +2,7 @@
 #----------------------------------------------------------------------
 # xoeuf.osv.improve
 #----------------------------------------------------------------------
-# Copyright (c) 2013 Merchise Autrement and Contributors
+# Copyright (c) 2013, 2014 Merchise Autrement and Contributors
 # All rights reserved.
 #
 # This is free software; you can redistribute it and/or modify it under
@@ -12,10 +12,15 @@
 
 '''Xœuf extensions for Open Object (OpenERP) models.
 
-This module improve `OpenERP` object services (OSV) with some extensions
-related to model programming or shell (Command Line Interface) use:
+This module define functions to improve `OpenERP` object services (OSV) with
+some extensions related to model programming or shell (Command Line Interface)
+use:
 
-- Integrate methods `search_read` and ``search_browse`` to `ModelBase`.
+- :func:`integrate_extension_methods` -  integrate all methods defined as
+  functions in module ``xoeuf.osv.model_extensions`` to `ModelBase`.
+
+- :func:`fix_documentations` - Fixes all models documentation from a given
+  Xœuf registry (`OpenERP` data-base).
 
 '''
 
@@ -27,19 +32,25 @@ from __future__ import (division as _py3_division,
 from xoutil.names import strlist as strs
 
 
-__all__ = strs('integrate_search', 'fix_documentations')
+__all__ = strs('integrate_extension_methods', 'fix_documentations')
 
 del strs
 
 
-def integrate_search():
-    '''Integrate methods `search_read` and ``search_browse`` to `ModelBase`.
+def integrate_extension_methods():
+    '''Integrate all functions defined in ``xoeuf.osv.model_extensions`` as
+    new `ModelBase` methods.
 
     '''
+    from types import FunctionType
     from openerp.osv.orm import BaseModel
-    from xoeuf.osv.orm import search_read, search_browse
-    BaseModel.search_read = search_read
-    BaseModel.search_browse = search_browse
+    from xoeuf.osv import model_extensions
+    if not model_extensions.INTEGRATED:
+        model_extensions.INTEGRATED = True
+        for name in dir(model_extensions):
+            value = getattr(model_extensions, name)
+            if type(value) is FunctionType:
+                setattr(BaseModel, name, value)
 
 
 def fix_documentations(db):
