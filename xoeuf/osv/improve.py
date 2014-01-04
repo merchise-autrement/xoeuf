@@ -43,7 +43,8 @@ def integrate_extensions():
 
     It can be used in Python modules like::
 
-       from xoeuf.osv.improve import integrate_extensions as _; _(); del _
+      from xoeuf.osv.improve import integrate_extensions as _ie
+      _ie(); del _ie
 
     :return: extended `BaseModel`
 
