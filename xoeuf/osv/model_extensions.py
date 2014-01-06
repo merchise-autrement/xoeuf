@@ -193,7 +193,8 @@ def field_value(self, cr, uid, ids, field_name, context=None):
     '''Read a field value for a set of objects.
 
     This method is very protective, if any ``False`` is passed as `ids`,
-    ``False`` is returned without raising errors.
+    ``False`` is returned without raising errors; Also related "2one" field
+    values are returned only as id integers, not tuples (id, 'name').
 
     Parameters:
 
@@ -225,18 +226,19 @@ def field_value(self, cr, uid, ids, field_name, context=None):
 
     '''
     if ids:
-        data = self.read(cr, uid, ids, ['id', field_name], context=context)
+        fix = lambda v: v[0] if type(v) is tuple else v
+        data = self.read(cr, uid, ids, [field_name], context=context)
         dt = type(data)
         if dt is dict:
-            return data.get(field_name, False)
+            return fix(data.get(field_name, False))
         elif dt is list:
             count = len(data)
             if count == 0:
                 return False
             elif count == 1:
-                return data[0][field_name]
+                return fix(data[0][field_name])
             else:
-                return {item['id']: item[field_name] for item in data}
+                return {item['id']: fix(item[field_name]) for item in data}
         else:
             return data
     else:
