@@ -2,7 +2,7 @@
 #----------------------------------------------------------------------
 # xoeuf.osv.orm
 #----------------------------------------------------------------------
-# Copyright (c) 2013 Merchise Autrement and Contributors
+# Copyright (c) 2013, 2014 Merchise Autrement and Contributors
 # All rights reserved.
 #
 # This is free software; you can redistribute it and/or modify it under
@@ -12,7 +12,6 @@
 
 '''Xœuf ORM extensions for Open Object (OpenERP) models.'''
 
-
 from __future__ import (division as _py3_division,
                         print_function as _py3_print,
                         unicode_literals as _py3_unicode,
@@ -20,15 +19,14 @@ from __future__ import (division as _py3_division,
 
 
 def search_read(self, cr, uid, *args, **kwargs):
-    '''
-    Search based on a domain and with the returned ids read records with the
+    '''Search based on a domain and with the returned ids read records with the
     given fields.
 
     Parameters:
 
-      :param self: model to operate in
-      :param cr: database cursor
-      :param uid: current user id
+    :param self: model to operate in
+    :param cr: database cursor
+    :param uid: current user id
 
     Other optional arguments can be passed by position or by name:
 
@@ -51,9 +49,10 @@ def search_read(self, cr, uid, *args, **kwargs):
     - ``context``: context arguments in a dictionary, like lang, time
       zone. Could be passed by position after ``fields``.
 
-    :return: dictionary or list of dictionaries((one per record asked)) with
+    :return: dictionary or list of dictionaries (one per record asked) with
              requested field values.
-    :rtype: [{‘name_of_the_field’: value, ...}, ...]
+
+    :rtype: ``[{'name_of_the_field': value, ...}, ...]``
 
     :raise AccessError:
       * if user has no read rights on the requested object, or
@@ -125,8 +124,7 @@ def search_read(self, cr, uid, *args, **kwargs):
 
 
 def search_browse(self, cr, uid, *args, **kwargs):
-    '''
-    Search based on a domain and with the returned ids browse corresponding
+    '''Search based on a domain and with the returned ids browse corresponding
     records or return None if nothing is found.
 
     Parameters:
@@ -137,10 +135,10 @@ def search_browse(self, cr, uid, *args, **kwargs):
 
     Other optional arguments can be passed by position or by name:
 
-    - ``domain``: list of tuples specifying the search domain (See below). An
-      empty list or no argument can be used to match all records. Could be
-      passed by position after ``uid``. Use ``args`` as an alias in arguments
-      by name (``kwargs``).
+    - ``domain``: list of tuples specifying the search domain. An empty list or
+      no argument can be used to match all records. Could be passed by position
+      after ``uid``. Use ``args`` as an alias in arguments by name
+      (``kwargs``).
 
     - ``offset``: number of results to skip in the returned values
       (default: ``0``).
