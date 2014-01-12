@@ -8,14 +8,19 @@
 # This is free software; you can redistribute it and/or modify it under
 # the terms of the LICENCE attached in the distribution package.
 #
-# @created: 2013-11-27
+# @created: 2013-01-03
 
 '''Xœuf ORM extensions for Open Object (OpenERP) models.
 
 All the attributes of this module must be functions that can be integrated as
-`BaseModel` methods.
+`BaseModel` methods or operators.
 
-Use :func:`xoeuf`
+Operators name has the format ``operator__<name>`` and are converted to
+``__<name>__``.
+
+Use :func:`xoeuf.osv.improve.integrate_extensions` for integrate these
+extensions.
+
 '''
 
 

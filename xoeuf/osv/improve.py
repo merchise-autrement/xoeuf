@@ -38,27 +38,40 @@ del strs
 
 
 def integrate_extensions():
-    '''Integrate all functions defined in ``xoeuf.osv.model_extensions`` as
-    new `ModelBase` methods.
+    '''Integrate all functions defined in ``xoeuf.osv.model_extensions`` and
+    ``xoeuf.osv.browser_extensions`` as new `ModelBase` and ``browse_record``
+    methods and operators.
 
     It can be used in Python modules like::
 
       from xoeuf.osv.improve import integrate_extensions as _ie
       _ie(); del _ie
 
-    :return: extended `BaseModel`
-
     '''
     from types import FunctionType
     from openerp.osv.orm import BaseModel
-    from xoeuf.osv import model_extensions
+    from openerp.osv.orm import browse_record
+    from xoeuf.osv import model_extensions, browser_extensions
+
+    def fixname(name):
+        'Convert operator names, just in case'
+        op_prefix = 'operator__'
+        c = len(op_prefix)
+        return '__%s__' % name[c:] if name.startswith(op_prefix) else name
+
     if not model_extensions.INTEGRATED:
         model_extensions.INTEGRATED = True
         for name in dir(model_extensions):
             value = getattr(model_extensions, name)
             if type(value) is FunctionType:
-                setattr(BaseModel, name, value)
-    return BaseModel
+                setattr(BaseModel, fixname(name), value)
+    if not browser_extensions.INTEGRATED:
+        browser_extensions.INTEGRATED = True
+        for name in dir(browser_extensions):
+            value = getattr(browser_extensions, name)
+            if type(value) is FunctionType:
+                setattr(browse_record, fixname(name), value)
+
 
 
 def fix_documentations(db):
