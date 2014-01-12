@@ -41,4 +41,4 @@ def operator__dir(self):
     '''
     cr, uid, context = self._cr, self._uid, self._context
     flds = list(self._model.fields_get_keys(cr, uid, context))
-    return flds + ['refresh']
+    return flds + list(self.__dict__)
