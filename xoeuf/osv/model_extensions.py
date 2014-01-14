@@ -34,25 +34,22 @@ INTEGRATED = False    # True after integrated to `ModelBase`
 
 
 def search_read(self, cr, uid, *args, **kwargs):
-    '''
-    Search based on a domain and with the returned ids read records with the
+    '''Search based on a domain and with the returned ids read records with the
     given fields.
 
-    Parameters:
-
-      :param self: model to operate in
-      :param cr: database cursor
-      :param uid: current user id
+    :param self: model to operate in
+    :param cr: database cursor
+    :param uid: current user id
 
     Other optional arguments can be passed by position or by name:
 
-    - ``domain``: list of tuples specifying the search domain (See below). An
-      empty list or no argument can be used to match all records. Could be
+    - ``domain``: list of tuples specifying the search domain (see below).  An
+      empty list or no argument can be used to match all records.  Could be
       passed by position after ``uid``. Use ``args`` as an alias in arguments
       by name (``kwargs``).
 
     - ``fields``: list of field names to return (default: all fields would be
-      returned). Example ``['id', 'name', 'age']``. Could be passed by
+      returned). Example ``['id', 'name', 'age']``.  Could be passed by
       position after ``domain``.
 
     - ``offset``: number of results to skip in the returned values
@@ -65,9 +62,9 @@ def search_read(self, cr, uid, *args, **kwargs):
     - ``context``: context arguments in a dictionary, like lang, time
       zone. Could be passed by position after ``fields``.
 
-    :return: dictionary or list of dictionaries((one per record asked)) with
+    :return: dictionary or list of dictionaries (one per record asked) with
              requested field values.
-    :rtype: [{‘name_of_the_field’: value, ...}, ...]
+    :rtype: ``[{‘name_of_the_field’: value, ...}, ...]``
 
     :raise AccessError:
       * if user has no read rights on the requested object, or
@@ -87,7 +84,7 @@ def search_read(self, cr, uid, *args, **kwargs):
             ``ilike``, ``in``, ``not in``, ``child_of``, ``parent_left``,
             ``parent_right``.
 
-          The semantics of most of these operators are obvious. The
+          The semantics of most of these operators are obvious.  The
           ``child_of`` operator will look for records who are children or
           grand-children of a given record, according to the semantics of this
           model (i.e following the relationship field named by
@@ -139,21 +136,18 @@ def search_read(self, cr, uid, *args, **kwargs):
 
 
 def search_browse(self, cr, uid, *args, **kwargs):
-    '''
-    Search based on a domain and with the returned ids browse corresponding
+    '''Search based on a domain and with the returned ids browse corresponding
     records or return None if nothing is found.
 
-    Parameters:
-
-      :param self: model to operate in
-      :param cr: database cursor
-      :param uid: current user id
+    :param self: model to operate in
+    :param cr: database cursor
+    :param uid: current user id
 
     Other optional arguments can be passed by position or by name:
 
-    - ``domain``: list of tuples specifying the search domain (See below). An
-      empty list or no argument can be used to match all records. Could be
-      passed by position after ``uid``. Use ``args`` as an alias in arguments
+    - ``domain``: list of tuples specifying the search domain (see below).  An
+      empty list or no argument can be used to match all records.  Could be
+      passed by position after ``uid``.  Use ``args`` as an alias in arguments
       by name (``kwargs``).
 
     - ``offset``: number of results to skip in the returned values
@@ -198,36 +192,36 @@ def field_value(self, cr, uid, ids, field_name, context=None):
     '''Read a field value for a set of objects.
 
     This method is very protective, if any ``False`` is passed as `ids`,
-    ``False`` is returned without raising errors; Also related "2one" field
+    ``False`` is returned without raising errors; also related "2one" field
     values are returned only as id integers, not tuples (id, 'name').
 
-    Parameters:
+    :param self: model to operate in
 
-      :param self: model to operate in
+    :param cr: database cursor
 
-      :param cr: database cursor
+    :param uid: current user id
 
-      :param uid: current user id
+    :param ids: id or list of the ids of the records to read
 
-      :param ids: id or list of the ids of the records to read
+    :param field_name: field name to return
 
-      :param field_name: field name to return
+    :param context: optional context dictionary - it may contains keys for
+                    specifying certain options like ``context_lang``,
+                    ``context_tz`` to alter the results of the call.
 
-      :param context: optional context dictionary - it may contains keys for
-                      specifying certain options like ``context_lang``,
-                      ``context_tz`` to alter the results of the call.
+                    See method :func:`read` for more details.
 
-                      See method :func:`read` for more details.
+    :return: a value if only one id is specified or a dictionary if more than
+             one. ``False`` is returned when no record is associated with the
+             ids.
 
-      :return: a value if only one id is specified or a dictionary if more
-               than one. ``False`` is returned when no record is associated
-               with the ids.
+    :rtype: same type of field or ``{id: value, ...}``
 
-      :rtype: same type of field or ``{id: value, ...}``
+    :raise AccessError:
 
-      :raise AccessError: * if user has no read rights on the requested object
-                          * if user tries to bypass access rules for read on
-                            the requested object
+       * if user has no read rights on the requested object
+
+       * if user tries to bypass access rules for read on the requested object
 
     '''
     if ids:
