@@ -32,10 +32,9 @@ def dt2str(dt):
 
 def str2dt(s):
     'Convert a string to a date-time using `OpenERP` default server format'
-    from datetime import datetime
     return _dt.strptime(s, _SVR_DATETIME_FMT)
 
 
 def str2date(s):
-    'Convert a string to a date using `OpenERP` default server format'
-    return _dt.strptime(s, _SVR_DATETIME_FMT)
+    'Convert a string to a date-time using `OpenERP` default server date format'
+    return _dt.strptime(s, _SVR_DATE_FMT)
