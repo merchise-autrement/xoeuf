@@ -242,3 +242,108 @@ def field_value(self, cr, uid, ids, field_name, context=None):
             return data
     else:
         return False
+
+
+def search_value(self, cr, uid, args, field_name, context=None):
+    '''Read a field value for a set of objects.
+
+    This method is very protective, if any ``False`` is passed as `ids`,
+    ``False`` is returned without raising errors; also related "2one" field
+    values are returned only as id integers, not tuples (id, 'name').
+
+    :param self: model to operate in
+
+    :param cr: database cursor
+
+    :param uid: current user id
+
+    :param args: list of tuples specifying the search domain ``[('field_name',
+                 'operator', value), ...]``. Pass an empty list to match all
+                 records.
+
+    :param field_name: field name to return
+
+    :param context: optional context dictionary - it may contains keys for
+                    specifying certain options like ``context_lang``,
+                    ``context_tz`` to alter the results of the call.
+
+                    See method :func:`read` for more details.
+
+    :return: a value if only one id is specified or a dictionary if more than
+             one. ``False`` is returned when no record is associated with the
+             ids.
+
+    :rtype: same type of field or ``{id: value, ...}``
+
+    :raise AccessError:
+
+       * if user has no read rights on the requested object
+
+       * if user tries to bypass access rules for read on the requested object
+
+    '''
+    ids = self.search(cr, uid, args, context=context)
+    return field_value(self, cr, uid, ids, field_name, context=context)
+
+
+def obj_ref(self, cr, uid, xml_id):
+    '''Returns (model, res_id) corresponding to a given `xml_id`
+
+    If `xml_id` contains a dot '.', absolute ID (``<module>.<external-id>``)
+    is assumed.
+
+    If no module part is given, the resulting object reference is looked up in
+    all alternatives with the same local ``xml-id``, first using
+    ``self._module`` (for field ``module``) and after ``self._name`` (for
+    field ``model``).
+
+    If no alternative exactly match, a list of tuples will be returned, each
+    one with ``(model, res_id)``.
+
+    Empty list or ``False`` is returned if no record is found.
+
+    :param self: model to operate in
+
+    :param cr: database cursor
+
+    :param uid: current user id
+
+    :param xml_id: external id to look for
+
+    :return: a tuple ``(model, res_id)`` with the resulting reference.
+
+    :rtype: tuple
+
+    '''
+    imd = self.pool.get('ir.model.data')
+    fields = ['name', 'module', 'model', 'res_id']
+    fname, fmod, fmodel, fid = fields
+    if '.' in xml_id:
+        module, ext_id = xml_id.split('.', 1)
+        query = [(fmod, '=', module), (fname, '=', ext_id)]
+        return search_value(imd, cr, uid, query, fid)
+    else:
+        query = [(fname, '=', xml_id)]
+        data = search_read(imd, cr, uid, domain=query, fields=fields)
+        if data:
+            dt = type(data)
+            if dt is dict:
+                return data[fmodel], data[fid]
+            elif dt is list:
+                count = len(data)
+                if count == 1:
+                    res = data[0]
+                    return res[fmodel], res[fid]
+                else:
+                    test = lambda d: d['module'] == self._module
+                    res = next((d for d in data if test(d)), None)
+                    if res:
+                        return res[fmodel], res[fid]
+                    else:
+                        test = lambda d: d[fmodel] == self._name
+                        res = [(d[fmodel], d[fid]) for d in data if test(d)]
+                        if not res:
+                            res = [(d[fmodel], d[fid]) for d in data]
+                        return res[0] if len(res) == 1 else res
+        else:
+            return data
