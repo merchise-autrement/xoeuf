@@ -3,7 +3,7 @@
 #----------------------------------------------------------------------
 # xoeuf.release
 #----------------------------------------------------------------------
-# Copyright (c) 2013 Merchise Autrement and Contributors
+# Copyright (c) 2013, 2014 Merchise Autrement and Contributors
 # All rights reserved.
 #
 # This is free software; you can redistribute it and/or modify it under
@@ -17,7 +17,7 @@ from __future__ import (division as _py3_division,
                         unicode_literals as _py3_unicode,
                         absolute_import as _py3_abs_imports)
 
-VERSION = '0.1.0'
+VERSION = '0.2.0'
 
 def dev_tag():
     import os
