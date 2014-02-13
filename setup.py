@@ -57,7 +57,7 @@ setup(name=project_name,
       zip_safe=False,
       install_requires=[
           # -*- Extra requirements: -*-
-          'xoutil',
+          'xoutil>=1.5.0,<1.6',
       ],
       extra_requires={
         # If you really need Xotl it's best to move it to install_requires
