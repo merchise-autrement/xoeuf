@@ -49,10 +49,7 @@ setup(name=project_name,
           'xoutil>=1.5.0,<1.6',
       ],
       extra_requires={
-        # If you really need Xotl it's best to move it to install_requires
-        'xotl2': ['xotl>=2.1.11,<3', ],
-        'xotl3': ['xotl>=3.0.0', ],
-        'doc': ['docutils>=0.7', 'Sphinx>=1.0.7', ]
+          'doc': ['docutils>=0.7', 'Sphinx>=1.0.7', ]
       },
       entry_points="""
 
