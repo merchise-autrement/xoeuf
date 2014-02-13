@@ -347,3 +347,39 @@ def obj_ref(self, cr, uid, xml_id):
                         return res[0] if len(res) == 1 else res
         else:
             return data
+
+
+def touch_fields(self, cr, uid, ids, only=None, context=None):
+    '''Touches functional fields of the given `ids`.
+
+    For each functional field with a non-bool `store`, the value is
+    recalculated and stored.
+
+    If `only` is set, it should be a list of fields to touch.  Invalid
+    (non-functional, or without a non-bool``store``) fields are silently
+    ignored.
+
+    '''
+    from xoutil.compat import iteritems_
+    from xoutil.objects import dict_merge
+    from openerp.osv.fields import function, related
+    is_a = isinstance
+    funcfields = {name: field for name, field in iteritems_(self._columns)
+                  if is_a(field, function) and not is_a(field, related)
+                  if field.store not in (None, True, False)
+                  if not only or name in only}
+    results = {}
+    for name, field in iteritems_(funcfields):
+        res = field.get(cr, self, ids, name, uid=uid, context=dict(context))
+        # Some functional fields return the result of several fields in a dict,
+        # thus we must merge the ids but "flattening" the fields into a single
+        # dict.
+        get_value = lambda val: val if isinstance(val, dict) else {name: val}
+        results = dict_merge(results, {id: get_value(res[id]) for id in res})
+    rows = ((oid, name, vals[name]) for oid, vals in iteritems_(results)
+            for name in vals)
+    for objid, name, value in rows:
+        field = funcfields.get(name, None)
+        if field:
+            field.set(cr, self, objid, name, value, user=uid,
+                      context=dict(context))
