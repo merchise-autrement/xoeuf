@@ -1,0 +1,3 @@
+include *.txt *.ini *.cfg *.rst *.wsgi
+recursive-include xoeuf *.ico *.png *.css *.gif *.jpg *.pt *.txt *.mak *.mako *.js *.html *.xml *.pot *.po *.mo *.gmo
+recursive-include docs *.po *.mo *.rst *.html *.css *.jpeg *.jpg *.png
