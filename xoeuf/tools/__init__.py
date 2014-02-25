@@ -16,6 +16,8 @@
 
 from datetime import datetime as _dt
 
+from xoutil.decorator import aliases
+
 from openerp.tools import DEFAULT_SERVER_DATE_FORMAT as _SVR_DATE_FMT
 from openerp.tools import DEFAULT_SERVER_DATETIME_FORMAT as _SVR_DATETIME_FMT
 
@@ -30,11 +32,15 @@ def dt2str(dt):
     return dt.strftime(_SVR_DATETIME_FMT)
 
 
+@aliases('parse_datetime')
 def str2dt(s):
     'Convert a string to a date-time using `OpenERP` default server format'
     return _dt.strptime(s, _SVR_DATETIME_FMT)
 
 
+@aliases('parse_date')
 def str2date(s):
-    'Convert a string to a date-time using `OpenERP` default server date format'
+    '''Convert a string to a date-time using `OpenERP` default server date format.
+
+    '''
     return _dt.strptime(s, _SVR_DATE_FMT)
