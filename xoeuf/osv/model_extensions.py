@@ -114,7 +114,7 @@ def search_read(self, cr, uid, *args, **kwargs):
              (country is Belgium OR Germany))
 
     '''
-    from xoutil.objects import get_and_del_first_of as _get
+    from xoutil.objects import pop_first_of as _get
     # Convert all positional to keyword arguments
     for pos, arg in enumerate(args):
         kwargs[pos + 3] = arg
@@ -168,7 +168,7 @@ def search_browse(self, cr, uid, *args, **kwargs):
     See :func:`search_read` for how to express a search domain.
 
     '''
-    from xoutil.objects import get_and_del_first_of as _get
+    from xoutil.objects import pop_first_of as _get
     # Convert all positional to keyword arguments
     for pos, arg in enumerate(args):
         kwargs[pos + 3] = arg
