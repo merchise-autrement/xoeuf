@@ -43,10 +43,11 @@ __author__ = 'med'
 
 
 def _valid_model_base(model):
+    '''Check if a model has a right base class.'''
     from openerp.osv.orm import BaseModel
     if not isinstance(model, BaseModel):
         msg = 'Inappropriate type "%s" for model value!\tMRO=%s'
-        t = type(value)
+        t = type(model)
         raise TypeError(msg % (t.__name__, t.mro()))
 
 
@@ -88,7 +89,7 @@ class TransactionManager(Context):
 
     __slots__ = slist('_registry', '_wrapped')
 
-    default_context = {}    # TODO: ...
+    default_context = {}    # TODO: check its value
 
     def __new__(cls, registry, **kwargs):
         with manager.registries_lock:
