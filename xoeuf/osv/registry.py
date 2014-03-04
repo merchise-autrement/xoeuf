@@ -43,10 +43,11 @@ __author__ = 'med'
 
 
 def _valid_model_base(model):
+    '''Check if a model has a right base class.'''
     from openerp.osv.orm import BaseModel
     if not isinstance(model, BaseModel):
         msg = 'Inappropriate type "%s" for model value!\tMRO=%s'
-        t = type(value)
+        t = type(model)
         raise TypeError(msg % (t.__name__, t.mro()))
 
 
@@ -88,7 +89,7 @@ class TransactionManager(Context):
 
     __slots__ = slist('_registry', '_wrapped')
 
-    default_context = {}    # TODO: ...
+    default_context = {}    # TODO: check its value
 
     def __new__(cls, registry, **kwargs):
         with manager.registries_lock:
@@ -349,6 +350,7 @@ class Registry(ModuleType):
         '''Create, or return if already exists, a instance of a database
         registry.
         '''
+        import threading
         with manager.registries_lock:
             db_name = str(db_name)
             self = cls.instances.get(db_name)    # Only one per database
@@ -364,6 +366,9 @@ class Registry(ModuleType):
             else:
                 self._default_context.update(kwargs)
                 self._cardinality += 1
+            current_thread = threading.current_thread()
+            current_thread.dbname = self.db_name
+            current_thread.uid = self.uid
             return self
 
     def __init__(self, db_name, **kwargs):
@@ -426,7 +431,6 @@ class Registry(ModuleType):
 
         '''
         from sys import _getframe
-        from xoutil import Unset
         from xoeuf.osv.improve import (fix_documentations,
                                        integrate_extensions)
         CURSOR_NAME = str('cr')
