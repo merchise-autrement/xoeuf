@@ -14,7 +14,7 @@
 
 '''
 
-from datetime import datetime as _dt
+from datetime import datetime as _dt, date as _d
 
 from xoutil.decorator import aliases
 
@@ -44,3 +44,58 @@ def str2date(s):
 
     '''
     return _dt.strptime(s, _SVR_DATE_FMT)
+
+
+def normalize_datetime(which):
+    '''Normalizes `which` to a datetime.
+
+    If `which` is either a `datetime` is returned unchanged.  If is a `date`
+    is returned as a `datetime` with time components set to 0.  Otherwise, it
+    must be a string with either of OpenERP's date or date-time format.  The
+    date-time format is used first.
+
+    For instance, having ``now`` and ``today`` values like::
+
+       >>> import datetime
+       >>> from xoutil.objects import validate_attrs
+       >>> now = datetime.datetime.now()
+       >>> today = datetime.date.today()
+
+    Then, ``now`` is returned as-is::
+
+       >>> normalize_datetime(now) is now
+       True
+
+    But ``today`` is converted to a `datetime` with the same date components::
+
+       >>> dtoday = normalize_date(today)
+       >>> validate_attrs(today, dtoday,
+       ...                force_equals=('year', 'month', 'day'))
+       True
+
+    If a string is given, a `datetime` is returned::
+
+       >>> normalize_date('2014-02-12')
+       datetime.datetime(2014, 2, 12, 0, 0)
+
+
+    If the string does not match any of the server's date or datetime format,
+    raise a ValueError::
+
+       >>> normalize_date('not a date')  # doctest: +ELLIPSIS
+       Traceback (most recent call last)
+       ...
+       ValueError: time data 'not a date' does not match format '%Y-%m-%d'
+
+    '''
+    from xoutil.compat import str_base
+    if isinstance(which, _dt):
+        return which
+    elif isinstance(which, _d):
+        return _dt(which.year, which.month, which.day)
+    elif isinstance(which, str_base):
+        # pylint: disable=E0602
+        try:
+            return parse_datetime(which)
+        except ValueError:
+            return parse_date(which)
