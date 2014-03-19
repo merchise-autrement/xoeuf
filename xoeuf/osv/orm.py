@@ -72,3 +72,30 @@ def get_modelname(model):
         result = model._inherit
     assert isinstance(result, str_base), 'Got an invalid name for %r' % model
     return result
+
+
+# XXX [manu]  Discovered similar things in openerp/addons/base/ir/ir_fields.
+
+#: Returns a single "command" to create a new related record
+CREATE_RELATED = lambda **values: (0, 0, values)
+ONE2MANY_CREATE = MANY2MANY_CREATE = CREATE_RELATED
+
+#: Returns a single "command" to update a linked record
+UPDATE_RELATED = lambda id, **values: (1, id, values)
+ONE2MANY_UPDATE = MANY2MANY_UPDATE = UPDATE_RELATED
+
+#: Returns a single "command" to remove (and unlink) the related record
+REMOVE_RELATED = lambda id: (2, id)
+ONE2MANY_REMOVE = MANY2MANY_REMOVE = REMOVE_RELATED
+
+#: Returns a single command to forget about a relation
+FORGET_RELATED = lambda id: (3, id)
+
+#: Returns a single command to link a record
+LINK_RELATED = lambda id: (4, id)
+
+#: Returns a single command to unlink all
+UNLINKALL_RELATED = (5, )
+
+#: Returns a single command to replace all related with existing ids
+REPLACEWITH_RELATED = lambda *ids: (6, 0, list(ids))
