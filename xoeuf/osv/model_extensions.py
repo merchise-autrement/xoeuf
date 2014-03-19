@@ -29,7 +29,6 @@ from __future__ import (division as _py3_division,
                         unicode_literals as _py3_unicode,
                         absolute_import)
 
-
 INTEGRATED = False    # True after integrated to `ModelBase`
 
 
@@ -363,3 +362,36 @@ def touch_fields(self, cr, uid, ids, only=None, context=None):
               if field.store not in (None, False)
               if not only or name in only]
     return self._store_set_values(cr, uid, ids, fields, dict(context))
+
+
+def get_writer(self, cr, uid, ids, context=None):
+    '''Returns a context manager that handles all eases writing objects with
+    the OpenERP's ORM.
+
+    Usage::
+
+       with get_writer(obj, cr, uid, ids, context=context) as writer:
+          writer.update(attr1=val1, attr2=val2, attr3=None)
+          writer.update(attr4=val4)
+          writer.add(many2manycolumn, id1, id2, id3)
+          writer.forget(many2manycolumn, id4, id5)
+
+    .. seealso:: :class:`xoeuf.osv.writers.Writer`.
+
+    .. warning:: Non-magical disclaimer.
+
+       The sole purpose of writers is to ease the writing of write sentences.
+       If the OpenERP does not understand the commands you produce is not our
+       fault.
+
+    '''
+    from .writers import ORMWriter
+    return ORMWriter(self, cr, uid, ids, context=context)
+
+
+def get_creator(self, cr, uid, context=None):
+    '''Similar to `get_writer`:func: but issues a ``obj.create()`` instead of
+    a `write`.
+    '''
+    from .writers import ORMCreator
+    return ORMCreator(self, cr, uid, context=context)
