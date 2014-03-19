@@ -34,7 +34,7 @@ setup(name=project_name,
       # Get more strings from
       # http://pypi.python.org/pypi?:action=list_classifiers
       classifiers=[
-        "Programming Language :: Python",
+          "Programming Language :: Python",
       ],
       keywords='openerp open-object server library',
       author='Merchise Autrement',
@@ -47,11 +47,6 @@ setup(name=project_name,
       install_requires=[
           # -*- Extra requirements: -*-
           'xoutil>=1.5.0,<1.6',
+          'openerp'
       ],
-      extra_requires={
-          'doc': ['docutils>=0.7', 'Sphinx>=1.0.7', ]
-      },
-      entry_points="""
-
-      """,
-      )
+)
