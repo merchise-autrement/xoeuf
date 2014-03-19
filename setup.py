@@ -27,10 +27,20 @@ _current_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(_current_dir, project_name))
 from release import VERSION as version
 
+
+def safe_read(*paths):
+    fname = os.path.join(_current_dir, *paths)
+    try:
+        with open(fname, 'r') as fh:
+            return fh.read()
+    except (IOError, OSError):
+        return ''
+
+
 setup(name=project_name,
       version=version,
       description="Basic utilities for OpenERP Open Object Services",
-      long_description=open(os.path.join('docs', 'readme.txt')).read(),
+      long_description=safe_read('docs', 'readme.txt'),
       # Get more strings from
       # http://pypi.python.org/pypi?:action=list_classifiers
       classifiers=[
@@ -52,4 +62,8 @@ setup(name=project_name,
           'xoutil>=1.5.4,<1.6',
           'openerp'
       ],
-)
+      entry_points="""
+      [console_scripts]
+      xoeuf = xoeuf.cli.server:server
+      xoeuf_mailgate = xoeuf.cli.mailgate:main
+      """)
