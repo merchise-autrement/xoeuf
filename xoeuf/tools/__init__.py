@@ -16,8 +16,6 @@
 
 from datetime import datetime as _dt, date as _d
 
-from xoutil.decorator import aliases
-
 from openerp.tools import DEFAULT_SERVER_DATE_FORMAT as _SVR_DATE_FMT
 from openerp.tools import DEFAULT_SERVER_DATETIME_FORMAT as _SVR_DATETIME_FMT
 
@@ -32,25 +30,25 @@ def dt2str(dt):
     return dt.strftime(_SVR_DATETIME_FMT)
 
 
-@aliases('parse_datetime')
 def str2dt(s):
     'Convert a string to a date-time using `OpenERP` default server format'
     return _dt.strptime(s, _SVR_DATETIME_FMT)
+parse_datetime = str2dt
 
 
-@aliases('parse_date')
 def str2date(s):
     '''Convert a string to a date-time using `OpenERP` default server date format.
 
     '''
     return _dt.strptime(s, _SVR_DATE_FMT)
+parse_date = str2date
 
 
 def normalize_datetime(which):
     '''Normalizes `which` to a datetime.
 
-    If `which` is either a `datetime` is returned unchanged.  If is a `date`
-    is returned as a `datetime` with time components set to 0.  Otherwise, it
+    If `which` is a `datetime` is returned unchanged.  If is a `date` is
+    returned as a `datetime` with time components set to 0.  Otherwise, it
     must be a string with either of OpenERP's date or date-time format.  The
     date-time format is used first.
 
@@ -84,18 +82,20 @@ def normalize_datetime(which):
 
        >>> normalize_date('not a date')  # doctest: +ELLIPSIS
        Traceback (most recent call last)
-       ...
-       ValueError: time data 'not a date' does not match format '%Y-%m-%d'
+          ...
+       ValueError: ...
 
     '''
-    from xoutil.compat import str_base
+    from xoutil.compat import str_base as string_types
     if isinstance(which, _dt):
         return which
     elif isinstance(which, _d):
         return _dt(which.year, which.month, which.day)
-    elif isinstance(which, str_base):
-        # pylint: disable=E0602
+    elif isinstance(which, string_types):
         try:
             return parse_datetime(which)
         except ValueError:
             return parse_date(which)
+    else:
+        raise TypeError("Expected a string, date or date but a '%s' was given"
+                        % type(which))
