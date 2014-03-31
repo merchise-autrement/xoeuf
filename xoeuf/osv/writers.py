@@ -85,7 +85,8 @@ class _BaseWriter(object):
 
         - Keywords only `attrname=value`.  This case is used mostly for
           "plain" columns.  If any `attrname` is a relation it must be a
-          many2many.
+          many2many, and value must be either None or a list of all related
+          objects' ids.
 
         - Two positional arguments and several keyword arguments, like
           ``update(attrname, id, **values)``.  This is for updating the
@@ -118,7 +119,7 @@ class _BaseWriter(object):
                     commands[attrname] = val
 
     def remove(self, attrname, *ids):
-        '''Issue several "remove related object" commands for the attribute named
+        '''Issues several "remove related object" commands for the attribute named
         `attrname`.
 
         '''
