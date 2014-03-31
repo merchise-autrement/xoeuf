@@ -287,7 +287,7 @@ def search_value(self, cr, uid, args, field_name, context=None):
 
 
 def obj_ref(self, cr, uid, xml_id):
-    '''Returns (model, res_id) corresponding to a given `xml_id`
+    '''Returns (model_name, res_id) corresponding to a given `xml_id`
 
     If `xml_id` contains a dot '.', absolute ID (``<module>.<external-id>``)
     is assumed.
@@ -300,7 +300,7 @@ def obj_ref(self, cr, uid, xml_id):
     If no alternative exactly match, a list of tuples will be returned, each
     one with ``(model, res_id)``.
 
-    Empty list or ``False`` is returned if no record is found.
+    If no record is found ``False`` is returned.
 
     :param self: model to operate in
 
@@ -310,10 +310,6 @@ def obj_ref(self, cr, uid, xml_id):
 
     :param xml_id: external id to look for
 
-    :return: a tuple ``(model, res_id)`` with the resulting reference.
-
-    :rtype: tuple
-
     '''
     imd = self.pool.get('ir.model.data')
     fields = ['name', 'module', 'model', 'res_id']
@@ -321,32 +317,32 @@ def obj_ref(self, cr, uid, xml_id):
     if '.' in xml_id:
         module, ext_id = xml_id.split('.', 1)
         query = [(fmod, '=', module), (fname, '=', ext_id)]
-        return search_value(imd, cr, uid, query, fid)
+        data = search_read(imd, cr, uid, query, [fmodel, fid])
     else:
         query = [(fname, '=', xml_id)]
         data = search_read(imd, cr, uid, domain=query, fields=fields)
-        if data:
-            dt = type(data)
-            if dt is dict:
-                return data[fmodel], data[fid]
-            elif dt is list:
-                count = len(data)
-                if count == 1:
-                    res = data[0]
+    if data:
+        dt = type(data)
+        if issubclass(dt, dict):
+            return data[fmodel], data[fid]
+        elif issubclass(dt, list):
+            count = len(data)
+            if count == 1:
+                res = data[0]
+                return res[fmodel], res[fid]
+            else:
+                test = lambda d: d['module'] == self._module
+                res = next((d for d in data if test(d)), None)
+                if res:
                     return res[fmodel], res[fid]
                 else:
-                    test = lambda d: d['module'] == self._module
-                    res = next((d for d in data if test(d)), None)
-                    if res:
-                        return res[fmodel], res[fid]
-                    else:
-                        test = lambda d: d[fmodel] == self._name
-                        res = [(d[fmodel], d[fid]) for d in data if test(d)]
-                        if not res:
-                            res = [(d[fmodel], d[fid]) for d in data]
-                        return res[0] if len(res) == 1 else res
-        else:
-            return data
+                    test = lambda d: d[fmodel] == self._name
+                    res = [(d[fmodel], d[fid]) for d in data if test(d)]
+                    if not res:
+                        res = [(d[fmodel], d[fid]) for d in data]
+                    return res[0] if len(res) == 1 else res
+    else:
+        return bool(data)
 
 
 def touch_fields(self, cr, uid, ids, only=None, context=None):
