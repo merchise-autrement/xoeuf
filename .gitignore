@@ -3,6 +3,11 @@
 *.pyo
 *.*~
 *.*~*
+bin/
+src/
+.*.cfg
+develop-eggs/
+parts/
 .project
 .pydevproject
 .settings/
