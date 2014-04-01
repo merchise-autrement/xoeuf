@@ -35,6 +35,9 @@ setup(name=project_name,
       # http://pypi.python.org/pypi?:action=list_classifiers
       classifiers=[
           "Programming Language :: Python",
+          "Intended Audience :: Developers",
+          'License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)',
+          'Development Status :: 4 - Beta',
       ],
       keywords='openerp open-object server library',
       author='Merchise Autrement',
