@@ -1,25 +1,14 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
+# -*- encoding: utf-8 -*-
 #----------------------------------------------------------------------
 # setup
 #----------------------------------------------------------------------
-# Copyright (c) 2013 Merchise Autrement
+# Copyright (c) 2013-2014 Merchise Autrement and Contributors
 # All rights reserved.
 #
-# This is free software; you can redistribute it and/or modify it under
-# the terms of the GNU General Public License (GPL) as published by the
-# Free Software Foundation;  either version 2  of  the  License, or (at
-# your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-# MA 02110-1301, USA.
+# This is free software; you can redistribute it and/or modify it under the
+# terms of the LICENCE attached (see LICENCE file) in the distribution
+# package.
 #
 # Created on 2013-05-05
 
@@ -45,7 +34,10 @@ setup(name=project_name,
       # Get more strings from
       # http://pypi.python.org/pypi?:action=list_classifiers
       classifiers=[
-        "Programming Language :: Python",
+          "Programming Language :: Python",
+          "Intended Audience :: Developers",
+          'License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)',
+          'Development Status :: 4 - Beta',
       ],
       keywords='openerp open-object server library',
       author='Merchise Autrement',
@@ -57,15 +49,7 @@ setup(name=project_name,
       zip_safe=False,
       install_requires=[
           # -*- Extra requirements: -*-
-          'xoutil',
+          'xoutil>=1.5.3,<1.6',
+          'openerp'
       ],
-      extra_requires={
-        # If you really need Xotl it's best to move it to install_requires
-        'xotl2': ['xotl>=2.1.11,<3', ],
-        'xotl3': ['xotl>=3.0.0', ],
-        'doc': ['docutils>=0.7', 'Sphinx>=1.0.7', ]
-      },
-      entry_points="""
-
-      """,
-      )
+)
