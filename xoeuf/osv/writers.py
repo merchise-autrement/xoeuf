@@ -56,10 +56,7 @@ class _BaseWriter(object):
 
         '''
         # TODO: Deal with nested writers properly.
-        try:
-            return self._commands.peek()
-        except AttributeError:
-            return dict(self._commands._StackedDict__stack.maps[0])
+        return self._commands.peek()
 
     def __enter__(self):
         self._commands.push()
