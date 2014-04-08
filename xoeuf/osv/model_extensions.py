@@ -354,10 +354,10 @@ def touch_fields(self, cr, uid, ids, only=None, context=None):
     ignored.
 
     '''
-    from xoutil.compat import iteritems_
+    from xoutil.six import iteritems
     from openerp.osv.fields import function, related
     is_a = isinstance
-    fields = [name for name, field in iteritems_(self._columns)
+    fields = [name for name, field in iteritems(self._columns)
               if is_a(field, function) and not is_a(field, related)
               if field.store not in (None, False)
               if not only or name in only]

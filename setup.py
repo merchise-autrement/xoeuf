@@ -49,7 +49,7 @@ setup(name=project_name,
       zip_safe=False,
       install_requires=[
           # -*- Extra requirements: -*-
-          'xoutil>=1.5.3,<1.6',
+          'xoutil>=1.5.4,<1.6',
           'openerp'
       ],
 )

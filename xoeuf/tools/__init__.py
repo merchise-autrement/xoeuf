@@ -84,7 +84,7 @@ def normalize_datetime(which):
        ValueError: ...
 
     '''
-    from xoutil.compat import str_base as string_types
+    from xoutil.six import string_types
     if isinstance(which, _dt):
         return which
     elif isinstance(which, _d):
