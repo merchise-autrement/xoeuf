@@ -37,11 +37,6 @@ from openerp import SUPERUSER_ID
 from openerp.modules.registry import RegistryManager as manager
 
 
-__docstring_format__ = 'rst'
-__author__ = 'med'
-
-
-
 def _valid_model_base(model):
     '''Check if a model has a right base class.'''
     from openerp.osv.orm import BaseModel
@@ -49,7 +44,6 @@ def _valid_model_base(model):
         msg = 'Inappropriate type "%s" for model value!\tMRO=%s'
         t = type(model)
         raise TypeError(msg % (t.__name__, t.mro()))
-
 
 
 # TODO: Allow to change "openerp.tools.config" per context level
