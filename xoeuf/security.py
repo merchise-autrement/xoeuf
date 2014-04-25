@@ -18,6 +18,12 @@
 - :func:`reset_invalid_passwords`: to reset all invalid passwords in a
   data-base.
 
+Previous two functions uses `xoutil.crypto.generate_password` to generate new
+passwords using as `pass_phrase` the user login, `level` means a generation
+method.  Each level implies all other with an inferior numerical value.  See
+`xoutil.crypto.generate_password` for more information about defined
+constants of security level.
+
 '''
 
 from __future__ import (division as _py3_division,
@@ -45,6 +51,53 @@ __all__ = strs('PASS_PHRASE_LEVEL_BASIC',
 del strs
 
 
+def _reset_passwords(db, security_level, verbose, check=None):
+    '''Internal module function to reset passwords in a data-base.
+
+    This function is used by :func:`reset_all_passwords` and
+    :func:`reset_invalid_passwords` functions.
+
+      :param db: `OpenERP` data-base as defined in `xoeuf.pool`.
+
+      :param security_level: Numerical security level (the bigger the more
+             secure).
+
+      :param verbose: If True, print to ``stdout`` information of every
+             password change.
+
+      :param check: A function that checks if for a given user the password
+             must be changed or not (if not given, is equivalent for True to
+             all users).  It must has following definition::
+
+               def check(self, cr, id, login):
+
+             Where `self` is the ``res.users`` model, `cr` the active
+             data-base cursor, `id` the user data-base id to check, and
+             `login` the user login identifier.
+
+    '''
+    from xoutil.objects import smart_copy
+    from xoutil.crypto import generate_password
+    uid = db.uid
+    users_model = db.models.res_users
+    with db(transactional=True) as cr:
+        ids = users_model.search(cr, uid, [])
+        data = users_model.read(cr, uid, ids, fields=['name', 'login'])
+        for item in data:
+            login = item['login']
+            if check is None or check(users_model, cr, item['id'], login):
+                item['password'] = generate_password(login, security_level)
+                vals = smart_copy(item, {}, defaults=('id', 'password'))
+                if users_model.write(cr, uid, item['id'], vals):
+                    if verbose:
+                        print((">>> id: %(id)s, login: %(login)s, "
+                               "name: %(name)s, "
+                               "password: '%(password)s'") % item)
+                else:
+                    print(("<<< ERROR: id: %(id)s, login: %(login)s, "
+                           "name: %(name)s, ") % item, "NOT CHANGED")
+
+
 def reset_all_passwords(db, security_level=_DEF_LEVEL, verbose=True):
     '''Reset all passwords in a data-base.
 
@@ -55,38 +108,16 @@ def reset_all_passwords(db, security_level=_DEF_LEVEL, verbose=True):
 
     :param verbose: If True, print every change password to ``stdout``.
 
-    This function uses `xoutil.crypto.generate_password` to generate new
-    passwords using as `pass_phrase` the user login, `level` means a
-    generation method.  Each level implies all other with an inferior
-    numerical value.  See `xoutil.crypto.generate_password` for more
-    information about defined constants.
-
     This function can be used as::
 
       >>> from xoeuf.pool import test as db
       >>> from xoeuf.security import reset_all_passwords
       >>> reset_all_passwords(db, security_level=2)
 
+    See module documentation for more info.
+
     '''
-    from xoutil.crypto import generate_password
-    uid = db.uid
-    models = db.models
-    users_model = models.res_users
-    msg = ">>> id: %s, login: %s, password: '%s', name: %s"
-    with db(transactional=True) as cr:
-        ids = users_model.search(cr, uid, [])
-        data = users_model.read(cr, uid, ids, fields=['name', 'login'])
-        for item in data:
-            id = item['id']
-            login = item['login']
-            password = generate_password(login, security_level)
-            vals = {'id': id, 'password': password}
-            if users_model.write(cr, uid, [id], vals):
-                if verbose:
-                    print(msg % (id, login, password, item['name']))
-            else:
-                info = msg % (id, login, password, item['name'])
-                print('Error setting password for', info)
+    _reset_passwords(db, security_level, verbose)
 
 
 def reset_invalid_passwords(db, security_level=_DEF_LEVEL):
@@ -100,42 +131,20 @@ def reset_invalid_passwords(db, security_level=_DEF_LEVEL):
     An invalid password is when it is the same as login name. Print
     information about all users with invalid passwords.
 
-    This function uses `xoutil.crypto.generate_password` to generate new
-    passwords using as `pass_phrase` the user login, `level` means a
-    generation method.  Each level implies all other with an inferior
-    numerical value.  See `xoutil.crypto.generate_password` for more
-    information about defined constants.
-
     This function can be used as::
 
       >>> from xoeuf.pool import test as db
       >>> from xoeuf.security import reset_invalid_passwords
       >>> reset_invalid_passwords(db)
 
-    '''
-    from xoutil.crypto import generate_password
-    from openerp.exceptions import AccessDenied
-    uid = db.uid
-    users_model = db.models.res_users
-    msg = ">>> id: %s, login: %s, password: '%s', name: %s"
-    with db(transactional=True) as cr:
-        ids = users_model.search(cr, uid, [])
-        data = users_model.read(cr, uid, ids, fields=['name', 'login'])
-        for item in data:
-            id = item['id']
-            login = item['login']
-            try:
-                users_model.check_credentials(cr, id, login)
-                password = generate_password(login, security_level)
-                vals = {'id': item['id'], 'password': password}
-                info = msg % (id, login, password, item['name'])
-                if not users_model.write(cr, uid, [id], vals):
-                    info = 'Error setting password for ' + info
-                print(info)
-            except AccessDenied:
-                pass
-            except Exception as error:
-                info = msg % (id, login, password, item['name'])
-                print(">>> ERROR: %s :: %s" % (error, info))
+    See module documentation for more info.
 
-# TODO: See ``/openerp/service/security.py``
+    '''
+    def check(self, cr, id, login):
+        from openerp.exceptions import AccessDenied
+        try:
+            self.check_credentials(cr, id, login)
+            return True
+        except AccessDenied:
+            return False
+    _reset_passwords(db, security_level, True, check)
