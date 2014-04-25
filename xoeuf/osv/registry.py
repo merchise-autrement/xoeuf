@@ -37,11 +37,6 @@ from openerp import SUPERUSER_ID
 from openerp.modules.registry import RegistryManager as manager
 
 
-__docstring_format__ = 'rst'
-__author__ = 'med'
-
-
-
 def _valid_model_base(model):
     '''Check if a model has a right base class.'''
     from openerp.osv.orm import BaseModel
@@ -49,7 +44,6 @@ def _valid_model_base(model):
         msg = 'Inappropriate type "%s" for model value!\tMRO=%s'
         t = type(model)
         raise TypeError(msg % (t.__name__, t.mro()))
-
 
 
 # TODO: Allow to change "openerp.tools.config" per context level
@@ -62,7 +56,7 @@ class TransactionManager(Context):
     Use always as part of a database Registry::
 
         >>> reg = Registry(db_name='test')
-        >>> users = reg.res_users
+        >>> users = reg.models.res_users
         >>> uid = 1
         >>> with reg(foo='bar') as cr:   # Define context variables
         ...     ids = users.search(cr, uid, [('partner_id', 'like', 'Med%')])
@@ -83,7 +77,7 @@ class TransactionManager(Context):
         ...             mail = rec['user_email']
         ...             print('"%s" <%s>' % (name, mail))
 
-    First level contexts are always transactionals.
+    First level contexts are always transactional.
 
     '''
 
@@ -484,7 +478,7 @@ class Registry(ModuleType):
         To use it as a managed cursor::
 
         >>> reg = Registry('my_db')
-        >>> users = reg.res_users
+        >>> users = reg.models.res_users
         >>> with reg(foo='bar') as cr:   # Define context variables
         ...     ids = users.search(cr, 1, [('partner_id', 'like', 'Med%')])
         ...     for rec in users.read(cr, uid, ids):
