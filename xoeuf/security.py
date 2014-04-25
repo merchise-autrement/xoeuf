@@ -13,6 +13,10 @@
 
 '''Some tools to improve `OpenERP` security.
 
+- :func:`reset_all_passwords`: to reset all passwords in a data-base.
+
+- :func:`reset_invalid_passwords`: to reset all invalid passwords in a
+  data-base.
 
 '''
 
@@ -30,16 +34,32 @@ from xoutil.crypto import (PASS_PHRASE_LEVEL_BASIC,
                            DEFAULT_PASS_PHRASE_LEVEL as _DEF_LEVEL)
 
 
+from xoutil.names import strlist as strs
+__all__ = strs('PASS_PHRASE_LEVEL_BASIC',
+               'PASS_PHRASE_LEVEL_MAPPED',
+               'PASS_PHRASE_LEVEL_MAPPED_MIXED',
+               'PASS_PHRASE_LEVEL_MAPPED_DATED',
+               'PASS_PHRASE_LEVEL_STRICT',
+               'reset_all_passwords',
+               'reset_invalid_passwords')
+del strs
+
+
 def reset_all_passwords(db, security_level=_DEF_LEVEL, verbose=True):
     '''Reset all passwords in a data-base.
 
     :param db: `OpenERP` data-base cursor as defined in `xoeuf.pool`.
 
     :param security_level: Numerical security level (the bigger the more
-           secure). This function uses `xoutil.crypto.generate_password` to
-           generate new passwords, never use levels 0 or 1.
+           secure).
 
     :param verbose: If True, print every change password to ``stdout``.
+
+    This function uses `xoutil.crypto.generate_password` to generate new
+    passwords using as `pass_phrase` the user login, `level` means a
+    generation method.  Each level implies all other with an inferior
+    numerical value.  See `xoutil.crypto.generate_password` for more
+    information about defined constants.
 
     This function can be used as::
 
@@ -75,11 +95,16 @@ def reset_invalid_passwords(db, security_level=_DEF_LEVEL):
     :param db: `OpenERP` data-base cursor as defined in `xoeuf.pool`.
 
     :param security_level: Numerical security level (the bigger the more
-           secure). This function uses `xoutil.crypto.generate_password` to
-           generate new passwords, never use levels 0 or 1.
+           secure).
 
     An invalid password is when it is the same as login name. Print
     information about all users with invalid passwords.
+
+    This function uses `xoutil.crypto.generate_password` to generate new
+    passwords using as `pass_phrase` the user login, `level` means a
+    generation method.  Each level implies all other with an inferior
+    numerical value.  See `xoutil.crypto.generate_password` for more
+    information about defined constants.
 
     This function can be used as::
 
