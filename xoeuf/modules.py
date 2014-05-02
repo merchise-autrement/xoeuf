@@ -20,11 +20,13 @@ from __future__ import (division as _py3_division,
                         unicode_literals as _py3_unicode,
                         absolute_import as _py3_abs_import)
 
-from xoutil.modules import moduleproperty as _mproperty
+
+from xoutil.functools import lru_cache
 
 XOEUF_EXTERNAL_ADDON_GROUP = 'xoeuf.addons'
 
 
+@lru_cache(1)
 def find_external_addons():
     '''Finds all externally installed addons.
 
@@ -57,8 +59,3 @@ def find_external_addons():
         if os.path.isdir(abspath):
             res.append(abspath)
     return delete_duplicates(res)
-
-
-@_mproperty
-def external_addons(self):
-    return find_external_addons()
