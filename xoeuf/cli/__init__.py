@@ -17,7 +17,29 @@ from __future__ import (division as _py3_division,
                         absolute_import as _py3_abs_import)
 
 
+import logging
+_logger = logging.getLogger(__name__)
+
 DEFAULT_COMMAND = str('server')
+
+# Makes sure modules are patched before any command-related code is
+# invoked.
+from openerp.netsvc import init_logger
+init_logger()
+
+from xoeuf.modules import patch_modules
+patch_modules()
+
+from openerp.modules.loading import open_openerp_namespace
+import openerp.addons.base  # Needed to bootstrap base, otherwise
+                            # addons that import openerp.addons.base
+                            # fail to load.
+
+# XXX: OpenERP's own commands discovery inside addons is totally
+# flawed.  Trying `openerp-server some-command` fails to load any
+# addon that imports stuff without the "openerp.".  So let's do the
+# open namespace now
+open_openerp_namespace()
 
 
 class CommandsProxy(object):
@@ -40,16 +62,19 @@ class CommandsProxy(object):
             from importlib import import_module
             from openerp.cli import commands
             from openerp.modules.module import get_modules
+            from openerp.modules.module import initialize_sys_path
             cls._discover_addons_path()
+            initialize_sys_path()
             modules = get_modules()
             for addon in modules:
                 module_name = str('openerp.addons.' + addon)
-                if module_name not in sys.modules:
+                if not sys.modules.get(module_name):
                     try:
                         import_module(module_name)
-                    except Exception as _error:
-                        pass
-                        #print('ERROR:', type(_error), _error, file=sys.stderr)
+                    except Exception:
+                        import traceback
+                        _logger.critical('Could not load module %s', addon)
+                        traceback.print_exc()
             res = commands
             setattr(cls, name, res)
         return res.values()
@@ -75,4 +100,5 @@ del Command
 
 # TODO: Loader?
 from . import mailgate as _
-del _
+from . import shell as _shell
+del _, _shell
