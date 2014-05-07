@@ -107,3 +107,67 @@ def patch_modules(self):
         module = customize(module)[0]
         module.initialize_sys_path = self.initialize_sys_path
         self.bootstraped = True
+
+
+def _get_registry(db_name):
+    '''Helper method to get the registry for a `db_name`.'''
+    try:
+        from xoutil.six import string_types
+    except ImportError:
+        from xoutil.compat import str_base as string_types
+    from xoeuf.osv.registry import Registry
+    if isinstance(db_name, string_types):
+        from importlib import import_module
+        db = import_module('xoeuf.pool.%s' % db_name)
+    elif isinstance(db_name, Registry):
+        db = db_name
+    else:
+        import sys
+        caller = sys.getframe(1).f_code.co_name
+        raise TypeError('"%s" requires a string or a Registry' % caller)
+    return db
+
+
+def get_dangling_modules(db):
+    '''Removes registered modules that are no longer available.
+
+    Returns the list of dangling modules.  Each item in the list the `read` of
+    the `ir.module.module`.
+
+    A dangling module is one that is listed in the instances DB, but is not
+    reachable in any of the addons paths (not even externally installed).
+
+    :param db: Either the name of the database to load or a `registry
+               <xoeuf.osv.registry.Registry>`:class:.
+
+    '''
+    registry = _get_registry(db)
+    with registry() as cr:
+        from openerp import SUPERUSER_ID
+        from openerp.modules.module import get_modules
+        from xoeuf.osv.model_extensions import search_read
+        ir_modules = registry['ir.module.module']
+        available = get_modules()
+        dangling = search_read(ir_modules, cr, SUPERUSER_ID,
+                               [('name', 'not in', available)],
+                               context=None)
+        return dangling
+
+
+def mark_dangling_modules(db):
+    '''Mark `dangling <get_dangling_modules>`:func: as uninstallable.
+
+    Parameters and return value are the same as in function
+    :func:`get_dangling_modules`.
+
+    '''
+    registry = _get_registry(db)
+    with registry() as cr:
+        from openerp import SUPERUSER_ID
+        from xoeuf.osv.model_extensions import get_writer
+        ir_mods = registry['ir.module.module']
+        dangling = get_dangling_modules(registry)  # reuse the registry
+        dangling_ids = [module['id'] for module in dangling]
+        with get_writer(ir_mods, cr, SUPERUSER_ID, dangling_ids) as writer:
+            writer.update(state='uninstallable')
+        return dangling
