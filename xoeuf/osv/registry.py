@@ -3,7 +3,7 @@
 #----------------------------------------------------------------------
 # xoeuf.osv.registry
 #----------------------------------------------------------------------
-# Copyright (c) 2013, 2014 Merchise Autrement and Contributors
+# Copyright (c) 2013, 2014 Merchise Autrement
 # All rights reserved.
 #
 # This is free software; you can redistribute it and/or modify it under
@@ -32,6 +32,7 @@ from collections import MutableMapping
 from xoutil import Unset
 from xoutil.names import strlist as slist
 from xoutil.context import Context
+from xoutil.collections import SmartDictMixin
 from xoutil.decorator import aliases, memoized_property
 from openerp import SUPERUSER_ID
 from openerp.modules.registry import RegistryManager as manager
@@ -122,7 +123,8 @@ class TransactionManager(Context):
                                                         exc_tb)
 
 
-class ModelsManager(MutableMapping):
+# TODO: Use `OpenDictMixin`
+class ModelsManager(MutableMapping, SmartDictMixin):
     '''Xœuf models manager for a particular `registry` database.
 
     The mapping is essentially a mapping between model names and model
@@ -137,6 +139,8 @@ class ModelsManager(MutableMapping):
      * An open dictionary allowing access to keys as attributes.
 
     '''
+    from xoutil.collections import opendict as __search_result_type__
+
     def __new__(cls, registry):
         '''Create, or return if already exists, a instance of a models manager.
         '''
@@ -236,11 +240,15 @@ class ModelsManager(MutableMapping):
         del self.wrapped[model_name]
 
     def get(self, model_name, *args):
-        '''Return a model for a given name or None if it doesn't exist.'''
+        '''Return a model for a given name or None if it doesn't exist.
+
+        :params args: allows 0 or one value for default definition.'''
         return self._get_pop(self.wrapped.get, model_name, *args)
 
     def pop(self, model_name, *args):
         '''Remove specified model and return the corresponding value.
+
+        :params args: allows 0 or one value for default definition.
 
         If model is not found, default value is returned if given,
         otherwise KeyError is raised.
@@ -254,6 +262,7 @@ class ModelsManager(MutableMapping):
 
         '''
         return self.wrapped.popitem()
+
 
     def clear(self):
         '''Remove all models.'''
@@ -318,6 +327,11 @@ class ModelsManager(MutableMapping):
 
     @staticmethod
     def _get_pop(method, model_name, *args):
+        '''Local method used in `get` and `pop`.
+
+        :params args: allows 0 or one value for default definition.
+
+        '''
         count = len(args)
         if count == 0:
             res = method(model_name)
