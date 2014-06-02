@@ -349,18 +349,28 @@ def touch_fields(self, cr, uid, ids, only=None, context=None):
 
     For each stored functional field the value is recalculated and stored.
 
-    If `only` is set, it should be a list of fields to touch.  Invalid
-    (non-functional, or without a non-bool``store``) fields are silently
-    ignored.
+    If `only` is set, it should be a list of fields to touch.  A single string
+    is also valid.  Invalid (non-functional, or without a non-bool``store``)
+    fields are silently ignored.
+
+    If `ids` is empty, all items are touched.
 
     '''
-    from xoutil.six import iteritems
-    from openerp.osv.fields import function, related
+    from xoutil.names import nameof
+    from xoutil.types import is_collection
+    from xoutil.six import iteritems, string_types
+    from openerp.osv.fields import function
+    if not ids:
+        ids = self.search(cr, uid, [])
+    if isinstance(only, string_types):
+        only = (only, )
+    if only is not None and not is_collection(only):
+        msg = "Invalid type '%s' for argument 'only'"
+        raise TypeError(msg % nameof(only, inner=True, typed=True))
     is_a = isinstance
     fields = [name for name, field in iteritems(self._columns)
-              if is_a(field, function) and not is_a(field, related)
-              if field.store not in (None, False)
-              if not only or name in only]
+              if not only or name in only
+              if is_a(field, function) and field.store]
     return self._store_set_values(cr, uid, ids, fields, dict(context))
 
 
