@@ -383,10 +383,9 @@ def touch_fields(self, cr, uid, ids, only=None, context=None):
     if only is not None and not is_collection(only):
         msg = "Invalid type '%s' for argument 'only'"
         raise TypeError(msg % nameof(only, inner=True, typed=True))
-    is_a = isinstance
     fields = [name for name, field in iteritems(self._columns)
               if not only or name in only
-              if is_a(field, function) and field.store]
+              if isinstance(field, function) and field.store]
     return self._store_set_values(cr, uid, ids, fields, dict(context or {}))
 
 
