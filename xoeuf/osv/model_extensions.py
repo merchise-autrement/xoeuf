@@ -355,13 +355,29 @@ def touch_fields(self, cr, uid, ids, only=None, context=None):
 
     If `ids` is empty, all items are touched.
 
+    .. warning:: Don't rely in ids return from ``search()``.
+
+       This function deals directly with the DB bypassing the ORM's
+       ``write()`` method.  So you must provide ids as they are found in the
+       DB.
+
+       For instance, the ``crm_meeting`` returns many `str` IDs for each
+       instance of a recurrent event though in the DB there's a single row.
+       (Remember ``crm_meeting`` is actually the place for every event.)
+
     '''
     from xoutil.names import nameof
     from xoutil.types import is_collection
     from xoutil.six import iteritems, string_types
     from openerp.osv.fields import function
     if not ids:
-        ids = self.search(cr, uid, [])
+        # Don't use self.search() here!  search() might return invalid ids
+        # (crm.meeting does), and since _store_set_values bypasses write() and
+        # executes SQL directly we must provide DB-level ids and not
+        # model-levels ones.
+        query = 'SELECT "id" FROM "%s"' % self._table
+        cr.execute(query)
+        ids = [row[0] for row in cr.fetchall()]
     if isinstance(only, string_types):
         only = (only, )
     if only is not None and not is_collection(only):
