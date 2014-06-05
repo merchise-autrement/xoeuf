@@ -371,7 +371,7 @@ def touch_fields(self, cr, uid, ids, only=None, context=None):
     fields = [name for name, field in iteritems(self._columns)
               if not only or name in only
               if is_a(field, function) and field.store]
-    return self._store_set_values(cr, uid, ids, fields, dict(context))
+    return self._store_set_values(cr, uid, ids, fields, dict(context or {}))
 
 
 def get_writer(self, cr, uid, ids, context=None):
