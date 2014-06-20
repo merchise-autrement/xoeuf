@@ -100,7 +100,7 @@ def search_read(self, cr, uid, *args, **kwargs):
         time.
 
         Here is an example of searching for Partners named *ABC* from Belgium
-        and Germany whose language is not english::
+        and Germany whose language is not English::
 
             [('name','=','ABC'),'!',('language.code','=','en_US'),
              '|',('country_id.code','=','be'),('country_id.code','=','de'))
@@ -415,8 +415,9 @@ def get_writer(self, cr, uid, ids, context=None):
 
 
 def get_creator(self, cr, uid, context=None):
-    '''Similar to `get_writer`:func: but issues a ``obj.create()`` instead of
-    a `write`.
+    '''Similar to `get_writer`:func: but issues a ``obj.create()`` instead of a
+    `write`.
+
     '''
     from .writers import ORMCreator
     return ORMCreator(self, cr, uid, context=context)
