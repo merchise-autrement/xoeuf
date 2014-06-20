@@ -24,7 +24,6 @@ from __future__ import (division as _py3_division,
 
 from xoutil.cli import Command
 
-
 class Mailgate(Command):
     '''The xoeuf mailgate for OpenERP.
 
@@ -114,8 +113,15 @@ class Mailgate(Command):
         else:
             return ''
 
+    @staticmethod
+    def invalidate_logging():
+        import logging
+        logger = logging.getLogger()
+        logger.setLevel(logging.CRITICAL)
+
     def run(self, args=None):
         from openerp import SUPERUSER_ID
+        self.invalidate_logging()
         parser = self.get_arg_parser()
         options = parser.parse_args(args)
         conffile = options.conf
@@ -127,9 +133,16 @@ class Mailgate(Command):
                                        raises=not options.allow_empty)
         with db(transactional=True) as cr:
             obj = db.models.mail_thread
-            obj.message_process(cr, SUPERUSER_ID, default_model,
-                                message, save_original=options.save_original,
-                                strip_attachments=options.strip_attachments)
+            try:
+                obj.message_process(
+                    cr, SUPERUSER_ID, default_model,
+                    message, save_original=options.save_original,
+                    strip_attachments=options.strip_attachments)
+            except Exception as error:
+                import traceback, sys
+                traceback.print_exc()
+                print(str(error))
+                raise
 
     def read_conffile(self, filename):
         import os
