@@ -132,10 +132,9 @@ class Mailgate(Command):
                     cr, SUPERUSER_ID, default_model,
                     message, save_original=options.save_original,
                     strip_attachments=options.strip_attachments)
-            except Exception as error:
-                import traceback, sys
+            except:
+                import traceback
                 traceback.print_exc()
-                print(str(error))
                 raise
 
     def read_conffile(self, filename):
