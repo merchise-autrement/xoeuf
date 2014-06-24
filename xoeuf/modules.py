@@ -21,12 +21,15 @@ from __future__ import (division as _py3_division,
                         absolute_import as _py3_abs_import)
 
 import logging
+import re
 
 from xoutil.functools import lru_cache
 from xoutil.modules import customize
-from xoutil.modules import moduleproperty, modulemethod
+from xoutil.modules import modulemethod
 
 _logger = logging.getLogger(__name__)
+
+_ADDONS_NAMESPACE = re.compile(r'^openerp\.addons\.(?P<module>[^\.]+)\.')
 
 XOEUF_EXTERNAL_ADDON_GROUP = 'xoeuf.addons'
 
@@ -171,3 +174,23 @@ def mark_dangling_modules(db):
         with get_writer(ir_mods, cr, SUPERUSER_ID, dangling_ids) as writer:
             writer.update(state='uninstallable')
         return dangling
+
+
+def get_object_module(obj):
+    '''Return the name of the OpenERP addon the `obj` has been defined.
+
+    If the `obj` is not defined (imported) from the "openerp.addons."
+    namespace, return None.
+
+    '''
+    from xoutil.names import nameof
+    name = nameof(obj, inner=True, full=True)
+    match = _ADDONS_NAMESPACE.match(name)
+    if match:
+        module = match.group(1)
+        return module
+    else:
+        return None
+
+
+del re, logging
