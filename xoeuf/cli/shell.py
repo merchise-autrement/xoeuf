@@ -18,10 +18,11 @@ from __future__ import (division as _py3_division,
                         absolute_import as _py3_abs_import)
 
 
-from xoutil.cli import Command
+from . import Command
 
 
 class Shell(Command):
     def run(self, argv=None):
+        self.invalidate_logging()
         from IPython import start_ipython
         start_ipython(argv=argv)

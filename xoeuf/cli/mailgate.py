@@ -22,7 +22,7 @@ from __future__ import (division as _py3_division,
                         absolute_import as _py3_abs_import)
 
 
-from xoutil.cli import Command
+from . import Command
 
 class Mailgate(Command):
     '''The xoeuf mailgate for OpenERP.
@@ -112,12 +112,6 @@ class Mailgate(Command):
             raise RuntimeError('No message via stdin')
         else:
             return ''
-
-    @staticmethod
-    def invalidate_logging():
-        import logging
-        logger = logging.getLogger()
-        logger.setLevel(logging.CRITICAL)
 
     def run(self, args=None):
         from openerp import SUPERUSER_ID

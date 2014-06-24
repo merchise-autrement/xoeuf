@@ -90,12 +90,21 @@ class CommandsProxy(object):
             config.parse_config([addons_path])
 
 
-from xoutil.cli import Command
+from xoutil.cli import Command as BaseCommand
 
-Command.register(CommandsProxy)
-Command.set_default_command(DEFAULT_COMMAND)
+BaseCommand.register(CommandsProxy)
+BaseCommand.set_default_command(DEFAULT_COMMAND)
 
-del Command
+
+class Command(BaseCommand):
+    @staticmethod
+    def invalidate_logging():
+        import logging
+        logger = logging.getLogger()
+        logger.setLevel(logging.CRITICAL)
+
+
+del BaseCommand
 
 
 # TODO: Loader?
