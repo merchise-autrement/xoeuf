@@ -421,3 +421,22 @@ def get_creator(self, cr, uid, context=None):
     '''
     from .writers import ORMCreator
     return ORMCreator(self, cr, uid, context=context)
+
+
+def cascade_search(self, cr, uid, *queries, **options):
+    '''Perform a cascading search.
+
+    Each query is tried in order until one returns non-empty.
+
+    '''
+    context = options.pop('context', {})
+    if options:
+        raise TypeError('Invalid keyword arguments %s' % options.popitem()[0])
+    result = []
+    queries = iter(queries)
+    query = next(queries, None)
+    while not result and query is not None:
+        result = self.search(cr, uid, query, context=context)
+        if not result:
+            query = next(queries, None)
+    return result
