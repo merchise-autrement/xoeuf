@@ -401,6 +401,9 @@ def get_writer(self, cr, uid, ids, context=None):
           writer.add(many2manycolumn, id1, id2, id3)
           writer.forget(many2manycolumn, id4, id5)
 
+    At the end of the `with` sentence the equivalent ``obj.write()`` method
+    will be called.
+
     .. seealso:: :class:`xoeuf.osv.writers.Writer`.
 
     .. warning:: Non-magical disclaimer.
@@ -415,8 +418,7 @@ def get_writer(self, cr, uid, ids, context=None):
 
 
 def get_creator(self, cr, uid, context=None):
-    '''Similar to `get_writer`:func: but issues a ``obj.create()`` instead of a
-    `write`.
+    '''Similar to `get_writer`:func: but issues a ``obj.create()``.
 
     '''
     from .writers import ORMCreator
@@ -426,7 +428,8 @@ def get_creator(self, cr, uid, context=None):
 def cascade_search(self, cr, uid, *queries, **options):
     '''Perform a cascading search.
 
-    Each query is tried in order until one returns non-empty.
+    Each `query` is tried in order until one returns non-empty.  The only
+    keyword argument allowed is `context`.
 
     '''
     context = options.pop('context', {})

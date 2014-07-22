@@ -24,6 +24,7 @@ from __future__ import (division as _py3_division,
 
 from . import Command
 
+
 class Mailgate(Command):
     '''The xoeuf mailgate for OpenERP.
 
