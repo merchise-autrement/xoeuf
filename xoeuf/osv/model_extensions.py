@@ -432,14 +432,13 @@ def cascade_search(self, cr, uid, *queries, **options):
     keyword argument allowed is `context`.
 
     '''
+    from collections import deque
     context = options.pop('context', {})
     if options:
         raise TypeError('Invalid keyword arguments %s' % options.popitem()[0])
     result = []
-    queries = iter(queries)
-    query = next(queries, None)
-    while not result and query is not None:
+    queries = deque(queries)
+    while not result and queries:
+        query = queries.popleft()
         result = self.search(cr, uid, query, context=context)
-        if not result:
-            query = next(queries, None)
     return result
