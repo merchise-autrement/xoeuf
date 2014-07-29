@@ -172,10 +172,14 @@ class ORMWriter(_BaseWriter):
         self.ids = ids
 
     def __exit__(self, exc_type, exc_value, exc_tb):
+        if exc_type or exc_value:
+            return False
         self.obj.write(self.cr, self.uid, self.ids, self.commands,
                        **self.kwargs)
 
 
 class ORMCreator(_BaseWriter):
     def __exit__(self, exc_type, exc_value, exc_tb):
+        if exc_type or exc_value:
+            return False
         self.obj.create(self.cr, self.uid, self.commands, **self.kwargs)
