@@ -26,7 +26,6 @@ one in registry is returned.
 When all existing data-bases are exhausted for testing purposes, standard
 error will be re-raised.
 
-
 '''
 
 from __future__ import (division as _py3_division,
@@ -89,6 +88,12 @@ class ModuleManager(object):
 
     @classmethod
     def find_module(cls, name, path=None):
+        '''Return a loader object if the module was found, or None if not.
+
+        If it raises an exception, it will be propagated to the caller,
+        aborting the import.
+
+        '''
         base, _sep, db_name = name.rpartition(str('.'))
         if base == __name__:
             return cls(db_name, base)
@@ -97,6 +102,7 @@ class ModuleManager(object):
             raise ImportError(msg % (db_name, __name__))
 
     def load_module(self, fullname):
+        '''Returns the loaded module or raises an exception.'''
         import sys
         self._check(fullname)
         res = sys.modules.get(fullname, None)
@@ -114,10 +120,12 @@ class ModuleManager(object):
         return res
 
     def get_filename(self, fullname):
+        'Return the value used in attribute `__file__` for a DB module.'
         assert self._check(fullname, asserting=True)
         return str('<%s>' % fullname)
 
     def _load_module(self, test_db=None):
+        'Internal method for loading a DB module,'
         from xoeuf.osv.registry import Registry
         if test_db is None:
             db_name = self.db_name
@@ -143,10 +151,12 @@ class ModuleManager(object):
 
     @property
     def fullname(self):
+        'Return full qualified name.'
         sep = str('.')
         return sep.join((self.base, self.db_name))
 
     def _check(self, fullname, asserting=False):
+        'Check `fullname` and raise an error if not correct.'
         local = self.fullname
         if local == fullname:
             return fullname

@@ -3,7 +3,7 @@
 #----------------------------------------------------------------------
 # xoeuf.cli.app
 #----------------------------------------------------------------------
-# Copyright (c) 2013 Merchise Autrement and Contributors
+# Copyright (c) 2013, 2014 Merchise Autrement and Contributors
 # All rights reserved.
 #
 # This is free software; you can redistribute it and/or modify it under
@@ -26,12 +26,12 @@ from __future__ import (division as _py3_division,
                         unicode_literals as _py3_unicode,
                         absolute_import as _py3_abs_import)
 
-from xoeuf.cli import DEFAULT_COMMAND
-from xoutil.cli.app import main
 
-__docstring_format__ = 'rst'
-__author__ = 'med'
+def server():
+    from xoeuf.cli import DEFAULT_COMMAND
+    from xoutil.cli.app import main
+    main(default=DEFAULT_COMMAND)
 
 
 if __name__ == "__main__":
-    main(default=DEFAULT_COMMAND)
+    server()

@@ -101,8 +101,8 @@ class MetaOptions(type):
             return self.wrapped[option]
 
     def __setitem__(self, option, value):
-        from xoutil.compat import str_base
-        if isinstance(option, str_base):
+        from xoutil.six import string_types
+        if isinstance(option, string_types):
             option = str(option)
             if value in ('True', 'true'):
                 value = True

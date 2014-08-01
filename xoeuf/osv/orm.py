@@ -60,7 +60,7 @@ def get_modelname(model):
         'account.fiscalyear'
 
     '''
-    from xoutil.compat import str_base
+    from xoutil.six import string_types
     from openerp.osv.orm import BaseModel
     if not isinstance(model, BaseModel) and not issubclass(model, BaseModel):
         msg = "Invalid argument '%s' for param 'model'" % model
@@ -70,7 +70,8 @@ def get_modelname(model):
         # This is the case of a model class having no _name defined, but then
         # it must have the _inherit and _name is regarded the same by OpenERP.
         result = model._inherit
-    assert isinstance(result, str_base), 'Got an invalid name for %r' % model
+    assert isinstance(result, string_types), ('Got an invalid name for %r' %
+                                              model)
     return result
 
 

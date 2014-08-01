@@ -100,7 +100,7 @@ def search_read(self, cr, uid, *args, **kwargs):
         time.
 
         Here is an example of searching for Partners named *ABC* from Belgium
-        and Germany whose language is not english::
+        and Germany whose language is not English::
 
             [('name','=','ABC'),'!',('language.code','=','en_US'),
              '|',('country_id.code','=','be'),('country_id.code','=','de'))
@@ -349,19 +349,44 @@ def touch_fields(self, cr, uid, ids, only=None, context=None):
 
     For each stored functional field the value is recalculated and stored.
 
-    If `only` is set, it should be a list of fields to touch.  Invalid
-    (non-functional, or without a non-bool``store``) fields are silently
-    ignored.
+    If `only` is set, it should be a list of fields to touch.  A single string
+    is also valid.  Invalid (non-functional, or without a non-bool``store``)
+    fields are silently ignored.
+
+    If `ids` is empty, all items are touched.
+
+    .. warning:: Don't rely in ids return from ``search()``.
+
+       This function deals directly with the DB bypassing the ORM's
+       ``write()`` method.  So you must provide ids as they are found in the
+       DB.
+
+       For instance, the ``crm_meeting`` returns many `str` IDs for each
+       instance of a recurrent event though in the DB there's a single row.
+       (Remember ``crm_meeting`` is actually the place for every event.)
 
     '''
-    from xoutil.compat import iteritems_
-    from openerp.osv.fields import function, related
-    is_a = isinstance
-    fields = [name for name, field in iteritems_(self._columns)
-              if is_a(field, function) and not is_a(field, related)
-              if field.store not in (None, False)
-              if not only or name in only]
-    return self._store_set_values(cr, uid, ids, fields, dict(context))
+    from xoutil.names import nameof
+    from xoutil.types import is_collection
+    from xoutil.six import iteritems, string_types
+    from openerp.osv.fields import function
+    if not ids:
+        # Don't use self.search() here!  search() might return invalid ids
+        # (crm.meeting does), and since _store_set_values bypasses write() and
+        # executes SQL directly we must provide DB-level ids and not
+        # model-levels ones.
+        query = 'SELECT "id" FROM "%s"' % self._table
+        cr.execute(query)
+        ids = [row[0] for row in cr.fetchall()]
+    if isinstance(only, string_types):
+        only = (only, )
+    if only is not None and not is_collection(only):
+        msg = "Invalid type '%s' for argument 'only'"
+        raise TypeError(msg % nameof(only, inner=True, typed=True))
+    fields = [name for name, field in iteritems(self._columns)
+              if not only or name in only
+              if isinstance(field, function) and field.store]
+    return self._store_set_values(cr, uid, ids, fields, dict(context or {}))
 
 
 def get_writer(self, cr, uid, ids, context=None):
@@ -375,6 +400,9 @@ def get_writer(self, cr, uid, ids, context=None):
           writer.update(attr4=val4)
           writer.add(many2manycolumn, id1, id2, id3)
           writer.forget(many2manycolumn, id4, id5)
+
+    At the end of the `with` sentence the equivalent ``obj.write()`` method
+    will be called.
 
     .. seealso:: :class:`xoeuf.osv.writers.Writer`.
 
@@ -390,8 +418,27 @@ def get_writer(self, cr, uid, ids, context=None):
 
 
 def get_creator(self, cr, uid, context=None):
-    '''Similar to `get_writer`:func: but issues a ``obj.create()`` instead of
-    a `write`.
+    '''Similar to `get_writer`:func: but issues a ``obj.create()``.
+
     '''
     from .writers import ORMCreator
     return ORMCreator(self, cr, uid, context=context)
+
+
+def cascade_search(self, cr, uid, *queries, **options):
+    '''Perform a cascading search.
+
+    Each `query` is tried in order until one returns non-empty.  The only
+    keyword argument allowed is `context`.
+
+    '''
+    from collections import deque
+    context = options.pop('context', {})
+    if options:
+        raise TypeError('Invalid keyword arguments %s' % options.popitem()[0])
+    result = []
+    queries = deque(queries)
+    while not result and queries:
+        query = queries.popleft()
+        result = self.search(cr, uid, query, context=context)
+    return result

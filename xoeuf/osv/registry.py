@@ -3,7 +3,7 @@
 #----------------------------------------------------------------------
 # xoeuf.osv.registry
 #----------------------------------------------------------------------
-# Copyright (c) 2013, 2014 Merchise Autrement and Contributors
+# Copyright (c) 2013, 2014 Merchise Autrement
 # All rights reserved.
 #
 # This is free software; you can redistribute it and/or modify it under
@@ -32,14 +32,10 @@ from collections import MutableMapping
 from xoutil import Unset
 from xoutil.names import strlist as slist
 from xoutil.context import Context
+from xoutil.collections import SmartDictMixin
 from xoutil.decorator import aliases, memoized_property
 from openerp import SUPERUSER_ID
 from openerp.modules.registry import RegistryManager as manager
-
-
-__docstring_format__ = 'rst'
-__author__ = 'med'
-
 
 
 def _valid_model_base(model):
@@ -49,7 +45,6 @@ def _valid_model_base(model):
         msg = 'Inappropriate type "%s" for model value!\tMRO=%s'
         t = type(model)
         raise TypeError(msg % (t.__name__, t.mro()))
-
 
 
 # TODO: Allow to change "openerp.tools.config" per context level
@@ -62,7 +57,7 @@ class TransactionManager(Context):
     Use always as part of a database Registry::
 
         >>> reg = Registry(db_name='test')
-        >>> users = reg.res_users
+        >>> users = reg.models.res_users
         >>> uid = 1
         >>> with reg(foo='bar') as cr:   # Define context variables
         ...     ids = users.search(cr, uid, [('partner_id', 'like', 'Med%')])
@@ -83,7 +78,7 @@ class TransactionManager(Context):
         ...             mail = rec['user_email']
         ...             print('"%s" <%s>' % (name, mail))
 
-    First level contexts are always transactionals.
+    First level contexts are always transactional.
 
     '''
 
@@ -128,7 +123,8 @@ class TransactionManager(Context):
                                                         exc_tb)
 
 
-class ModelsManager(MutableMapping):
+# TODO: Use `OpenDictMixin`
+class ModelsManager(MutableMapping, SmartDictMixin):
     '''Xœuf models manager for a particular `registry` database.
 
     The mapping is essentially a mapping between model names and model
@@ -143,6 +139,8 @@ class ModelsManager(MutableMapping):
      * An open dictionary allowing access to keys as attributes.
 
     '''
+    from xoutil.collections import opendict as __search_result_type__
+
     def __new__(cls, registry):
         '''Create, or return if already exists, a instance of a models manager.
         '''
@@ -242,11 +240,15 @@ class ModelsManager(MutableMapping):
         del self.wrapped[model_name]
 
     def get(self, model_name, *args):
-        '''Return a model for a given name or None if it doesn't exist.'''
+        '''Return a model for a given name or None if it doesn't exist.
+
+        :params args: allows 0 or one value for default definition.'''
         return self._get_pop(self.wrapped.get, model_name, *args)
 
     def pop(self, model_name, *args):
         '''Remove specified model and return the corresponding value.
+
+        :params args: allows 0 or one value for default definition.
 
         If model is not found, default value is returned if given,
         otherwise KeyError is raised.
@@ -260,6 +262,7 @@ class ModelsManager(MutableMapping):
 
         '''
         return self.wrapped.popitem()
+
 
     def clear(self):
         '''Remove all models.'''
@@ -324,6 +327,11 @@ class ModelsManager(MutableMapping):
 
     @staticmethod
     def _get_pop(method, model_name, *args):
+        '''Local method used in `get` and `pop`.
+
+        :params args: allows 0 or one value for default definition.
+
+        '''
         count = len(args)
         if count == 0:
             res = method(model_name)
@@ -484,7 +492,7 @@ class Registry(ModuleType):
         To use it as a managed cursor::
 
         >>> reg = Registry('my_db')
-        >>> users = reg.res_users
+        >>> users = reg.models.res_users
         >>> with reg(foo='bar') as cr:   # Define context variables
         ...     ids = users.search(cr, 1, [('partner_id', 'like', 'Med%')])
         ...     for rec in users.read(cr, uid, ids):

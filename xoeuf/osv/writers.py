@@ -35,15 +35,18 @@ class _BaseWriter(object):
         self.kwargs = kwargs
         self._commands = StackedDict()
 
+    def _get_field(self, attrname):
+        return self.obj._all_columns[attrname].column
+
+    __getitem__ = _get_field
+
     def _is_many2many(self, attrname):
         from openerp.osv.fields import many2many
-        column = self.obj._columns[attrname]
-        return isinstance(column, many2many)
+        return isinstance(self[attrname], many2many)
 
     def _is_one2many(self, attrname):
         from openerp.osv.fields import one2many
-        column = self.obj._columns[attrname]
-        return isinstance(column, one2many)
+        return isinstance(self[attrname], one2many)
 
     @property
     def commands(self):
@@ -172,10 +175,14 @@ class ORMWriter(_BaseWriter):
         self.ids = ids
 
     def __exit__(self, exc_type, exc_value, exc_tb):
+        if exc_type or exc_value:
+            return False
         self.obj.write(self.cr, self.uid, self.ids, self.commands,
                        **self.kwargs)
 
 
 class ORMCreator(_BaseWriter):
     def __exit__(self, exc_type, exc_value, exc_tb):
+        if exc_type or exc_value:
+            return False
         self.obj.create(self.cr, self.uid, self.commands, **self.kwargs)
