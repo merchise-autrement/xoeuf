@@ -23,6 +23,7 @@ from . import Command
 
 class Shell(Command):
     def run(self, argv=None):
-        self.invalidate_logging()
+        self.invalidate_logging()           # The root logger.
+        self.invalidate_logging('openerp')  # but openerp logs use this base
         from IPython import start_ipython
         start_ipython(argv=argv)

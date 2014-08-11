@@ -98,9 +98,9 @@ BaseCommand.set_default_command(DEFAULT_COMMAND)
 
 class Command(BaseCommand):
     @staticmethod
-    def invalidate_logging():
+    def invalidate_logging(base=None):
         import logging
-        logger = logging.getLogger()
+        logger = logging.getLogger(base)
         logger.setLevel(logging.CRITICAL)
 
 
