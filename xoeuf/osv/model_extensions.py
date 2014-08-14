@@ -100,7 +100,7 @@ def search_read(self, cr, uid, *args, **kwargs):
         time.
 
         Here is an example of searching for Partners named *ABC* from Belgium
-        and Germany whose language is not English::
+        or Germany whose language is not English::
 
             [('name','=','ABC'),'!',('language.code','=','en_US'),
              '|',('country_id.code','=','be'),('country_id.code','=','de'))

@@ -73,7 +73,6 @@ def integrate_extensions():
                 setattr(browse_record, fixname(name), value)
 
 
-
 def fix_documentations(db):
     '''Fixes all models documentation from a given data-base.
 
