@@ -112,6 +112,8 @@ class TransactionManager(Context):
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         if self._wrapped:
+            # FIXME:  [med]{?} Documentation says reg(transactional=True), but
+            #                  this checks for `managed`...
             managed = self.get('managed', True)
             if managed and self.count == 1:
                 if exc_type or exc_val:
