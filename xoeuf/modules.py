@@ -132,7 +132,7 @@ def _get_registry(db_name):
 
 
 def get_dangling_modules(db):
-    '''Removes registered modules that are no longer available.
+    '''Get registered modules that are no longer available.
 
     Returns the list of dangling modules.  Each item in the list the `read` of
     the `ir.module.module`.
