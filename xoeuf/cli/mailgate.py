@@ -25,6 +25,20 @@ from __future__ import (division as _py3_division,
 from . import Command
 
 
+from logging import Handler
+
+
+# TODO: Should this be moved elsewhere?
+class SysLogHandler(Handler):
+    def emit(self, report):
+        # This avoids the /dev/log system issue and goes directly to Unix.
+        # But then Windows is f.cked.
+        import syslog
+        syslog.syslog(self.format(report))
+
+del Handler
+
+
 class Mailgate(Command):
     '''The xoeuf mailgate for OpenERP.
 
@@ -94,6 +108,12 @@ class Mailgate(Command):
                              action='store_true',
                              help='Whether to accept an empty message '
                              'without error.')
+            loggroup = res.add_argument_group('Logging')
+            loggroup.add_argument('--log-level',
+                                  choices=('debug', 'warning',
+                                           'info', 'error'),
+                                  default='warning',
+                                  help='How much to log')
         return res
 
     @classmethod
@@ -115,11 +135,23 @@ class Mailgate(Command):
         else:
             return ''
 
+    def setup_logging(self, base=None, level='WARN'):
+        import logging
+        self.invalidate_logging()
+        logger = logging.getLogger(__name__)
+        # TODO:  Create a SysLogHandler that uses syslog module.
+        logger.addHandler(SysLogHandler())
+        logger.setLevel(getattr(logging, level, logging.WARN))
+        # But force openerp to report WARN
+        logger = logging.getLogger('openerp')
+        logger.addHandler(SysLogHandler())
+        logger.setLevel(logging.WARN)
+
     def run(self, args=None):
         from openerp import SUPERUSER_ID
-        self.invalidate_logging()
         parser = self.get_arg_parser()
         options = parser.parse_args(args)
+        self.setup_logging(level=options.log_level.upper())
         conffile = options.conf
         if conffile:
             self.read_conffile(conffile)
