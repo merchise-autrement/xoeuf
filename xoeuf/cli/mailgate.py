@@ -118,7 +118,6 @@ class Mailgate(Command):
     def run(self, args=None):
         from openerp import SUPERUSER_ID
         self.invalidate_logging()
-        self.invalidate_logging('openerp')
         parser = self.get_arg_parser()
         options = parser.parse_args(args)
         conffile = options.conf

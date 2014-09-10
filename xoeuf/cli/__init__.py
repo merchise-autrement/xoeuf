@@ -99,9 +99,17 @@ BaseCommand.set_default_command(DEFAULT_COMMAND)
 class Command(BaseCommand):
     @staticmethod
     def invalidate_logging(base=None):
+        '''Force the logger `base` to report only CRITICAL messages.
+
+        :param base: The name of logger to invalidate.  None is the root
+                     logger *and* the "openerp" logger.
+
+        '''
         import logging
         logger = logging.getLogger(base)
         logger.setLevel(logging.CRITICAL)
+        if not base:
+            Command.invalidate_logging('openerp')
 
 
 del BaseCommand
