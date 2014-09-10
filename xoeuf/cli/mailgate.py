@@ -48,6 +48,13 @@ class Mailgate(Command):
     a) Set up DB host, user and password.
 
     '''
+
+    MESSAGE_TEMPLATE = ("Error while processing message with id {msgid} "
+                        "from {sender}.\n\n"
+                        "{traceback}\n\n"
+                        "{details_title}:\n\n"
+                        "{message_details}\n")
+
     @classmethod
     def get_arg_parser(cls):
         def path(extensions=None):
@@ -154,31 +161,80 @@ class Mailgate(Command):
             logger.warn('No message provided, but allowing.')
             return ''
 
-    def setup_logging(self, base=None, level='WARN'):
+    def setup_logging(self, base=None, level='WARN', log_host=None,
+                      log_to=None, log_from=None):
         import logging
         self.invalidate_logging()
+        # Force openerp to report WARN
+        logger = logging.getLogger('openerp')
+        logger.addHandler(SysLogHandler())
+        logger.setLevel(logging.WARN)
         logger = logging.getLogger(__name__)
         # TODO:  Create a SysLogHandler that uses syslog module.
         logger.addHandler(SysLogHandler())
         logger.setLevel(getattr(logging, level, logging.WARN))
-        # But force openerp to report WARN
-        logger = logging.getLogger('openerp')
-        logger.addHandler(SysLogHandler())
-        logger.setLevel(logging.WARN)
+        if log_host and log_to and log_from:
+            for recipient in log_to:
+                handler = logging.handlers.SMTPHandler(
+                    log_host,
+                    log_from,
+                    recipient,
+                    '[ERROR] xoeuf_mailgate'
+                )
+                handler.setLevel(logging.ERROR)  # Only email errors.
+                logger.addHandler(handler)
+
+    @classmethod
+    def send_error_notification(cls, message, options):
+        import traceback
+        import logging
+        import email
+        from email.message import Message
+        from xoutil.string import safe_encode, safe_decode
+        logger = logging.getLogger(__name__)
+        tb = traceback.format_exc()
+        if not isinstance(message, Message):
+            msg = email.message_from_string(safe_encode(message))
+        else:
+            msg = message
+            message = msg.as_string()
+        msgid = safe_decode(msg.get('Message-Id', '<NO ID>'))
+        sender = safe_decode(msg.get('Sender', msg.get('From', '<nobody>')))
+        if len(message) <= 4096:
+            details = message
+            details_title = 'Raw message'
+        else:
+            details_title = 'Message headers'
+            details = '\n'.join('%s: %s' % (header, val)
+                                for header, val in msg.items())
+        report = cls.MESSAGE_TEMPLATE.format(
+            msgid=msgid,
+            sender=sender,
+            traceback=tb,
+            details_title=details_title,
+            message_details=details
+        )
+        logger.error(report)
 
     def run(self, args=None):
         from openerp import SUPERUSER_ID
         parser = self.get_arg_parser()
         options = parser.parse_args(args)
-        self.setup_logging(level=options.log_level.upper())
+        self.setup_logging(
+            level=options.log_level.upper(),
+            log_host=options.log_host,
+            log_to=options.log_to,
+            log_from=options.log_from
+        )
         conffile = options.conf
         if conffile:
             self.read_conffile(conffile)
+        default_model = options.default_model
+        message = None
         try:
-            db = self.database_factory(options.database)
-            default_model = options.default_model
             message = self.get_raw_message(timeout=options.slowness,
                                            raises=not options.allow_empty)
+            db = self.database_factory(options.database)
             with db(transactional=True) as cr:
                 obj = db.models.mail_thread
                 obj.message_process(
@@ -186,20 +242,8 @@ class Mailgate(Command):
                     message, save_original=options.save_original,
                     strip_attachments=options.strip_attachments)
         except:
-            import traceback
-            import logging
-            logger = logging.getLogger(__name__)
-            if options.log_host and options.log_to and options.log_from:
-                for recipient in options.log_to:
-                    logger.addHandler(
-                        logging.handlers.SMTPHandler(
-                            options.log_host,
-                            options.log_from,
-                            recipient,
-                            '[ERROR] xoeuf_mailgate'
-                        )
-                    )
-            logger.error(traceback.format_exc())
+            self.send_error_notification(message or 'No message provided',
+                                         options)
             raise
 
     def read_conffile(self, filename):
