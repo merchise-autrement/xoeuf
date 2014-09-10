@@ -114,6 +114,13 @@ class Mailgate(Command):
                                            'info', 'error'),
                                   default='warning',
                                   help='How much to log')
+            loggroup.add_argument('--log-host', default=None,
+                                  help='The SMTP host for reporting errors.')
+            loggroup.add_argument('--log-to', default=None,
+                                  nargs='+',
+                                  help='The address to receive error logs.')
+            loggroup.add_argument('--log-from', default=None,
+                                  help='The issuer of error reports.')
         return res
 
     @classmethod
@@ -167,22 +174,33 @@ class Mailgate(Command):
         conffile = options.conf
         if conffile:
             self.read_conffile(conffile)
-        db = self.database_factory(options.database)
-        default_model = options.default_model
-        message = self.get_raw_message(timeout=options.slowness,
-                                       raises=not options.allow_empty)
-        with db(transactional=True) as cr:
-            obj = db.models.mail_thread
-            try:
+        try:
+            db = self.database_factory(options.database)
+            default_model = options.default_model
+            message = self.get_raw_message(timeout=options.slowness,
+                                           raises=not options.allow_empty)
+            with db(transactional=True) as cr:
+                obj = db.models.mail_thread
                 obj.message_process(
                     cr, SUPERUSER_ID, default_model,
                     message, save_original=options.save_original,
                     strip_attachments=options.strip_attachments)
-            except:
-                import traceback
-                import sys
-                traceback.print_exc(limit=5, file=sys.stderr)
-                raise
+        except:
+            import traceback
+            import logging
+            logger = logging.getLogger(__name__)
+            if options.log_host and options.log_to and options.log_from:
+                for recipient in options.log_to:
+                    logger.addHandler(
+                        logging.handlers.SMTPHandler(
+                            options.log_host,
+                            options.log_from,
+                            recipient,
+                            '[ERROR] xoeuf_mailgate'
+                        )
+                    )
+            logger.error(traceback.format_exc())
+            raise
 
     def read_conffile(self, filename):
         import os
