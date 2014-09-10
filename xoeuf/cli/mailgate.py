@@ -137,7 +137,8 @@ class Mailgate(Command):
                     strip_attachments=options.strip_attachments)
             except:
                 import traceback
-                traceback.print_exc()
+                import sys
+                traceback.print_exc(limit=5, file=sys.stderr)
                 raise
 
     def read_conffile(self, filename):
