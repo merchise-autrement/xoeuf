@@ -204,7 +204,6 @@ class Mailgate(Command):
 
     def read_conffile(self, filename):
         import os
-        print(filename)
         ext = os.path.splitext(filename)[-1]
         if ext == '.py':
             self.load_config_from_script(filename)
