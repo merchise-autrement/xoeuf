@@ -126,13 +126,25 @@ class Mailgate(Command):
     def get_raw_message(timeout=0, raises=True):
         import select
         import sys
+        import logging
+        logger = logging.getLogger(__name__)
         ready, _, _ = select.select([sys.stdin], [], [], timeout)
         if ready:
             stdin = ready[0]
-            return stdin.read()
+            result = stdin.read()
+            logger.info(
+                str('Read message from mailgate with lenght %d'),
+                len(result)
+            )
+            logger.debug('>>>>> Message <<<<<<')
+            for chunk in result.split(str('\n')):
+                logger.debug(chunk)
+            logger.debug('<<<<<< End message >>>>>>')
+            return result
         elif raises:
             raise RuntimeError('No message via stdin')
         else:
+            logger.warn('No message provided, but allowing.')
             return ''
 
     def setup_logging(self, base=None, level='WARN'):
