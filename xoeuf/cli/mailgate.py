@@ -141,11 +141,22 @@ class Mailgate(Command):
         import select
         import sys
         import logging
+        import email
+        from xoutil.six import binary_type
+        from xoutil.string import safe_decode, safe_encode
         logger = logging.getLogger(__name__)
         ready, _, _ = select.select([sys.stdin], [], [], timeout)
         if ready:
             stdin = ready[0]
             result = stdin.read()
+            # XXX: We've been getting emails with invalid UTF8 sequences.  The
+            # following tries to avoid encoding issues when inserting into the
+            # DB.
+            if isinstance(result, binary_type):
+                msg = email.message_from_string(result)
+                result = msg.as_string()
+            else:
+                result = safe_encode(safe_decode(result))
             logger.info(
                 str('Read message from mailgate with lenght %d'),
                 len(result)
