@@ -28,6 +28,10 @@ from . import Command
 from logging import Handler
 
 
+# TODO: This has grown into a monstrous pile of code that needs
+# refactorization.
+
+
 # TODO: Should this be moved elsewhere?
 class SysLogHandler(Handler):
     def emit(self, report):
