@@ -196,7 +196,7 @@ class Mailgate(Command):
                 logger.addHandler(handler)
 
     @classmethod
-    def send_error_notification(cls, message, options):
+    def send_error_notification(cls, message):
         import traceback
         import logging
         import email
@@ -253,8 +253,7 @@ class Mailgate(Command):
                     message, save_original=options.save_original,
                     strip_attachments=options.strip_attachments)
         except:
-            self.send_error_notification(message or 'No message provided',
-                                         options)
+            self.send_error_notification(message or 'No message provided')
             raise
 
     def read_conffile(self, filename):
