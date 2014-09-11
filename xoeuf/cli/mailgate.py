@@ -215,13 +215,8 @@ class Mailgate(Command):
             message = msg.as_string()
         msgid = safe_decode(msg.get('Message-Id', '<NO ID>'))
         sender = safe_decode(msg.get('Sender', msg.get('From', '<nobody>')))
-        if len(message) <= 4096:
-            details = message
-            details_title = 'Raw message'
-        else:
-            details_title = 'Message headers'
-            details = '\n'.join('%s: %s' % (header, val)
-                                for header, val in msg.items())
+        details = safe_decode(message)  # make it str
+        details_title = 'Raw message'
         report = cls.MESSAGE_TEMPLATE.format(
             msgid=msgid,
             sender=sender,
