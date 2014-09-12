@@ -23,8 +23,6 @@ from __future__ import (division as _py3_division,
 
 
 from . import Command
-
-
 from logging import Handler
 
 
@@ -142,33 +140,25 @@ class Mailgate(Command):
 
     @staticmethod
     def get_raw_message(timeout=0, raises=True):
+        '''Return the data provide via stdin.
+
+        This will wait until the stdin is ready until the timeout expires.  If
+        the `raises` is True and the stdin returns an empty byte-stream a
+        RuntimeError is raised.
+
+        The result is always bytes.
+
+        '''
         import select
         import sys
         import logging
-        import email
-        from xoutil.six import binary_type
-        from xoutil.string import safe_decode, safe_encode
         logger = logging.getLogger(__name__)
         ready, _, _ = select.select([sys.stdin], [], [], timeout)
         if ready:
             stdin = ready[0]
-            result = stdin.read()
-            # XXX: We've been getting emails with invalid UTF8 sequences.  The
-            # following tries to avoid encoding issues when inserting into the
-            # DB.
-            if isinstance(result, binary_type):
-                msg = email.message_from_string(result)
-                result = msg.as_string()
-            else:
-                result = safe_encode(safe_decode(result))
-            logger.info(
-                str('Read message from mailgate with lenght %d'),
-                len(result)
-            )
-            logger.debug('>>>>> Message <<<<<<')
-            for chunk in result.split(str('\n')):
-                logger.debug(chunk)
-            logger.debug('<<<<<< End message >>>>>>')
+            buffer = getattr(stdin, 'buffer', stdin)  # XXX: To read bytes in
+                                                      # both Py3k and Py 2.
+            result = buffer.read()
             return result
         elif raises:
             raise RuntimeError('No message via stdin')
@@ -180,11 +170,11 @@ class Mailgate(Command):
                       log_to=None, log_from=None):
         import logging
         self.invalidate_logging()
-        # Force openerp to report WARN
+        # Force openerp to report only ERROR
         logger = logging.getLogger('openerp')
         logger.addHandler(SysLogHandler())
-        logger.setLevel(logging.WARN)
-        logger = logging.getLogger(__name__)
+        logger.setLevel(logging.ERROR)
+        logger = logging.getLogger()  # the root logger.
         # TODO:  Create a SysLogHandler that uses syslog module.
         logger.addHandler(SysLogHandler())
         logger.setLevel(getattr(logging, level, logging.WARN))
@@ -201,6 +191,7 @@ class Mailgate(Command):
 
     @classmethod
     def send_error_notification(cls, message):
+        '''Report an error dealing with `message`.'''
         import traceback
         import logging
         import email
@@ -215,7 +206,13 @@ class Mailgate(Command):
             message = msg.as_string()
         msgid = safe_decode(msg.get('Message-Id', '<NO ID>'))
         sender = safe_decode(msg.get('Sender', msg.get('From', '<nobody>')))
-        details = safe_decode(message)  # make it str
+
+        # Make it a string, so that the logger does not fail but the encoding
+        # might by wrong, since the original byte-stream encoding is not
+        # known.  Avoid doing anything fancy like parsing the Message with all
+        # its Content-Type and Content-Type-Encoding complexities.  Those
+        # complexities are left to the message processing OpenERP has to do.
+        details = safe_decode(message)
         details_title = 'Raw message'
         report = cls.MESSAGE_TEMPLATE.format(
             msgid=msgid,
@@ -224,7 +221,8 @@ class Mailgate(Command):
             details_title=details_title,
             message_details=details
         )
-        logger.error(report)
+        logger.error(safe_encode(report, 'ascii'))  # Report in ASCII probably
+                                                    # with some '?'  symbols
 
     def run(self, args=None):
         from openerp import SUPERUSER_ID
