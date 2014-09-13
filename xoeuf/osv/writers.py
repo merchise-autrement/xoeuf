@@ -34,6 +34,7 @@ class _BaseWriter(object):
         self.uid = uid
         self.kwargs = kwargs
         self._commands = StackedDict()
+        self.result = None
 
     def _get_field(self, attrname):
         return self.obj._all_columns[attrname].column
@@ -177,12 +178,13 @@ class ORMWriter(_BaseWriter):
     def __exit__(self, exc_type, exc_value, exc_tb):
         if exc_type or exc_value:
             return False
-        self.obj.write(self.cr, self.uid, self.ids, self.commands,
-                       **self.kwargs)
+        self.result = self.obj.write(self.cr, self.uid, self.ids,
+                                     self.commands, **self.kwargs)
 
 
 class ORMCreator(_BaseWriter):
     def __exit__(self, exc_type, exc_value, exc_tb):
         if exc_type or exc_value:
             return False
-        self.obj.create(self.cr, self.uid, self.commands, **self.kwargs)
+        self.result = self.obj.create(self.cr, self.uid, self.commands,
+                                      **self.kwargs)
