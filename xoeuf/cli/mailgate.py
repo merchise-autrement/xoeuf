@@ -117,6 +117,10 @@ class Mailgate(Command):
                              action='store_true',
                              help='Whether to accept an empty message '
                              'without error.')
+            res.add_argument('--input-file', '-f', dest='input',
+                             type=path(),
+                             help='Read the message from the file INPUT '
+                             'instead of the stdin.')
             loggroup = res.add_argument_group('Logging')
             loggroup.add_argument('--log-level',
                                   choices=('debug', 'warning',
@@ -240,8 +244,13 @@ class Mailgate(Command):
         default_model = options.default_model
         message = None
         try:
-            message = self.get_raw_message(timeout=options.slowness,
-                                           raises=not options.allow_empty)
+            if not options.input:
+                message = self.get_raw_message(timeout=options.slowness,
+                                               raises=not options.allow_empty)
+            else:
+                with open(options.input, 'rb') as f:
+                    message = f.read()
+            # TODO: assert message is bytes
             db = self.database_factory(options.database)
             with db(transactional=True) as cr:
                 obj = db.models.mail_thread
