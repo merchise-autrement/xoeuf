@@ -119,8 +119,8 @@ class _BaseWriter(object):
                     commands[attrname] = val
 
     def remove(self, attrname, *ids):
-        '''Issues several "remove related object" commands for the attribute named
-        `attrname`.
+        '''Issues several "remove related object" commands for the attribute
+        named `attrname`.
 
         '''
         assert self._is_many2many(attrname) or self._is_one2many(attrname)
@@ -130,8 +130,8 @@ class _BaseWriter(object):
             cmds.append(REMOVE_RELATED(id))
 
     def forget(self, attrname, *ids):
-        '''Issues several "forget related object" commands for the attribute named
-        `attrname`.
+        '''Issues several "forget related object" commands for the attribute
+        named `attrname`.
 
         '''
         assert self._is_many2many(attrname)
@@ -141,8 +141,8 @@ class _BaseWriter(object):
             cmds.append(FORGET_RELATED(id))
 
     def forgetall(self, attrname):
-        '''Issues a "forget all related objects" command for the attribute named
-        `attrname`.
+        '''Issues a "forget all related objects" command for the attribute
+        named `attrname`.
 
         '''
         assert self._is_many2many(attrname)
