@@ -127,8 +127,7 @@ class _BaseWriter(object):
         assert self._is_many2many(attrname) or self._is_one2many(attrname)
         from .orm import REMOVE_RELATED
         cmds = self._commands.setdefault(attrname, [])
-        for id in ids:
-            cmds.append(REMOVE_RELATED(id))
+        cmds.extend(REMOVE_RELATED(id) for id in ids)
 
     def forget(self, attrname, *ids):
         '''Issues several "forget related object" commands for the attribute
@@ -138,8 +137,7 @@ class _BaseWriter(object):
         assert self._is_many2many(attrname)
         from .orm import FORGET_RELATED
         cmds = self._commands.setdefault(attrname, [])
-        for id in ids:
-            cmds.append(FORGET_RELATED(id))
+        cmds.extend(FORGET_RELATED(id) for id in ids)
 
     def forgetall(self, attrname):
         '''Issues a "forget all related objects" command for the attribute
