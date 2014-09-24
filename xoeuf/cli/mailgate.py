@@ -122,6 +122,8 @@ class Mailgate(Command):
                              type=path(),
                              help='Read the message from the file INPUT '
                              'instead of the stdin.')
+            res.add_argument('--defer', default=False, action='store_true',
+                             help='Treat errors as transient.')
             loggroup = res.add_argument_group('Logging')
             loggroup.add_argument('--log-level',
                                   choices=('debug', 'warning',
@@ -266,6 +268,8 @@ class Mailgate(Command):
                     message, save_original=options.save_original,
                     strip_attachments=options.strip_attachments)
         except:
+            if options.defer:
+                print(str('4.3.5 System incorrectly configured'))
             self.send_error_notification(message or 'No message provided')
             raise
 
