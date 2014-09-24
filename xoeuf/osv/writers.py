@@ -161,6 +161,16 @@ class _BaseWriter(object):
         cmds = self._commands.setdefault(attrname, [])
         cmds.append(REPLACEWITH_RELATED(*ids))
 
+    def add(self, attrname, *ids):
+        '''Issues several "link to" commands to the attribute named
+        `attrname`.
+
+        '''
+        from .orm import LINK_RELATED
+        assert self._is_many2many(attrname)
+        cmds = self._commands.setdefault(attrname, [])
+        cmds.extend(LINK_RELATED(id) for id in ids)
+
 
 class ORMWriter(_BaseWriter):
     '''A writer that issues a ``obj.write`` when exiting the context manager.
