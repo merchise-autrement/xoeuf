@@ -36,7 +36,8 @@ class SysLogHandler(Handler):
         # This avoids the /dev/log system issue and goes directly to Unix.
         # But then Windows is f.cked.
         import syslog
-        syslog.syslog(self.format(report))
+        from xoutil.string import safe_encode
+        syslog.syslog(safe_encode(self.format(report)))
 
 del Handler
 
@@ -172,14 +173,20 @@ class Mailgate(Command):
 
     def setup_logging(self, base=None, level='WARN', log_host=None,
                       log_to=None, log_from=None):
+        '''Redirect logs to SysLog.
+
+        If `log_host`, `log_to` and `log_from` are provided errors will be
+        loged via SMTP.
+
+        '''
         import logging
-        self.invalidate_logging()
-        # Force openerp to report only ERROR
         logger = logging.getLogger('openerp')
+        logger.handlers = []
         logger.addHandler(SysLogHandler())
-        logger.setLevel(logging.ERROR)
+
         logger = logging.getLogger()  # the root logger.
         # TODO:  Create a SysLogHandler that uses syslog module.
+        logger.handlers = []
         logger.addHandler(SysLogHandler())
         logger.setLevel(getattr(logging, level, logging.WARN))
         if log_host and log_to and log_from:
