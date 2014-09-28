@@ -22,6 +22,9 @@ from openerp.tools import DEFAULT_SERVER_DATETIME_FORMAT as _SVR_DATETIME_FMT
 
 def date2str(d):
     'Convert a date to a string using `OpenERP` default date format'
+    if isinstance(d, _d):
+        # XXX: date does not have strftime
+        d = _dt(d.year, d.month, d.day)
     return d.strftime(_SVR_DATE_FMT)
 
 
