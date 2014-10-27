@@ -368,7 +368,7 @@ def touch_fields(self, cr, uid, ids, only=None, context=None):
     '''
     from xoutil.names import nameof
     from xoutil.types import is_collection
-    from xoutil.six import iteritems, string_types
+    from six import iteritems, string_types
     from openerp.osv.fields import function
     if not ids:
         # Don't use self.search() here!  search() might return invalid ids
