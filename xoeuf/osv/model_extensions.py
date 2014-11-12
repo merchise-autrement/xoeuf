@@ -418,6 +418,7 @@ def get_writer(self, cr, uid, ids, context=None):
     '''
     from .writers import ORMWriter
     return ORMWriter(self, cr, uid, ids, context=context)
+orm_writer = get_writer
 
 
 def get_creator(self, cr, uid, context=None):
@@ -426,6 +427,7 @@ def get_creator(self, cr, uid, context=None):
     '''
     from .writers import ORMCreator
     return ORMCreator(self, cr, uid, context=context)
+orm_creator = get_creator
 
 
 def cascade_search(self, cr, uid, *queries, **options):
