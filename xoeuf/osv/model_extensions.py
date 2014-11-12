@@ -366,9 +366,9 @@ def touch_fields(self, cr, uid, ids, only=None, context=None):
        (Remember ``crm_meeting`` is actually the place for every event.)
 
     '''
+    from six import iteritems, string_types
     from xoutil.names import nameof
     from xoutil.types import is_collection
-    from six import iteritems, string_types
     from openerp.osv.fields import function
     if not ids:
         # Don't use self.search() here!  search() might return invalid ids
@@ -383,6 +383,7 @@ def touch_fields(self, cr, uid, ids, only=None, context=None):
     if only is not None and not is_collection(only):
         msg = "Invalid type '%s' for argument 'only'"
         raise TypeError(msg % nameof(only, inner=True, typed=True))
+    # TODO: use both _columns and _inherit_fields
     fields = [name for name, field in iteritems(self._columns)
               if not only or name in only
               if isinstance(field, function) and field.store]
