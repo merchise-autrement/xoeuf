@@ -408,7 +408,7 @@ def get_writer(self, cr, uid, ids, context=None):
     At the end of the `with` sentence the equivalent ``obj.write()`` method
     will be called.
 
-    .. seealso:: :class:`xoeuf.osv.writers.Writer`.
+    .. seealso:: :class:`xoeuf.osv.writers.ORMWriter`.
 
     .. warning:: Non-magical disclaimer.
 

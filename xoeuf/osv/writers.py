@@ -22,7 +22,7 @@ from __future__ import (division as _py3_division,
 
 
 class _BaseWriter(object):
-    '''Core of the function for `Writer`:class: and `Creator`:class:.
+    '''Core of the function for `ORMWriter`:class: and `ORMCreator`:class:.
 
     .. warning:: Currently we don't support nested context managers.
 
@@ -191,6 +191,7 @@ class ORMWriter(_BaseWriter):
 
 
 class ORMCreator(_BaseWriter):
+    '''A writer that emits `create` at manager's exit.'''
     def __exit__(self, exc_type, exc_value, exc_tb):
         if exc_type or exc_value:
             return False
