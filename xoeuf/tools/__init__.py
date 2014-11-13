@@ -55,7 +55,7 @@ def normalize_datetime(which):
        >>> import datetime
        >>> from xoutil.objects import validate_attrs
        >>> now = datetime.datetime.now()
-       >>> today = datetime.date.today()
+       >>> today = now.date()
 
     Then, ``now`` is returned as-is::
 
@@ -64,21 +64,21 @@ def normalize_datetime(which):
 
     But ``today`` is converted to a `datetime` with the same date components::
 
-       >>> dtoday = normalize_date(today)
+       >>> dtoday = normalize_datetime(today)
        >>> validate_attrs(today, dtoday,
        ...                force_equals=('year', 'month', 'day'))
        True
 
     If a string is given, a `datetime` is returned::
 
-       >>> normalize_date('2014-02-12')
+       >>> normalize_datetime('2014-02-12')
        datetime.datetime(2014, 2, 12, 0, 0)
 
 
     If the string does not match any of the server's date or datetime format,
     raise a ValueError::
 
-       >>> normalize_date('not a date')  # doctest: +ELLIPSIS
+       >>> normalize_datetime('not a date')  # doctest: +ELLIPSIS
        Traceback (most recent call last)
           ...
        ValueError: ...
