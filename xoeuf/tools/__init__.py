@@ -97,3 +97,57 @@ def normalize_datetime(which):
     else:
         raise TypeError("Expected a string, date or date but a '%s' was given"
                         % type(which))
+
+
+def normalize_date(which):
+    '''Normalizes `which` to a date.
+
+    If `which` is a `date` is returned unchanged.  If is a `datetime`, then
+    its `~datetime.date`:func: method is used.  Otherwise, it must be a string
+    with either of OpenERP's date or date-time format.  The date format is
+    tried first.
+
+    For instance, having ``now`` and ``today`` values like::
+
+       >>> import datetime
+       >>> now = datetime.datetime.now()
+       >>> today = now.date()
+
+    Then, ``today`` is returned as-if::
+
+       >>> normalize_date(today) is today
+       True
+
+    But ``now`` is converted to a `date`
+
+       >>> normalize_date(now) == today
+       True
+
+    If a string is given, a `date` is returned::
+
+       >>> normalize_date('2014-02-12 10:00')
+       datetime.date(2014, 2, 12)
+
+
+    If the string does not match any of the server's date or datetime format,
+    raise a ValueError::
+
+       >>> normalize_date('not a date')  # doctest: +ELLIPSIS
+       Traceback (most recent call last)
+          ...
+       ValueError: ...
+
+    '''
+    from six import string_types
+    if isinstance(which, _dt):
+        return which.date()
+    elif isinstance(which, _d):
+        return which
+    elif isinstance(which, string_types):
+        try:
+            return parse_date(which).date()
+        except ValueError:
+            return parse_datetime(which).date()
+    else:
+        raise TypeError("Expected a string, date or date but a '%s' was given"
+                        % type(which))
