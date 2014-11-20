@@ -78,6 +78,7 @@ def _reset_passwords(db, security_level, verbose, check=None):
     '''
     from xoutil.objects import smart_copy
     from xoutil.crypto import generate_password
+    from xoutil.string import safe_encode
     uid = db.uid
     users_model = db.models.res_users
     with db(transactional=True) as cr:
@@ -90,12 +91,12 @@ def _reset_passwords(db, security_level, verbose, check=None):
                 vals = smart_copy(item, {}, defaults=('id', 'password'))
                 if users_model.write(cr, uid, item['id'], vals):
                     if verbose:
-                        print((">>> id: %(id)s, login: %(login)s, "
-                               "name: %(name)s, "
-                               "password: '%(password)s'") % item)
+                        print(safe_encode(">>> id: %(id)s, login: %(login)s, "
+                                          "name: %(name)s, "
+                                          "password: '%(password)s'" % item))
                 else:
-                    print(("<<< ERROR: id: %(id)s, login: %(login)s, "
-                           "name: %(name)s, ") % item, "NOT CHANGED")
+                    print(safe_encode("<<< ERROR: id: %(id)s, login: %(login)s, "
+                                      "name: %(name)s, " % item), "NOT CHANGED")
 
 
 def reset_all_passwords(db, security_level=_DEF_LEVEL, verbose=True):

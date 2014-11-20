@@ -60,6 +60,7 @@ setup(name=project_name,
       install_requires=[
           # -*- Extra requirements: -*-
           'xoutil>=1.5.4,<1.7',
+          'six',
           'openerp'
       ],
       entry_points="""

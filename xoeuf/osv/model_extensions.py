@@ -366,9 +366,9 @@ def touch_fields(self, cr, uid, ids, only=None, context=None):
        (Remember ``crm_meeting`` is actually the place for every event.)
 
     '''
+    from six import iteritems, string_types
     from xoutil.names import nameof
     from xoutil.types import is_collection
-    from xoutil.six import iteritems, string_types
     from openerp.osv.fields import function
     if not ids:
         # Don't use self.search() here!  search() might return invalid ids
@@ -383,6 +383,7 @@ def touch_fields(self, cr, uid, ids, only=None, context=None):
     if only is not None and not is_collection(only):
         msg = "Invalid type '%s' for argument 'only'"
         raise TypeError(msg % nameof(only, inner=True, typed=True))
+    # TODO: use both _columns and _inherit_fields
     fields = [name for name, field in iteritems(self._columns)
               if not only or name in only
               if isinstance(field, function) and field.store]
@@ -407,7 +408,7 @@ def get_writer(self, cr, uid, ids, context=None):
     At the end of the `with` sentence the equivalent ``obj.write()`` method
     will be called.
 
-    .. seealso:: :class:`xoeuf.osv.writers.Writer`.
+    .. seealso:: :class:`xoeuf.osv.writers.ORMWriter`.
 
     .. warning:: Non-magical disclaimer.
 
@@ -418,6 +419,7 @@ def get_writer(self, cr, uid, ids, context=None):
     '''
     from .writers import ORMWriter
     return ORMWriter(self, cr, uid, ids, context=context)
+orm_writer = get_writer
 
 
 def get_creator(self, cr, uid, context=None):
@@ -426,6 +428,7 @@ def get_creator(self, cr, uid, context=None):
     '''
     from .writers import ORMCreator
     return ORMCreator(self, cr, uid, context=context)
+orm_creator = get_creator
 
 
 def cascade_search(self, cr, uid, *queries, **options):
