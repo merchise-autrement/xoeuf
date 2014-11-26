@@ -244,41 +244,10 @@ def field_value(self, cr, uid, ids, field_name, context=None):
 
 
 def search_value(self, cr, uid, args, field_name, context=None):
-    '''Read a field value for a set of objects.
+    '''Similar to `find_value`:func: but searching.
 
-    This method is very protective, if any ``False`` is passed as `ids`,
-    ``False`` is returned without raising errors; also related "2one" field
-    values are returned only as id integers, not tuples (id, 'name').
-
-    :param self: model to operate in
-
-    :param cr: database cursor
-
-    :param uid: current user id
-
-    :param args: list of tuples specifying the search domain ``[('field_name',
-                 'operator', value), ...]``. Pass an empty list to match all
-                 records.
-
-    :param field_name: field name to return
-
-    :param context: optional context dictionary - it may contains keys for
-                    specifying certain options like ``context_lang``,
-                    ``context_tz`` to alter the results of the call.
-
-                    See method :func:`read` for more details.
-
-    :return: a value if only one id is specified or a dictionary if more than
-             one. ``False`` is returned when no record is associated with the
-             ids.
-
-    :rtype: same type of field or ``{id: value, ...}``
-
-    :raise AccessError:
-
-       * if user has no read rights on the requested object
-
-       * if user tries to bypass access rules for read on the requested object
+    Instead of an `ids` it expects a search domain.  Matching ids will be then
+    passed to `find_value`:func:.
 
     '''
     ids = self.search(cr, uid, args, context=context)
@@ -366,9 +335,9 @@ def touch_fields(self, cr, uid, ids, only=None, context=None):
        (Remember ``crm_meeting`` is actually the place for every event.)
 
     '''
+    from six import iteritems, string_types
     from xoutil.names import nameof
     from xoutil.types import is_collection
-    from xoutil.six import iteritems, string_types
     from openerp.osv.fields import function
     if not ids:
         # Don't use self.search() here!  search() might return invalid ids
@@ -383,6 +352,7 @@ def touch_fields(self, cr, uid, ids, only=None, context=None):
     if only is not None and not is_collection(only):
         msg = "Invalid type '%s' for argument 'only'"
         raise TypeError(msg % nameof(only, inner=True, typed=True))
+    # TODO: use both _columns and _inherit_fields
     fields = [name for name, field in iteritems(self._columns)
               if not only or name in only
               if isinstance(field, function) and field.store]
@@ -407,7 +377,7 @@ def get_writer(self, cr, uid, ids, context=None):
     At the end of the `with` sentence the equivalent ``obj.write()`` method
     will be called.
 
-    .. seealso:: :class:`xoeuf.osv.writers.Writer`.
+    .. seealso:: :class:`xoeuf.osv.writers.ORMWriter`.
 
     .. warning:: Non-magical disclaimer.
 
@@ -418,6 +388,7 @@ def get_writer(self, cr, uid, ids, context=None):
     '''
     from .writers import ORMWriter
     return ORMWriter(self, cr, uid, ids, context=context)
+orm_writer = get_writer
 
 
 def get_creator(self, cr, uid, context=None):
@@ -426,6 +397,7 @@ def get_creator(self, cr, uid, context=None):
     '''
     from .writers import ORMCreator
     return ORMCreator(self, cr, uid, context=context)
+orm_creator = get_creator
 
 
 def cascade_search(self, cr, uid, *queries, **options):

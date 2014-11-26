@@ -55,7 +55,7 @@ def normalize_datetime(which):
        >>> import datetime
        >>> from xoutil.objects import validate_attrs
        >>> now = datetime.datetime.now()
-       >>> today = datetime.date.today()
+       >>> today = now.date()
 
     Then, ``now`` is returned as-is::
 
@@ -64,15 +64,69 @@ def normalize_datetime(which):
 
     But ``today`` is converted to a `datetime` with the same date components::
 
-       >>> dtoday = normalize_date(today)
+       >>> dtoday = normalize_datetime(today)
        >>> validate_attrs(today, dtoday,
        ...                force_equals=('year', 'month', 'day'))
        True
 
     If a string is given, a `datetime` is returned::
 
-       >>> normalize_date('2014-02-12')
+       >>> normalize_datetime('2014-02-12')
        datetime.datetime(2014, 2, 12, 0, 0)
+
+
+    If the string does not match any of the server's date or datetime format,
+    raise a ValueError::
+
+       >>> normalize_datetime('not a date')  # doctest: +ELLIPSIS
+       Traceback (most recent call last)
+          ...
+       ValueError: ...
+
+    '''
+    from six import string_types
+    if isinstance(which, _dt):
+        return which
+    elif isinstance(which, _d):
+        return _dt(which.year, which.month, which.day)
+    elif isinstance(which, string_types):
+        try:
+            return parse_datetime(which)
+        except ValueError:
+            return parse_date(which)
+    else:
+        raise TypeError("Expected a string, date or date but a '%s' was given"
+                        % type(which))
+
+
+def normalize_date(which):
+    '''Normalizes `which` to a date.
+
+    If `which` is a `date` is returned unchanged.  If is a `datetime`, then
+    its `~datetime.date`:func: method is used.  Otherwise, it must be a string
+    with either of OpenERP's date or date-time format.  The date format is
+    tried first.
+
+    For instance, having ``now`` and ``today`` values like::
+
+       >>> import datetime
+       >>> now = datetime.datetime.now()
+       >>> today = now.date()
+
+    Then, ``today`` is returned as-if::
+
+       >>> normalize_date(today) is today
+       True
+
+    But ``now`` is converted to a `date`
+
+       >>> normalize_date(now) == today
+       True
+
+    If a string is given, a `date` is returned::
+
+       >>> normalize_date('2014-02-12 10:00')
+       datetime.date(2014, 2, 12)
 
 
     If the string does not match any of the server's date or datetime format,
@@ -84,16 +138,16 @@ def normalize_datetime(which):
        ValueError: ...
 
     '''
-    from xoutil.six import string_types
+    from six import string_types
     if isinstance(which, _dt):
-        return which
+        return which.date()
     elif isinstance(which, _d):
-        return _dt(which.year, which.month, which.day)
+        return which
     elif isinstance(which, string_types):
         try:
-            return parse_datetime(which)
+            return parse_date(which).date()
         except ValueError:
-            return parse_date(which)
+            return parse_datetime(which).date()
     else:
         raise TypeError("Expected a string, date or date but a '%s' was given"
                         % type(which))

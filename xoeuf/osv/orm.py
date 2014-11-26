@@ -60,7 +60,7 @@ def get_modelname(model):
         'account.fiscalyear'
 
     '''
-    from xoutil.six import string_types
+    from six import string_types
     from openerp.osv.orm import BaseModel
     if not isinstance(model, BaseModel) and not issubclass(model, BaseModel):
         msg = "Invalid argument '%s' for param 'model'" % model
