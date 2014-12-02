@@ -61,7 +61,8 @@ setup(name=project_name,
           # -*- Extra requirements: -*-
           'xoutil>=1.5.4,<1.7',
           'six',
-          'openerp'
+          'openerp',
+          'ipython',
       ],
       entry_points="""
       [console_scripts]
