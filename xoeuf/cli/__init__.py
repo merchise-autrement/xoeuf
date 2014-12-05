@@ -121,4 +121,5 @@ del BaseCommand
 # TODO: Loader?
 from . import mailgate as _
 from . import shell as _shell
-del _, _shell
+from . import secure as _secure
+del _, _shell, _secure
