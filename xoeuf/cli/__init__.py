@@ -30,16 +30,19 @@ init_logger()
 from xoeuf.modules import patch_modules
 patch_modules()
 
-from openerp.modules.loading import open_openerp_namespace
-import openerp.addons.base  # Needed to bootstrap base, otherwise
-                            # addons that import openerp.addons.base
-                            # fail to load.
 
-# XXX: OpenERP's own commands discovery inside addons is totally
-# flawed.  Trying `openerp-server some-command` fails to load any
-# addon that imports stuff without the "openerp.".  So let's do the
-# open namespace now
-open_openerp_namespace()
+import openerp
+if openerp.release.version_info < (8, 0, 0):
+    from openerp.modules.loading import open_openerp_namespace
+    import openerp.addons.base  # Needed to bootstrap base, otherwise addons
+                                # that import openerp.addons.base fail to
+                                # load.
+
+    # XXX: OpenERP's own commands discovery inside addons is totally flawed.
+    # Trying `openerp-server some-command` fails to load any addon that
+    # imports stuff without the "openerp.".  So let's do the open namespace
+    # now
+    open_openerp_namespace()
 
 
 class CommandsProxy(object):
