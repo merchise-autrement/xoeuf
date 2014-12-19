@@ -22,12 +22,14 @@ from openerp.tools import DEFAULT_SERVER_DATETIME_FORMAT as _SVR_DATETIME_FMT
 
 def date2str(d):
     'Convert a date to a string using `OpenERP` default date format'
-    return d.strftime(_SVR_DATE_FMT)
+    return normalize_date(d).strftime(_SVR_DATE_FMT)
+normalize_datestr = date2str
 
 
 def dt2str(dt):
     'Convert a date-time to a string using `OpenERP` default datetime format'
-    return dt.strftime(_SVR_DATETIME_FMT)
+    return normalize_datetime(dt).strftime(_SVR_DATETIME_FMT)
+normalize_datetimestr = dt2str
 
 
 def str2dt(s):
