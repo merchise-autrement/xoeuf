@@ -94,11 +94,8 @@ def normalize_datetime(which):
     If the string does not match any of the server's date or datetime format,
     raise a ValueError::
 
-       >>> str(now)
-       '2014-12-20 16:00:17.678233'
-
-       >>> normalize_datetime(str(now))  # doctest: +ELLIPSIS
-       Traceback (most recent call last)
+       >>> normalize_datetime('not a datetime')  # doctest: +ELLIPSIS
+       Traceback (most recent call last):
           ...
        ValueError: ...
 
@@ -144,14 +141,14 @@ def normalize_date(which):
 
     If a string is given, a `date` is returned::
 
-       >>> normalize_date('2014-02-12 10:00')
+       >>> normalize_date('2014-02-12 10:00:00')
        datetime.date(2014, 2, 12)
 
     If the string does not match any of the server's date or datetime format,
     raise a ValueError::
 
        >>> normalize_date('not a date')  # doctest: +ELLIPSIS
-       Traceback (most recent call last)
+       Traceback (most recent call last):
           ...
        ValueError: ...
 
