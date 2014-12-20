@@ -111,9 +111,9 @@ def reset_all_passwords(db, security_level=_DEF_LEVEL, verbose=True):
 
     This function can be used as::
 
-      >>> from xoeuf.pool import test as db
-      >>> from xoeuf.security import reset_all_passwords
-      >>> reset_all_passwords(db, security_level=2)
+      from xoeuf.pool import test as db
+      from xoeuf.security import reset_all_passwords
+      reset_all_passwords(db, security_level=2)
 
     See module documentation for more info.
 

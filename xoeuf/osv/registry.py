@@ -56,27 +56,27 @@ class TransactionManager(Context):
 
     Use always as part of a database Registry::
 
-        >>> reg = Registry(db_name='test')
-        >>> users = reg.models.res_users
-        >>> uid = 1
-        >>> with reg(foo='bar') as cr:   # Define context variables
-        ...     ids = users.search(cr, uid, [('partner_id', 'like', 'Med%')])
-        ...     for rec in users.read(cr, uid, ids):
-        ...         name = rec['partner_id'][1]
-        ...         mail = rec['user_email']
-        ...         print('"%s" <%s>' % (name, mail))
+        reg = Registry(db_name='test')
+        users = reg.models.res_users
+        uid = 1
+        with reg(foo='bar') as cr:   # Define context variables
+            ids = users.search(cr, uid, [('partner_id', 'like', 'Med%')])
+            for rec in users.read(cr, uid, ids):
+                name = rec['partner_id'][1]
+                mail = rec['user_email']
+                print('"%s" <%s>' % (name, mail))
 
     If `transactional` is True, then "commit" or "rollback" is called on
     exiting the level::
 
-        >>> with reg(transactional=True) as cr:  # commit after this is exited
-        ...     ids = users.search(cr, uid, [('partner_id', 'like', 'Med%')])
-        ...     with reg() as cr2:   # Reuse the same cursor of parent context
-        ...         assert cr is cr2
-        ...         for rec in users.read(cr, uid, ids):
-        ...             name = rec['partner_id'][1]
-        ...             mail = rec['user_email']
-        ...             print('"%s" <%s>' % (name, mail))
+        with reg(transactional=True) as cr:  # commit after this is exited
+            ids = users.search(cr, uid, [('partner_id', 'like', 'Med%')])
+            with reg() as cr2:   # Reuse the same cursor of parent context
+                assert cr is cr2
+                for rec in users.read(cr, uid, ids):
+                    name = rec['partner_id'][1]
+                    mail = rec['user_email']
+                    print('"%s" <%s>' % (name, mail))
 
     First level contexts are always transactional.
 
@@ -493,14 +493,15 @@ class Registry(ModuleType):
 
         To use it as a managed cursor::
 
-        >>> reg = Registry('my_db')
-        >>> users = reg.models.res_users
-        >>> with reg(foo='bar') as cr:   # Define context variables
-        ...     ids = users.search(cr, 1, [('partner_id', 'like', 'Med%')])
-        ...     for rec in users.read(cr, uid, ids):
-        ...         name = rec['partner_id'][1]
-        ...         mail = rec['user_email']
-        ...         print('"%s" <%s>' % (name, mail))
+        reg = Registry('my_db')
+        users = reg.models.res_users
+        with reg(foo='bar') as cr:   # Define context variables
+            ids = users.search(cr, 1, [('partner_id', 'like', 'Med%')])
+            for rec in users.read(cr, uid, ids):
+                name = rec['partner_id'][1]
+                mail = rec['user_email']
+                print('"%s" <%s>' % (name, mail))
+
         '''
         return TransactionManager(self, **kwargs)
 
