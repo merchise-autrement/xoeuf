@@ -20,6 +20,9 @@ from openerp.tools import DEFAULT_SERVER_DATE_FORMAT as _SVR_DATE_FMT
 from openerp.tools import DEFAULT_SERVER_DATETIME_FORMAT as _SVR_DATETIME_FMT
 
 
+_SVR_DATETIME_FMT2 = _SVR_DATETIME_FMT + '.%f'
+
+
 def date2str(d):
     'Convert a date to a string using `OpenERP` default date format'
     if not isinstance(d, _d):
@@ -38,7 +41,13 @@ normalize_datetimestr = dt2str
 
 def str2dt(s):
     'Convert a string to a date-time using `OpenERP` default datetime format'
-    return _dt.strptime(s, _SVR_DATETIME_FMT)
+    try:
+        return _dt.strptime(s, _SVR_DATETIME_FMT)
+    except ValueError:
+        # Try a second time but allowing microseconds, this avoid some errors
+        # when you save a .now() directly via the ORM.  It seems to not
+        # sanitize properly the datetimes.
+        return _dt.strptime(s, _SVR_DATETIME_FMT2)
 parse_datetime = str2dt
 
 
