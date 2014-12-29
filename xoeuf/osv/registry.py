@@ -47,6 +47,13 @@ def _valid_model_base(model):
         raise TypeError(msg % (t.__name__, t.mro()))
 
 
+# The manager of Odoo is now classmethod lock().  This allows both Odoo 8.0
+# and OpenERP 7.0 to be used.
+manager_lock = getattr(manager, 'lock', None)
+if not manager_lock:
+    manager_lock = lambda: manager.registries_lock
+
+
 # TODO: Allow to change "openerp.tools.config" per context level
 #       Implement for this "push" and "pop" methods in "xoeuf.tools.config"
 class TransactionManager(Context):
@@ -87,7 +94,7 @@ class TransactionManager(Context):
     default_context = {}    # TODO: check its value
 
     def __new__(cls, registry, **kwargs):
-        with manager.registries_lock:
+        with manager_lock():
             _super = super(TransactionManager, cls)
             self = _super.__new__(cls, registry.context_name, **kwargs)
             if self.count == 0:
@@ -361,7 +368,7 @@ class Registry(ModuleType):
         registry.
         '''
         import threading
-        with manager.registries_lock:
+        with manager_lock():
             db_name = str(db_name)
             self = cls.instances.get(db_name)    # Only one per database
             if not self:
@@ -416,7 +423,7 @@ class Registry(ModuleType):
 
         '''
         cls = type(self)
-        with manager.registries_lock:
+        with manager_lock():
             try:
                 self.wrapped = manager.new(self.db_name)
             except:
