@@ -11,7 +11,7 @@
 #
 # Created on 2014-03-12
 
-'''A better OpenERP mailgate that does it's stuff in the DB instead via
+'''An alternative OpenERP mailgate that does it's stuff in the DB instead via
 XMLRPC.
 
 '''
@@ -156,6 +156,7 @@ class Mailgate(Command):
         The result is always bytes.
 
         '''
+        from six import binary_type as bytes
         import select
         import sys
         import logging
@@ -171,7 +172,7 @@ class Mailgate(Command):
             raise RuntimeError('No message via stdin')
         else:
             logger.warn('No message provided, but allowing.')
-            return ''
+            return bytes('')
 
     def setup_logging(self, base=None, level='WARN', log_host=None,
                       log_to=None, log_from=None):
