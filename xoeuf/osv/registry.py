@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
-#----------------------------------------------------------------------
+# ---------------------------------------------------------------------
 # xoeuf.osv.registry
-#----------------------------------------------------------------------
-# Copyright (c) 2013, 2014 Merchise Autrement
+# ---------------------------------------------------------------------
+# Copyright (c) 2013-2015 Merchise Autrement
 # All rights reserved.
 #
 # This is free software; you can redistribute it and/or modify it under
@@ -493,7 +493,10 @@ class Registry(ModuleType):
     @property
     def connection(self):
         '''In OpenERP is named "db".'''
-        return self.wrapped.db
+        res = getattr(self.wrapped, 'db', None)
+        if not res:
+            res = getattr(self.wrapped, '_db')
+        return res
 
     def __call__(self, **kwargs):
         '''Create a execution context.
