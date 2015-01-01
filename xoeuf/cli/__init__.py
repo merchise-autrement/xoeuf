@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
-#----------------------------------------------------------------------
+# ---------------------------------------------------------------------
 # xoeuf.cli
-#----------------------------------------------------------------------
-# Copyright (c) 2013, 2014 Merchise Autrement and Contributors
+# ---------------------------------------------------------------------
+# Copyright (c) 2013-2015 Merchise Autrement and Contributors
 # All rights reserved.
 #
 # This is free software; you can redistribute it and/or modify it under
@@ -93,13 +93,23 @@ class CommandsProxy(object):
             config.parse_config([addons_path])
 
 
+from xoutil.objects import metaclass
 from xoutil.cli import Command as BaseCommand
 
 BaseCommand.register(CommandsProxy)
 BaseCommand.set_default_command(DEFAULT_COMMAND)
 
 
-class Command(BaseCommand):
+class CommandType(type(BaseCommand)):
+    def __new__(cls, name, bases, attrs):
+        from xoeuf.api import contextual
+        run = attrs.get('run', None)
+        if run:
+            attrs['run'] = contextual(run)
+        return super(CommandType, cls).__new__(cls, name, bases, attrs)
+
+
+class Command(metaclass(CommandType), BaseCommand):
     @staticmethod
     def invalidate_logging(base=None):
         '''Force the logger `base` to report only CRITICAL messages.
