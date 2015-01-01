@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-#----------------------------------------------------------------------
+# ---------------------------------------------------------------------
 # xoeuf.osv.improve
-#----------------------------------------------------------------------
-# Copyright (c) 2013, 2014 Merchise Autrement and Contributors
+# ---------------------------------------------------------------------
+# Copyright (c) 2013-2015 Merchise Autrement and Contributors
 # All rights reserved.
 #
 # This is free software; you can redistribute it and/or modify it under
@@ -53,6 +53,11 @@ def integrate_extensions():
     from openerp.osv.orm import browse_record
     from xoeuf.osv import model_extensions, browser_extensions
 
+    try:
+        from openerp.api import guess as adapt
+    except ImportError:
+        adapt = lambda f: f
+
     def fixname(name):
         'Convert operator names, just in case'
         op_prefix = 'operator__'
@@ -64,7 +69,7 @@ def integrate_extensions():
         for name in dir(model_extensions):
             value = getattr(model_extensions, name)
             if type(value) is FunctionType:
-                setattr(BaseModel, fixname(name), value)
+                setattr(BaseModel, fixname(name), adapt(value))
     if not browser_extensions.INTEGRATED:
         browser_extensions.INTEGRATED = True
         for name in dir(browser_extensions):
