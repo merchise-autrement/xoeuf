@@ -24,17 +24,14 @@ from __future__ import (division as _py3_division,
 try:
     from openerp.api import Environment
 except ImportError:
-    from contextlib import contextmanager
-
-    class Environment(object):
-        @classmethod
-        @contextmanager
-        def manage(cls):
-            yield
+    Environment = None
 
 
 def contextual(func):
     '''Decorate a function to run in a proper Odoo environment.'''
+    if Environment is None:
+        return func
+
     def inner(*args, **kwargs):
         with Environment.manage():
             return func(*args, **kwargs)
