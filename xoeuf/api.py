@@ -28,7 +28,16 @@ except ImportError:
 
 
 def contextual(func):
-    '''Decorate a function to run in a proper Odoo environment.'''
+    '''Decorate a function to run in a proper Odoo environment.
+
+    You should decorate every function that represents an "entry point" for
+    working with the ORM.  If Odoo is not installed, the original function is
+    returned unchanged.  However, if Odoo is present a proper `Environment` is
+    entered upon calling the function.
+
+    Every command in the `xouef.cli`:mod: is automatically decorated.
+
+    '''
     if Environment is None:
         return func
 
