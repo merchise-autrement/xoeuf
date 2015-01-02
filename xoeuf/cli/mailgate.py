@@ -82,7 +82,7 @@ class Mailgate(Command):
             res = ArgumentParser()
             cls._arg_parser = res
             res.add_argument('-c', '--config', dest='conf',
-                             required=True,
+                             required=False,
                              type=path(),
                              help='A configuration file.  This could be '
                              'either a Python file, like that required by '
