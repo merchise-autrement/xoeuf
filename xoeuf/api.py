@@ -35,7 +35,7 @@ def contextual(func):
     returned unchanged.  However, if Odoo is present a proper `Environment` is
     entered upon calling the function.
 
-    Every command in the `xouef.cli`:mod: is automatically decorated.
+    Every command in the `xoeuf.cli`:mod: is automatically decorated.
 
     '''
     if Environment is None:
