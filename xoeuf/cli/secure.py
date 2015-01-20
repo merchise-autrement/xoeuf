@@ -33,6 +33,9 @@ class Secure(Command):
 
     @classmethod
     def get_arg_parser(cls):
+        from xoutil.crypto import PASS_LEVEL_NAME_MAPPING
+        from xoutil.crypto import DEFAULT_PASS_PHRASE_LEVEL
+
         def path(extensions=None):
             '''A type-builder for file arguments.'''
             from xoutil.types import is_collection
@@ -62,6 +65,13 @@ class Secure(Command):
                              'either a Python file, like that required by '
                              'Gunicorn deployments, or a INI-like '
                              'like the standard ".openerp-serverrc".')
+            res.add_argument('-l', '--level', dest='security_level',
+                             choices=PASS_LEVEL_NAME_MAPPING.keys(),
+                             default=DEFAULT_PASS_PHRASE_LEVEL,
+                             help='The security level for passwords.  If '
+                             '"basic" the password will the same as the '
+                             'user\'s login.  "random" means a truly random '
+                             'password.')
             res.add_argument('-d', '--database', dest='database',
                              type=cls.database_factory,
                              required=True)
@@ -84,10 +94,11 @@ class Secure(Command):
         parser = self.get_arg_parser()
         options = parser.parse_args(args)
         conffile = options.conf
+        level = options.security_level
         if conffile:
             self.read_conffile(conffile)
         db = options.database
-        reset_all_passwords(db, security_level='basic')
+        reset_all_passwords(db, security_level=level)
 
     def read_conffile(self, filename):
         import os
