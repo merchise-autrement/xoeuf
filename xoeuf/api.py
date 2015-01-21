@@ -20,6 +20,10 @@ from __future__ import (division as _py3_division,
                         print_function as _py3_print,
                         absolute_import as _py3_abs_import)
 
+try:
+    from openerp.api import guess
+except ImportError:
+    guess = lambda f: f
 
 try:
     from openerp.api import Environment
