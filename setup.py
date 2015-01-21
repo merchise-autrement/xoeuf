@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
-#----------------------------------------------------------------------
+# ---------------------------------------------------------------------
 # setup
-#----------------------------------------------------------------------
-# Copyright (c) 2013-2014 Merchise Autrement and Contributors
+# ---------------------------------------------------------------------
+# Copyright (c) 2013-2015 Merchise Autrement and Contributors
 # All rights reserved.
 #
 # This is free software; you can redistribute it and/or modify it under the
@@ -59,9 +59,8 @@ setup(name=project_name,
       zip_safe=False,
       install_requires=[
           # -*- Extra requirements: -*-
-          'xoutil>=1.5.4,<1.7',
+          'xoutil>=1.6.6,<1.7',
           'six',
-          'openerp',
           'ipython',
       ],
       entry_points="""

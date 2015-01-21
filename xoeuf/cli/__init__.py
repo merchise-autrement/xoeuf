@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
-#----------------------------------------------------------------------
+# ---------------------------------------------------------------------
 # xoeuf.cli
-#----------------------------------------------------------------------
-# Copyright (c) 2013, 2014 Merchise Autrement and Contributors
+# ---------------------------------------------------------------------
+# Copyright (c) 2013-2015 Merchise Autrement and Contributors
 # All rights reserved.
 #
 # This is free software; you can redistribute it and/or modify it under
@@ -30,16 +30,19 @@ init_logger()
 from xoeuf.modules import patch_modules
 patch_modules()
 
-from openerp.modules.loading import open_openerp_namespace
-import openerp.addons.base  # Needed to bootstrap base, otherwise
-                            # addons that import openerp.addons.base
-                            # fail to load.
 
-# XXX: OpenERP's own commands discovery inside addons is totally
-# flawed.  Trying `openerp-server some-command` fails to load any
-# addon that imports stuff without the "openerp.".  So let's do the
-# open namespace now
-open_openerp_namespace()
+import openerp
+if openerp.release.version_info < (8, 0, 0):
+    from openerp.modules.loading import open_openerp_namespace
+    import openerp.addons.base  # Needed to bootstrap base, otherwise addons
+                                # that import openerp.addons.base fail to
+                                # load.
+
+    # XXX: OpenERP's own commands discovery inside addons is totally flawed.
+    # Trying `openerp-server some-command` fails to load any addon that
+    # imports stuff without the "openerp.".  So let's do the open namespace
+    # now
+    open_openerp_namespace()
 
 
 class CommandsProxy(object):
@@ -90,13 +93,23 @@ class CommandsProxy(object):
             config.parse_config([addons_path])
 
 
+from xoutil.objects import metaclass
 from xoutil.cli import Command as BaseCommand
 
 BaseCommand.register(CommandsProxy)
 BaseCommand.set_default_command(DEFAULT_COMMAND)
 
 
-class Command(BaseCommand):
+class CommandType(type(BaseCommand)):
+    def __new__(cls, name, bases, attrs):
+        from xoeuf.api import contextual
+        run = attrs.get('run', None)
+        if run:
+            attrs['run'] = contextual(run)
+        return super(CommandType, cls).__new__(cls, name, bases, attrs)
+
+
+class Command(metaclass(CommandType), BaseCommand):
     @staticmethod
     def invalidate_logging(base=None):
         '''Force the logger `base` to report only CRITICAL messages.
@@ -118,4 +131,5 @@ del BaseCommand
 # TODO: Loader?
 from . import mailgate as _
 from . import shell as _shell
-del _, _shell
+from . import secure as _secure
+del _, _shell, _secure

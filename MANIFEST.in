@@ -1,7 +1,4 @@
-global-include *.xml
-global-include *.txt
-global-include *.rst
-global-include *.csv
-global-include *.jpg
-global-include *.jpeg
-global-include *.png
+graft docs/
+prune docs/build
+prune .tox
+recursive-include xoeuf *.py *.txt *.rst

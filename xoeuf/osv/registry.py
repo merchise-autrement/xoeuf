@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
-#----------------------------------------------------------------------
+# ---------------------------------------------------------------------
 # xoeuf.osv.registry
-#----------------------------------------------------------------------
-# Copyright (c) 2013, 2014 Merchise Autrement
+# ---------------------------------------------------------------------
+# Copyright (c) 2013-2015 Merchise Autrement
 # All rights reserved.
 #
 # This is free software; you can redistribute it and/or modify it under
@@ -47,6 +47,13 @@ def _valid_model_base(model):
         raise TypeError(msg % (t.__name__, t.mro()))
 
 
+# The manager of Odoo is now classmethod lock().  This allows both Odoo 8.0
+# and OpenERP 7.0 to be used.
+manager_lock = getattr(manager, 'lock', None)
+if not manager_lock:
+    manager_lock = lambda: manager.registries_lock
+
+
 # TODO: Allow to change "openerp.tools.config" per context level
 #       Implement for this "push" and "pop" methods in "xoeuf.tools.config"
 class TransactionManager(Context):
@@ -56,27 +63,27 @@ class TransactionManager(Context):
 
     Use always as part of a database Registry::
 
-        >>> reg = Registry(db_name='test')
-        >>> users = reg.models.res_users
-        >>> uid = 1
-        >>> with reg(foo='bar') as cr:   # Define context variables
-        ...     ids = users.search(cr, uid, [('partner_id', 'like', 'Med%')])
-        ...     for rec in users.read(cr, uid, ids):
-        ...         name = rec['partner_id'][1]
-        ...         mail = rec['user_email']
-        ...         print('"%s" <%s>' % (name, mail))
+        reg = Registry(db_name='test')
+        users = reg.models.res_users
+        uid = 1
+        with reg(foo='bar') as cr:   # Define context variables
+            ids = users.search(cr, uid, [('partner_id', 'like', 'Med%')])
+            for rec in users.read(cr, uid, ids):
+                name = rec['partner_id'][1]
+                mail = rec['user_email']
+                print('"%s" <%s>' % (name, mail))
 
     If `transactional` is True, then "commit" or "rollback" is called on
     exiting the level::
 
-        >>> with reg(transactional=True) as cr:  # commit after this is exited
-        ...     ids = users.search(cr, uid, [('partner_id', 'like', 'Med%')])
-        ...     with reg() as cr2:   # Reuse the same cursor of parent context
-        ...         assert cr is cr2
-        ...         for rec in users.read(cr, uid, ids):
-        ...             name = rec['partner_id'][1]
-        ...             mail = rec['user_email']
-        ...             print('"%s" <%s>' % (name, mail))
+        with reg(transactional=True) as cr:  # commit after this is exited
+            ids = users.search(cr, uid, [('partner_id', 'like', 'Med%')])
+            with reg() as cr2:   # Reuse the same cursor of parent context
+                assert cr is cr2
+                for rec in users.read(cr, uid, ids):
+                    name = rec['partner_id'][1]
+                    mail = rec['user_email']
+                    print('"%s" <%s>' % (name, mail))
 
     First level contexts are always transactional.
 
@@ -87,7 +94,7 @@ class TransactionManager(Context):
     default_context = {}    # TODO: check its value
 
     def __new__(cls, registry, **kwargs):
-        with manager.registries_lock:
+        with manager_lock():
             _super = super(TransactionManager, cls)
             self = _super.__new__(cls, registry.context_name, **kwargs)
             if self.count == 0:
@@ -361,7 +368,7 @@ class Registry(ModuleType):
         registry.
         '''
         import threading
-        with manager.registries_lock:
+        with manager_lock():
             db_name = str(db_name)
             self = cls.instances.get(db_name)    # Only one per database
             if not self:
@@ -416,7 +423,7 @@ class Registry(ModuleType):
 
         '''
         cls = type(self)
-        with manager.registries_lock:
+        with manager_lock():
             try:
                 self.wrapped = manager.new(self.db_name)
             except:
@@ -486,21 +493,25 @@ class Registry(ModuleType):
     @property
     def connection(self):
         '''In OpenERP is named "db".'''
-        return self.wrapped.db
+        res = getattr(self.wrapped, 'db', None)
+        if not res:
+            res = getattr(self.wrapped, '_db')
+        return res
 
     def __call__(self, **kwargs):
         '''Create a execution context.
 
         To use it as a managed cursor::
 
-        >>> reg = Registry('my_db')
-        >>> users = reg.models.res_users
-        >>> with reg(foo='bar') as cr:   # Define context variables
-        ...     ids = users.search(cr, 1, [('partner_id', 'like', 'Med%')])
-        ...     for rec in users.read(cr, uid, ids):
-        ...         name = rec['partner_id'][1]
-        ...         mail = rec['user_email']
-        ...         print('"%s" <%s>' % (name, mail))
+        reg = Registry('my_db')
+        users = reg.models.res_users
+        with reg(foo='bar') as cr:   # Define context variables
+            ids = users.search(cr, 1, [('partner_id', 'like', 'Med%')])
+            for rec in users.read(cr, uid, ids):
+                name = rec['partner_id'][1]
+                mail = rec['user_email']
+                print('"%s" <%s>' % (name, mail))
+
         '''
         return TransactionManager(self, **kwargs)
 

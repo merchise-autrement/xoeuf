@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-#----------------------------------------------------------------------
+# ---------------------------------------------------------------------
 # xoeuf.tools
-#----------------------------------------------------------------------
-# Copyright (c) 2013, 2014 Merchise Autrement and Contributors
+# ---------------------------------------------------------------------
+# Copyright (c) 2013-2015 Merchise Autrement and Contributors
 # All rights reserved.
 #
 # This is free software; you can redistribute it and/or modify it under
@@ -20,19 +20,45 @@ from openerp.tools import DEFAULT_SERVER_DATE_FORMAT as _SVR_DATE_FMT
 from openerp.tools import DEFAULT_SERVER_DATETIME_FORMAT as _SVR_DATETIME_FMT
 
 
+_SVR_DATETIME_FMT2 = _SVR_DATETIME_FMT + '.%f'
+
+
 def date2str(d):
-    'Convert a date to a string using `OpenERP` default date format'
+    '''Convert a date to a string using `OpenERP` default date format.
+
+    If the argument is not a `datetime.date`:class:, normalize it first with
+    `normalize_datetime`:func:.
+
+    '''
+    if not isinstance(d, _d):
+        d = normalize_datetime(d)
     return d.strftime(_SVR_DATE_FMT)
+normalize_datestr = date2str
 
 
 def dt2str(dt):
-    'Convert a date-time to a string using `OpenERP` default datetime format'
+    '''Convert a date-time to a string using `OpenERP` default datetime
+    format.
+
+    If the argument is not a `datetime.datetime`:class:, normalize it first
+    with `normalize_datetime`:func:.
+
+    '''
+    if not isinstance(dt, _dt):
+        dt = normalize_datetime(dt)
     return dt.strftime(_SVR_DATETIME_FMT)
+normalize_datetimestr = dt2str
 
 
 def str2dt(s):
-    'Convert a string to a date-time using `OpenERP` default datetime format'
-    return _dt.strptime(s, _SVR_DATETIME_FMT)
+    'Convert a string to a date-time using `OpenERP` default datetime format.'
+    try:
+        return _dt.strptime(s, _SVR_DATETIME_FMT)
+    except ValueError:
+        # Try a second time but allowing microseconds, this avoid some errors
+        # when you save a .now() directly via the ORM.  It seems to not
+        # sanitize properly the datetimes.
+        return _dt.strptime(s, _SVR_DATETIME_FMT2)
 parse_datetime = str2dt
 
 
@@ -45,22 +71,24 @@ parse_date = str2date
 def normalize_datetime(which):
     '''Normalizes `which` to a datetime.
 
-    If `which` is a `datetime` is returned unchanged.  If is a `date` is
-    returned as a `datetime` with time components set to 0.  Otherwise, it
-    must be a string with either of OpenERP's date or date-time format.  The
-    date-time format is used first.
+    If `which` is a `datetime`, we ensure it will yield a valid string
+    (matches the OpenERP datetime format).
+
+    If `which` is a `date` is returned as a `datetime` with time components
+    set to 0.  Otherwise, it must be a string with either of OpenERP's date or
+    date-time format.  The date-time format is used first.
 
     For instance, having ``now`` and ``today`` values like::
 
        >>> import datetime
        >>> from xoutil.objects import validate_attrs
-       >>> now = datetime.datetime.now()
+       >>> now = datetime.datetime(2014, 12, 20, 16, 0, 17, 678233)
        >>> today = now.date()
 
     Then, ``now`` is returned as-is::
 
-       >>> normalize_datetime(now) is now
-       True
+       >>> normalize_datetime(now)
+       datetime.datetime(2014, 12, 20, 16, 0, 17)
 
     But ``today`` is converted to a `datetime` with the same date components::
 
@@ -74,19 +102,18 @@ def normalize_datetime(which):
        >>> normalize_datetime('2014-02-12')
        datetime.datetime(2014, 2, 12, 0, 0)
 
-
     If the string does not match any of the server's date or datetime format,
     raise a ValueError::
 
-       >>> normalize_datetime('not a date')  # doctest: +ELLIPSIS
-       Traceback (most recent call last)
+       >>> normalize_datetime('not a datetime')  # doctest: +ELLIPSIS
+       Traceback (most recent call last):
           ...
        ValueError: ...
 
     '''
     from six import string_types
     if isinstance(which, _dt):
-        return which
+        return str2dt(dt2str(which))
     elif isinstance(which, _d):
         return _dt(which.year, which.month, which.day)
     elif isinstance(which, string_types):
@@ -125,15 +152,14 @@ def normalize_date(which):
 
     If a string is given, a `date` is returned::
 
-       >>> normalize_date('2014-02-12 10:00')
+       >>> normalize_date('2014-02-12 10:00:00')
        datetime.date(2014, 2, 12)
-
 
     If the string does not match any of the server's date or datetime format,
     raise a ValueError::
 
        >>> normalize_date('not a date')  # doctest: +ELLIPSIS
-       Traceback (most recent call last)
+       Traceback (most recent call last):
           ...
        ValueError: ...
 

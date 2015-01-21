@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
-#----------------------------------------------------------------------
+# ---------------------------------------------------------------------
 # xoeuf.tools.config
-#----------------------------------------------------------------------
-# Copyright (c) 2013, 2014 Merchise Autrement and Contributors
+# ---------------------------------------------------------------------
+# Copyright (c) 2013-2015 Merchise Autrement and Contributors
 # All rights reserved.
 #
 # This is free software; you can redistribute it and/or modify it under
@@ -35,9 +35,6 @@ from __future__ import (division as _py3_division,
 
 from collections import MutableMapping
 from xoutil.objects import metaclass
-
-__docstring_format__ = 'rst'
-__author__ = 'med'
 
 
 DEFAULT_COMMAND = str('server')
