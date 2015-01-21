@@ -32,7 +32,7 @@ from __future__ import (division as _py3_division,
                         absolute_import as _py3_abs_import)
 
 
-from xoutil.crypto import (PASS_PHRASE_LEVEL_BASIC,
+from xoutil.crypto import (PASS_PHRASE_LEVEL_BASIC,  # noqa
                            PASS_PHRASE_LEVEL_MAPPED,
                            PASS_PHRASE_LEVEL_MAPPED_MIXED,
                            PASS_PHRASE_LEVEL_MAPPED_DATED,
@@ -95,8 +95,10 @@ def _reset_passwords(db, security_level, verbose, check=None):
                                           "name: %(name)s, "
                                           "password: '%(password)s'" % item))
                 else:
-                    print(safe_encode("<<< ERROR: id: %(id)s, login: %(login)s, "
-                                      "name: %(name)s, " % item), "NOT CHANGED")
+                    print(safe_encode(
+                        "<<< ERROR: id: %(id)s, login: %(login)s, "
+                        "name: %(name)s, " % item
+                    ), "NOT CHANGED")
 
 
 def reset_all_passwords(db, security_level=_DEF_LEVEL, verbose=True):
@@ -134,9 +136,9 @@ def reset_invalid_passwords(db, security_level=_DEF_LEVEL):
 
     This function can be used as::
 
-      >>> from xoeuf.pool import test as db
-      >>> from xoeuf.security import reset_invalid_passwords
-      >>> reset_invalid_passwords(db)
+      from xoeuf.pool import test as db
+      from xoeuf.security import reset_invalid_passwords
+      reset_invalid_passwords(db)
 
     See module documentation for more info.
 
