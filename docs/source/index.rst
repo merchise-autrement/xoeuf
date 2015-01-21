@@ -20,6 +20,7 @@ Contents
    xoeuf/*
    xoeuf/**
 
+   history
    license
 
 
