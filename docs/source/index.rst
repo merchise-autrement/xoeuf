@@ -10,8 +10,8 @@ Welcome to ``xœuf`` documentation!
 .. todo:: Place a one-paragraph summary of the purpose of this package.
 
 
-Contents
-========
+Modules
+=======
 
 .. toctree::
    :glob:
@@ -19,6 +19,14 @@ Contents
 
    xoeuf/*
    xoeuf/**
+
+
+Other documents
+===============
+
+.. toctree::
+   :glob:
+   :maxdepth: 1
 
    history
    license
