@@ -186,6 +186,7 @@ class Mailgate(Command):
         logger = logging.getLogger('openerp')
         logger.handlers = []
         logger.addHandler(SysLogHandler())
+        logger.setLevel(getattr(logging, level, logging.WARN))
 
         logger = logging.getLogger()  # the root logger.
         # TODO:  Create a SysLogHandler that uses syslog module.
@@ -269,10 +270,13 @@ class Mailgate(Command):
                     message, save_original=options.save_original,
                     strip_attachments=options.strip_attachments)
         except:
+            import sys
             if options.defer:
                 print(str('4.3.5 System incorrectly configured'))
+            else:
+                print(str('5.0.0 Permanent error. System error.'))
             self.send_error_notification(message or 'No message provided')
-            raise
+            sys.exit(1)
 
     def read_conffile(self, filename):
         import os
