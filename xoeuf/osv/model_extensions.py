@@ -61,6 +61,10 @@ def search_read(self, cr, uid, *args, **kwargs):
     - ``context``: context arguments in a dictionary, like lang, time
       zone. Could be passed by position after ``fields``.
 
+    - ``ensure_list``:  Always return a list.  By default is False.
+
+      .. versionadded: 0.5.1
+
     :return: dictionary or list of dictionaries (one per record asked) with
              requested field values.
     :rtype: ``[{‘name_of_the_field’: value, ...}, ...]``
@@ -124,12 +128,13 @@ def search_read(self, cr, uid, *args, **kwargs):
     offset = _get(kwargs, 'offset', default=0)
     limit = _get(kwargs, 'limit', default=None)
     order = _get(kwargs, 'order', default=None)
+    ensure_list = _get(kwargs, 'ensure_list', default=False)
     assert not kwargs, \
       "Invalid %s arguments: %s" % (len(kwargs), kwargs.keys())
     # Do it
     ids = self.search(cr, uid, domain, offset=offset, limit=limit,
                       order=order, context=ctx)
-    if len(ids) == 1:
+    if len(ids) == 1 and not ensure_list:
         ids = ids[0]
     return self.read(cr, uid, ids, fields=fields, context=ctx) if ids else []
 
@@ -159,6 +164,11 @@ def search_browse(self, cr, uid, *args, **kwargs):
     - ``context``: context arguments in a dictionary, like lang, time
       zone. Could be passed by position after ``fields``.
 
+    - ``ensure_list``:  Always return a list.  By default is False.  If False
+      and a single object is found, return the object.
+
+      .. versionadded: 0.5.1
+
     :return: object or list of objects requested or None
 
     :raise AccessError:
@@ -177,12 +187,13 @@ def search_browse(self, cr, uid, *args, **kwargs):
     offset = _get(kwargs, 'offset', default=0)
     limit = _get(kwargs, 'limit', default=None)
     order = _get(kwargs, 'order', default=None)
+    ensure_list = _get(kwargs, 'ensure_list', default=False)
     assert not kwargs, \
       "Invalid %s arguments: %s" % (len(kwargs), kwargs.keys())
     # Do it
     ids = self.search(cr, uid, domain, offset=offset, limit=limit,
                       order=order, context=ctx)
-    if len(ids) == 1:
+    if len(ids) == 1 and not ensure_list:
         ids = ids[0]
     return self.browse(cr, uid, ids, context=ctx) if ids else None
 
