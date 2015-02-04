@@ -164,8 +164,8 @@ class Mailgate(Command):
         ready, _, _ = select.select([sys.stdin], [], [], timeout)
         if ready:
             stdin = ready[0]
-            buffer = getattr(stdin, 'buffer', stdin)  # XXX: To read bytes in
-                                                      # both Py3k and Py 2.
+            # XXX: To read bytes in both Py3k and Py 2.
+            buffer = getattr(stdin, 'buffer', stdin)
             result = buffer.read()
             return result
         elif raises:
@@ -221,11 +221,10 @@ class Mailgate(Command):
             message = msg.as_string()
         msgid = safe_decode(msg.get('Message-Id', '<NO ID>'))
         sender = safe_decode(msg.get('Sender', msg.get('From', '<nobody>')))
-
-        # Make it a string, so that the logger does not fail but the encoding
-        # might by wrong, since the original byte-stream encoding is not
-        # known.  Avoid doing anything fancy like parsing the Message with all
-        # its Content-Type and Content-Type-Encoding complexities.  Those
+        # Make the message a string, so that the logger does not fail but the
+        # encoding might by wrong, since the original byte-stream encoding is
+        # not known.  Avoid doing anything fancy like parsing the Message with
+        # all its Content-Type and Content-Type-Encoding complexities.  Those
         # complexities are left to the message processing OpenERP has to do.
         details = safe_decode(message)
         details_title = 'Raw message'
@@ -236,8 +235,7 @@ class Mailgate(Command):
             details_title=details_title,
             message_details=details
         )
-        logger.error(safe_encode(report, 'ascii'))  # Report in ASCII probably
-                                                    # with some '?'  symbols
+        logger.error(safe_encode(report, 'ascii'))
 
     def run(self, args=None):
         from openerp import SUPERUSER_ID
