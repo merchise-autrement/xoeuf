@@ -270,9 +270,11 @@ class Mailgate(Command):
         except:
             import sys
             if options.defer:
-                print(str('4.3.5 System incorrectly configured'))
+                print(str('4.3.5 System incorrectly configured'),
+                      file=sys.stderr)
             else:
-                print(str('5.0.0 Permanent error. System error.'))
+                print(str('5.0.0 Permanent error. System error.'),
+                      file=sys.stderr)
             self.send_error_notification(message or 'No message provided')
             sys.exit(1)
 
