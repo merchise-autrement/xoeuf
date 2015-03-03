@@ -23,6 +23,13 @@ from __future__ import (division as _py3_division,
 
 from . import Command
 from logging import Handler
+from psycopg2 import OperationalError
+
+try:
+    # A Py3k more compatible Exception value
+    Exception = StandardError
+except NameError:
+    pass
 
 
 from xoutil.string import safe_encode, safe_decode
@@ -263,13 +270,26 @@ class Mailgate(Command):
                     message = f.read()
             # TODO: assert message is bytes
             db = self.database_factory(options.database)
-            with db(transactional=True) as cr:
-                obj = db.models.mail_thread
-                obj.message_process(
-                    cr, SUPERUSER_ID, default_model,
-                    message, save_original=options.save_original,
-                    strip_attachments=options.strip_attachments)
-        except:
+            retries, MAX_RETRIES = 0, 3
+            done = False
+            while not done:
+                try:
+                    with db(transactional=True) as cr:
+                        obj = db.models.mail_thread
+                        obj.message_process(
+                            cr, SUPERUSER_ID, default_model,
+                            message, save_original=options.save_original,
+                            strip_attachments=options.strip_attachments)
+                except OperationalError:
+                    if retries < MAX_RETRIES:
+                        retries += 1
+                    else:
+                        raise
+                except Exception:
+                    raise
+                else:
+                    done = True
+        except Exception:
             import sys
             if options.defer:
                 print(str('4.3.5 System incorrectly configured'),
