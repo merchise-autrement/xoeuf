@@ -17,16 +17,10 @@ from __future__ import (division as _py3_division,
                         absolute_import as _py3_abs_import)
 
 
-import logging
-_logger = logging.getLogger(__name__)
-
 DEFAULT_COMMAND = str('server')
 
 # Makes sure modules are patched before any command-related code is
 # invoked.
-from openerp.netsvc import init_logger
-init_logger()
-
 from xoeuf.modules import patch_modules
 patch_modules()
 
@@ -76,7 +70,6 @@ class CommandsProxy(object):
                         import_module(module_name)
                     except Exception:
                         import traceback
-                        _logger.critical('Could not load module %s', addon)
                         traceback.print_exc()
             res = commands
             setattr(cls, name, res)

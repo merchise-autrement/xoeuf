@@ -27,8 +27,6 @@ from xoutil.functools import lru_cache
 from xoutil.modules import customize
 from xoutil.modules import modulemethod
 
-_logger = logging.getLogger(__name__)
-
 _ADDONS_NAMESPACE = re.compile(r'^openerp\.addons\.(?P<module>[^\.]+)\.')
 
 XOEUF_EXTERNAL_ADDON_GROUP = 'xoeuf.addons'
@@ -50,7 +48,6 @@ class _PatchesRegistry(object):
     def apply(self):
         bootstraped = getattr(self, 'bootstraped', False)
         if not bootstraped:
-            _logger.info('Using xoeuf\'s module loader')
             from openerp.modules import module
             for name, func in self._registry.items():
                 self._wrapped[name] = getattr(module, name)
@@ -103,8 +100,6 @@ def find_external_addons(self):
                 pos = name.rfind('.')
                 if pos >= 0:
                     name = name[pos+1:]
-        else:
-            _logger.error('Invalid external addon %r', entry)
     return delete_duplicates(res)
 
 
