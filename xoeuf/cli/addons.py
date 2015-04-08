@@ -58,5 +58,5 @@ class Addons(Command):
         return [
             addon
             for addon in get_modules()
-            if any(addon.startswith(f) for f in filters)
+            if not filters or any(addon.startswith(f) for f in filters)
         ]
