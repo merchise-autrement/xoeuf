@@ -60,7 +60,7 @@ class Mailgate(Command):
     '''
 
     MESSAGE_TEMPLATE = safe_encode(
-        "Error while processing message with id {msgid} "
+        "Error while processing message."
         "from {sender}.\n\n"
         "{traceback}\n\n"
         "{details_title}:\n\n"
@@ -133,6 +133,7 @@ class Mailgate(Command):
                              'instead of the stdin.')
             res.add_argument('--defer', default=False, action='store_true',
                              help='Treat errors as transient.')
+            # Deprecated, but simply ignored
             loggroup = res.add_argument_group('Logging')
             loggroup.add_argument('--log-level',
                                   choices=('debug', 'warning',
@@ -183,79 +184,28 @@ class Mailgate(Command):
             logger.warn('No message provided, but allowing.')
             return bytes('')
 
-    def setup_logging(self, base=None, level='WARN', log_host=None,
-                      log_to=None, log_from=None):
-        '''Redirect logs to SysLog.
-
-        If `log_host`, `log_to` and `log_from` are provided errors will be
-        loged via SMTP.
-
-        '''
-        import logging
-        logger = logging.getLogger('openerp')
-        logger.handlers = []
-        logger.addHandler(SysLogHandler())
-        logger.setLevel(getattr(logging, level, logging.WARN))
-
-        logger = logging.getLogger()  # the root logger.
-        # TODO:  Create a SysLogHandler that uses syslog module.
-        logger.handlers = []
-        logger.addHandler(SysLogHandler())
-        logger.setLevel(getattr(logging, level, logging.WARN))
-        if log_host and log_to and log_from:
-            for recipient in log_to:
-                handler = logging.handlers.SMTPHandler(
-                    log_host,
-                    log_from,
-                    recipient,
-                    '[ERROR] xoeuf_mailgate'
-                )
-                handler.setLevel(logging.ERROR)  # Only email errors.
-                logger.addHandler(handler)
-
     @classmethod
     def send_error_notification(cls, message):
         '''Report an error dealing with `message`.'''
-        import traceback
         import logging
         import email
         from email.message import Message
         logger = logging.getLogger(__name__)
-        tb = traceback.format_exc()
         if not isinstance(message, Message):
             msg = email.message_from_string(safe_encode(message))
         else:
             msg = message
             message = msg.as_string()
-        msgid = safe_encode(msg.get('Message-Id', '<NO ID>'))
-        sender = safe_encode(msg.get('Sender', msg.get('From', '<nobody>')))
-        # Make the message a string (bytes), so that the logger does not fail
-        # but the encoding might by wrong, since the original byte-stream
-        # encoding is not known.  Avoid doing anything fancy like parsing the
-        # Message with all its Content-Type and Content-Type-Encoding
-        # complexities.  Those complexities are left to the message processing
-        # OpenERP has to do.
-        details = safe_encode(message)
-        details_title = 'Raw message'
-        report = cls.MESSAGE_TEMPLATE.format(
-            msgid=msgid,
-            sender=sender,
-            traceback=tb,
-            details_title=details_title,
-            message_details=details,
+        msgid = safe_encode(msg.get('Message-Id', '<NO ID>'))  # noqa
+        sender = safe_encode(  # noqa
+            msg.get('Sender', msg.get('From', '<nobody>'))
         )
-        logger.error(report)
+        logger.exception("Error while processing incoming message.")
 
     def run(self, args=None):
         from openerp import SUPERUSER_ID
         parser = self.get_arg_parser()
         options = parser.parse_args(args)
-        self.setup_logging(
-            level=options.log_level.upper(),
-            log_host=options.log_host,
-            log_to=options.log_to,
-            log_from=options.log_from
-        )
         conffile = options.conf
         if conffile:
             self.read_conffile(conffile)
