@@ -62,6 +62,8 @@ setup(name=project_name,
           'xoutil>=1.6.6,<1.7',
           'six',
           'ipython',
+          'raven>=5.2.0',
+          'raven-sanitize-openerp',
       ],
       entry_points="""
       [console_scripts]
