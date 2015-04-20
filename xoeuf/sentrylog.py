@@ -73,12 +73,30 @@ def patch_logging(self, override=True):
         return
 
     class SentryHandler(logging.Handler):
+        def __ignored(self, exc_info):
+            from openerp.exceptions import Warning
+            ignored = (Warning, )
+            try:
+                from openerp.exceptions import RedirectWarning
+                ignored += (RedirectWarning, )
+            except ImportError:
+                pass
+            try:
+                from openerp.exceptions import except_orm
+            except ImportError:
+                from openerp.osv import except_osv as except_orm
+            ignored += (except_orm, )
+            if exc_info:
+                _type, value, _tb = exc_info
+            return isinstance(value, ignored)
+
         def emit(self, record):
             from xoutil.context import context
             if SENTRYLOGGER not in context:
                 with context(SENTRYLOGGER):
                     if record.exc_info:
-                        client.captureException(exc_info=record.exc_info)
+                        if not self.__ignored(exc_info=record.exc_info):
+                            client.captureException(exc_info=record.exc_info)
                     else:
                         client.captureMessage(record.getMessage(),
                                               stack=True)
