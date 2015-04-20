@@ -84,8 +84,13 @@ def patch_logging(self, override=True):
             try:
                 from openerp.exceptions import except_orm
             except ImportError:
-                from openerp.osv import except_osv as except_orm
+                from openerp.osv.orm import except_orm
             ignored += (except_orm, )
+            try:
+                from openerp.osv.osv import except_osv
+                ignored += (except_osv, )
+            except ImportError:
+                pass
             if exc_info:
                 _type, value, _tb = exc_info
             return isinstance(value, ignored)
