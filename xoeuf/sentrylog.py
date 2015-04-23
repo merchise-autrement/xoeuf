@@ -66,48 +66,15 @@ def patch_logging(self, override=True):
 
     '''
     import logging
+    from raven.handlers.logging import SentryHandler
     from openerp.netsvc import init_logger
     init_logger()
     client = self.client
     if not client:
         return
 
-    class SentryHandler(logging.Handler):
-        def __ignored(self, exc_info):
-            from openerp.exceptions import Warning
-            ignored = (Warning, )
-            try:
-                from openerp.exceptions import RedirectWarning
-                ignored += (RedirectWarning, )
-            except ImportError:
-                pass
-            try:
-                from openerp.exceptions import except_orm
-            except ImportError:
-                from openerp.osv.orm import except_orm
-            ignored += (except_orm, )
-            try:
-                from openerp.osv.osv import except_osv
-                ignored += (except_osv, )
-            except ImportError:
-                pass
-            if exc_info:
-                _type, value, _tb = exc_info
-            return isinstance(value, ignored)
-
-        def emit(self, record):
-            from xoutil.context import context
-            if SENTRYLOGGER not in context:
-                with context(SENTRYLOGGER):
-                    if record.exc_info:
-                        if not self.__ignored(exc_info=record.exc_info):
-                            client.captureException(exc_info=record.exc_info)
-                    else:
-                        client.captureMessage(record.getMessage(),
-                                              stack=True)
-
     def sethandler(logger, override=override):
-        handler = SentryHandler()
+        handler = SentryHandler(client=client)
         handler.setLevel(logging.ERROR)
         if override or not logger.handlers:
             logger.handlers = [handler]
