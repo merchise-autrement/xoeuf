@@ -17,9 +17,8 @@
 Sentry_ aggregates logs and lets you inspect the server's health by a web
 application.
 
-This module will gracefully do nothing if raven is not installed.
-
-To configure, simply call the
+To configure, simply set the global `conf`:obj: dictionary and call
+`patch_logging`:func:.
 
 '''
 
@@ -55,12 +54,12 @@ def client(self):
 
 @modulemethod
 def patch_logging(self, override=True):
-    '''Patch the both logging and openerp's logging.
+    '''Patch openerp's logging.
 
     :param override: If True suppress all normal logging.  All logs will be
            sent to the Sentry instead of being logged to the console.  If
-           False, extends the to sent the errors to the Sentry but keep the
-           console log as well.
+           False, extends the loogers to sent the errors to the Sentry but
+           keep the console log as well.
 
     The Sentry will only receive the error-level messages.
 
