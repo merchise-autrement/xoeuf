@@ -17,9 +17,8 @@
 Sentry_ aggregates logs and lets you inspect the server's health by a web
 application.
 
-This module will gracefully do nothing if raven is not installed.
-
-To configure, simply call the
+To configure, simply set the global `conf`:obj: dictionary and call
+`patch_logging`:func:.
 
 '''
 
@@ -55,59 +54,26 @@ def client(self):
 
 @modulemethod
 def patch_logging(self, override=True):
-    '''Patch the both logging and openerp's logging.
+    '''Patch openerp's logging.
 
     :param override: If True suppress all normal logging.  All logs will be
            sent to the Sentry instead of being logged to the console.  If
-           False, extends the to sent the errors to the Sentry but keep the
-           console log as well.
+           False, extends the loogers to sent the errors to the Sentry but
+           keep the console log as well.
 
     The Sentry will only receive the error-level messages.
 
     '''
     import logging
+    from raven.handlers.logging import SentryHandler
     from openerp.netsvc import init_logger
     init_logger()
     client = self.client
     if not client:
         return
 
-    class SentryHandler(logging.Handler):
-        def __ignored(self, exc_info):
-            from openerp.exceptions import Warning
-            ignored = (Warning, )
-            try:
-                from openerp.exceptions import RedirectWarning
-                ignored += (RedirectWarning, )
-            except ImportError:
-                pass
-            try:
-                from openerp.exceptions import except_orm
-            except ImportError:
-                from openerp.osv.orm import except_orm
-            ignored += (except_orm, )
-            try:
-                from openerp.osv.osv import except_osv
-                ignored += (except_osv, )
-            except ImportError:
-                pass
-            if exc_info:
-                _type, value, _tb = exc_info
-            return isinstance(value, ignored)
-
-        def emit(self, record):
-            from xoutil.context import context
-            if SENTRYLOGGER not in context:
-                with context(SENTRYLOGGER):
-                    if record.exc_info:
-                        if not self.__ignored(exc_info=record.exc_info):
-                            client.captureException(exc_info=record.exc_info)
-                    else:
-                        client.captureMessage(record.getMessage(),
-                                              stack=True)
-
     def sethandler(logger, override=override):
-        handler = SentryHandler()
+        handler = SentryHandler(client=client)
         handler.setLevel(logging.ERROR)
         if override or not logger.handlers:
             logger.handlers = [handler]

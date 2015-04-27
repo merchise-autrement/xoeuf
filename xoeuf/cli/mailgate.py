@@ -23,7 +23,15 @@ from __future__ import (division as _py3_division,
 
 from . import Command
 from logging import Handler
-from psycopg2 import OperationalError
+from psycopg2 import OperationalError, errorcodes
+
+PG_CONCURRENCY_ERRORS_TO_RETRY = (
+    errorcodes.LOCK_NOT_AVAILABLE,
+    errorcodes.SERIALIZATION_FAILURE,
+    errorcodes.DEADLOCK_DETECTED
+)
+MAX_TRIES_ON_CONCURRENCY_FAILURE = 5
+
 
 try:
     # A Py3k more compatible Exception value
@@ -220,7 +228,7 @@ class Mailgate(Command):
                     message = f.read()
             # TODO: assert message is bytes
             db = self.database_factory(options.database)
-            retries, MAX_RETRIES = 0, 3
+            retries = 0
             done = False
             while not done:
                 try:
@@ -230,9 +238,15 @@ class Mailgate(Command):
                             cr, SUPERUSER_ID, default_model,
                             message, save_original=options.save_original,
                             strip_attachments=options.strip_attachments)
-                except OperationalError:
-                    if retries < MAX_RETRIES:
+                except OperationalError as error:
+                    if error.pgcode not in PG_CONCURRENCY_ERRORS_TO_RETRY:
+                        raise
+                    if retries < MAX_TRIES_ON_CONCURRENCY_FAILURE:
+                        import random
+                        import time
                         retries += 1
+                        wait_time = random.uniform(0.0, 2 ** retries)
+                        time.sleep(wait_time)
                     else:
                         raise
                 except Exception:
