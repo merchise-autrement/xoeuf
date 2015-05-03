@@ -4,9 +4,9 @@
 
 .. automodule:: xoeuf.osv.model_extensions
 
-.. autofunction:: search_read
+.. autofunction:: search_read(self, cr, uid, domain=None, fields=None, context=None, *, offset=None, limit=None, order=None, ensure_list=False)
 
-.. autofunction:: search_browse
+.. autofunction:: search_browse(self, cr, uid, domain=None, context=None, *, offset=None, limit=None, order=None, ensure_list=False)
 
 .. autofunction:: field_value
 

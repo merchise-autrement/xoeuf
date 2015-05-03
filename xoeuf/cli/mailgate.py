@@ -19,13 +19,29 @@ XMLRPC.
 
 from __future__ import (division as _py3_division,
                         print_function as _py3_print,
-                        unicode_literals as _py3_unicode,
                         absolute_import as _py3_abs_import)
 
 
 from . import Command
 from logging import Handler
+from psycopg2 import OperationalError, errorcodes
 
+PG_CONCURRENCY_ERRORS_TO_RETRY = (
+    errorcodes.LOCK_NOT_AVAILABLE,
+    errorcodes.SERIALIZATION_FAILURE,
+    errorcodes.DEADLOCK_DETECTED
+)
+MAX_TRIES_ON_CONCURRENCY_FAILURE = 5
+
+
+try:
+    # A Py3k more compatible Exception value
+    Exception = StandardError
+except NameError:
+    pass
+
+
+from xoutil.string import safe_encode, safe_decode
 
 # TODO: This has grown into a monstrous pile of code that needs
 # refactorization.
@@ -34,10 +50,9 @@ from logging import Handler
 # TODO: Should this be moved elsewhere?
 class SysLogHandler(Handler):
     def emit(self, report):
-        # This avoids the /dev/log system issue and goes directly to Unix.
-        # But then Windows is f.cked.
+        # This avoids the /dev/log system issue and goes directly to Unix
+        # syslog.  But then Windows is f.cked.
         import syslog
-        from xoutil.string import safe_encode
         syslog.syslog(safe_encode(self.format(report)))
 
 del Handler
@@ -53,11 +68,13 @@ class Mailgate(Command):
 
     '''
 
-    MESSAGE_TEMPLATE = ("Error while processing message with id {msgid} "
-                        "from {sender}.\n\n"
-                        "{traceback}\n\n"
-                        "{details_title}:\n\n"
-                        "{message_details}\n")
+    MESSAGE_TEMPLATE = safe_encode(
+        "Error while processing message."
+        "from {sender}.\n\n"
+        "{traceback}\n\n"
+        "{details_title}:\n\n"
+        "{message_details}\n"
+    )
 
     @classmethod
     def get_arg_parser(cls):
@@ -125,6 +142,7 @@ class Mailgate(Command):
                              'instead of the stdin.')
             res.add_argument('--defer', default=False, action='store_true',
                              help='Treat errors as transient.')
+            # Deprecated, but simply ignored
             loggroup = res.add_argument_group('Logging')
             loggroup.add_argument('--log-level',
                                   choices=('debug', 'warning',
@@ -165,8 +183,8 @@ class Mailgate(Command):
         ready, _, _ = select.select([sys.stdin], [], [], timeout)
         if ready:
             stdin = ready[0]
-            buffer = getattr(stdin, 'buffer', stdin)  # XXX: To read bytes in
-                                                      # both Py3k and Py 2.
+            # XXX: To read bytes in both Py3k and Py 2.
+            buffer = getattr(stdin, 'buffer', stdin)
             result = buffer.read()
             return result
         elif raises:
@@ -175,80 +193,28 @@ class Mailgate(Command):
             logger.warn('No message provided, but allowing.')
             return bytes('')
 
-    def setup_logging(self, base=None, level='WARN', log_host=None,
-                      log_to=None, log_from=None):
-        '''Redirect logs to SysLog.
-
-        If `log_host`, `log_to` and `log_from` are provided errors will be
-        loged via SMTP.
-
-        '''
-        import logging
-        logger = logging.getLogger('openerp')
-        logger.handlers = []
-        logger.addHandler(SysLogHandler())
-
-        logger = logging.getLogger()  # the root logger.
-        # TODO:  Create a SysLogHandler that uses syslog module.
-        logger.handlers = []
-        logger.addHandler(SysLogHandler())
-        logger.setLevel(getattr(logging, level, logging.WARN))
-        if log_host and log_to and log_from:
-            for recipient in log_to:
-                handler = logging.handlers.SMTPHandler(
-                    log_host,
-                    log_from,
-                    recipient,
-                    '[ERROR] xoeuf_mailgate'
-                )
-                handler.setLevel(logging.ERROR)  # Only email errors.
-                logger.addHandler(handler)
-
     @classmethod
     def send_error_notification(cls, message):
         '''Report an error dealing with `message`.'''
-        import traceback
         import logging
         import email
         from email.message import Message
-        from xoutil.string import safe_encode, safe_decode
         logger = logging.getLogger(__name__)
-        tb = traceback.format_exc()
         if not isinstance(message, Message):
             msg = email.message_from_string(safe_encode(message))
         else:
             msg = message
             message = msg.as_string()
-        msgid = safe_decode(msg.get('Message-Id', '<NO ID>'))
-        sender = safe_decode(msg.get('Sender', msg.get('From', '<nobody>')))
-
-        # Make it a string, so that the logger does not fail but the encoding
-        # might by wrong, since the original byte-stream encoding is not
-        # known.  Avoid doing anything fancy like parsing the Message with all
-        # its Content-Type and Content-Type-Encoding complexities.  Those
-        # complexities are left to the message processing OpenERP has to do.
-        details = safe_decode(message)
-        details_title = 'Raw message'
-        report = cls.MESSAGE_TEMPLATE.format(
-            msgid=msgid,
-            sender=sender,
-            traceback=tb,
-            details_title=details_title,
-            message_details=details
+        msgid = safe_encode(msg.get('Message-Id', '<NO ID>'))  # noqa
+        sender = safe_encode(  # noqa
+            msg.get('Sender', msg.get('From', '<nobody>'))
         )
-        logger.error(safe_encode(report, 'ascii'))  # Report in ASCII probably
-                                                    # with some '?'  symbols
+        logger.exception("Error while processing incoming message.")
 
     def run(self, args=None):
         from openerp import SUPERUSER_ID
         parser = self.get_arg_parser()
         options = parser.parse_args(args)
-        self.setup_logging(
-            level=options.log_level.upper(),
-            log_host=options.log_host,
-            log_to=options.log_to,
-            log_from=options.log_from
-        )
         conffile = options.conf
         if conffile:
             self.read_conffile(conffile)
@@ -263,17 +229,47 @@ class Mailgate(Command):
                     message = f.read()
             # TODO: assert message is bytes
             db = self.database_factory(options.database)
-            with db(transactional=True) as cr:
-                obj = db.models.mail_thread
-                obj.message_process(
-                    cr, SUPERUSER_ID, default_model,
-                    message, save_original=options.save_original,
-                    strip_attachments=options.strip_attachments)
-        except:
+            retries = 0
+            done = False
+            while not done:
+                try:
+                    with db(transactional=True) as cr:
+                        obj = db.models.mail_thread
+                        obj.message_process(
+                            cr, SUPERUSER_ID, default_model,
+                            message, save_original=options.save_original,
+                            strip_attachments=options.strip_attachments)
+                except OperationalError as error:
+                    if error.pgcode not in PG_CONCURRENCY_ERRORS_TO_RETRY:
+                        raise
+                    if retries < MAX_TRIES_ON_CONCURRENCY_FAILURE:
+                        import random
+                        import time
+                        retries += 1
+                        wait_time = random.uniform(0.0, 2 ** retries)
+                        time.sleep(wait_time)
+                    else:
+                        raise
+                except Exception:
+                    raise
+                else:
+                    done = True
+        except Exception:
+            import sys
             if options.defer:
-                print(str('4.3.5 System incorrectly configured'))
-            self.send_error_notification(message or 'No message provided')
-            raise
+                print(str('4.3.5 System incorrectly configured'),
+                      file=sys.stderr)
+            else:
+                print(str('5.0.0 Permanent error. System error.'),
+                      file=sys.stderr)
+            # First decode the message since the raw message may contain
+            # invalid UTF-8 sequences or come with a mixture of encodings
+            # (each MIME part can be encoded differently) and thus the logger
+            # fail to construct the log message.
+            self.send_error_notification(
+                safe_decode(message) if message else 'No message provided'
+            )
+            sys.exit(1)
 
     def read_conffile(self, filename):
         import os

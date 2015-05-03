@@ -53,11 +53,7 @@ def integrate_extensions():
     from openerp.osv.orm import BaseModel
     from openerp.osv.orm import browse_record
     from xoeuf.osv import model_extensions, browser_extensions
-
-    try:
-        from openerp.api import guess as adapt
-    except ImportError:
-        adapt = lambda f: f
+    from xoeuf.api import guess as adapt
 
     def fixname(name):
         'Convert operator names, just in case'

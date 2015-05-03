@@ -486,9 +486,14 @@ class Registry(ModuleType):
     @staticmethod
     def get_all_db_names():
         '''Return all database names presents in the connected host.'''
-        from openerp.service.web_services import db as DBExportService
-        db = DBExportService()
-        return db.exp_list()
+        try:
+            from openerp.service.db import exp_list
+            return exp_list()
+        except ImportError:
+            # Fallback to OpenERP 7 ways.
+            from openerp.service.web_services import db as DBExportService
+            db = DBExportService()
+            return db.exp_list()
 
     @aliases('db')
     @property

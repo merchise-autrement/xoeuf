@@ -112,7 +112,7 @@ language = 'en'
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
-exclude_patterns = []
+exclude_patterns = ["**/.#*.rst"]
 
 # The reST default role (used for this markup: `text`) to use for all documents.
 #default_role = None
@@ -295,6 +295,7 @@ texinfo_documents = [
 intersphinx_mapping = {
     'py2': ('http://docs.python.org/2.7/', None),
     'xoutil': ('http://xoutil.readthedocs.org/en/latest/', None),
+    'odoo': ('https://www.odoo.com/documentation/8.0/', None)
 }
 
 intersphinx_cache_limit = 60

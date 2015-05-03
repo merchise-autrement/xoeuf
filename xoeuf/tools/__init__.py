@@ -25,7 +25,12 @@ _SVR_DATETIME_FMT2 = _SVR_DATETIME_FMT + '.%f'
 
 
 def date2str(d):
-    'Convert a date to a string using `OpenERP` default date format'
+    '''Convert a date to a string using `OpenERP` default date format.
+
+    If the argument is not a `datetime.date`:class:, normalize it first with
+    `normalize_datetime`:func:.
+
+    '''
     if not isinstance(d, _d):
         d = normalize_datetime(d)
     return d.strftime(_SVR_DATE_FMT)
@@ -33,7 +38,13 @@ normalize_datestr = date2str
 
 
 def dt2str(dt):
-    'Convert a date-time to a string using `OpenERP` default datetime format'
+    '''Convert a date-time to a string using `OpenERP` default datetime
+    format.
+
+    If the argument is not a `datetime.datetime`:class:, normalize it first
+    with `normalize_datetime`:func:.
+
+    '''
     if not isinstance(dt, _dt):
         dt = normalize_datetime(dt)
     return dt.strftime(_SVR_DATETIME_FMT)
@@ -41,7 +52,7 @@ normalize_datetimestr = dt2str
 
 
 def str2dt(s):
-    'Convert a string to a date-time using `OpenERP` default datetime format'
+    'Convert a string to a date-time using `OpenERP` default datetime format.'
     try:
         return _dt.strptime(s, _SVR_DATETIME_FMT)
     except ValueError:

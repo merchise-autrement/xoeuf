@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
-#----------------------------------------------------------------------
+# ---------------------------------------------------------------------
 # setup
 #----------------------------------------------------------------------
 # Copyright (c) 2015 Merchise and Contributors
@@ -19,7 +19,8 @@ from __future__ import (division as _py3_division,
                         unicode_literals as _py3_unicode)
                         # XXX: Don't put absolute imports in setup.py
 
-import sys, os
+import sys
+import os
 from setuptools import setup, find_packages
 
 # Import the version from the release module
@@ -60,9 +61,11 @@ setup(name=project_name,
       zip_safe=False,
       install_requires=[
           # -*- Extra requirements: -*-
-          'xoutil>=1.5.4,<1.7',
+          'xoutil>=1.6.6,<1.7',
           'six',
           'ipython',
+          'raven>=5.2.0',
+          'raven-sanitize-openerp',
       ],
       entry_points="""
       [console_scripts]

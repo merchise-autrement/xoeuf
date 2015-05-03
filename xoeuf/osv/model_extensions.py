@@ -52,6 +52,11 @@ def search_read(self, cr, uid, *args, **kwargs):
       returned). Example ``['id', 'name', 'age']``.  Could be passed by
       position after ``domain``.
 
+    - ``context``: context arguments in a dictionary, like lang, time
+      zone. Could be passed by position after ``fields``.
+
+    Keyword only arguments:
+
     - ``offset``: number of results to skip in the returned values
       (default: ``0``).
 
@@ -59,8 +64,9 @@ def search_read(self, cr, uid, *args, **kwargs):
 
     - ``order``: columns to sort by (default: ``self._order=id``)
 
-    - ``context``: context arguments in a dictionary, like lang, time
-      zone. Could be passed by position after ``fields``.
+    - ``ensure_list``:  Always return a list.  By default is False.
+
+      .. versionadded:: 0.5.1
 
     :return: dictionary or list of dictionaries (one per record asked) with
              requested field values.
@@ -125,12 +131,13 @@ def search_read(self, cr, uid, *args, **kwargs):
     offset = _get(kwargs, 'offset', default=0)
     limit = _get(kwargs, 'limit', default=None)
     order = _get(kwargs, 'order', default=None)
+    ensure_list = _get(kwargs, 'ensure_list', default=False)
     assert not kwargs, \
       "Invalid %s arguments: %s" % (len(kwargs), kwargs.keys())
     # Do it
     ids = self.search(cr, uid, domain, offset=offset, limit=limit,
                       order=order, context=ctx)
-    if len(ids) == 1:
+    if len(ids) == 1 and not ensure_list:
         ids = ids[0]
     return self.read(cr, uid, ids, fields=fields, context=ctx) if ids else []
 
@@ -143,22 +150,8 @@ def search_browse(self, cr, uid, *args, **kwargs):
     :param cr: database cursor
     :param uid: current user id
 
-    Other optional arguments can be passed by position or by name:
-
-    - ``domain``: list of tuples specifying the search domain (see below).  An
-      empty list or no argument can be used to match all records.  Could be
-      passed by position after ``uid``.  Use ``args`` as an alias in arguments
-      by name (``kwargs``).
-
-    - ``offset``: number of results to skip in the returned values
-      (default: ``0``).
-
-    - ``limit``: max number of records to return (default: unlimited)
-
-    - ``order``: columns to sort by (default: ``self._order=id``)
-
-    - ``context``: context arguments in a dictionary, like lang, time
-      zone. Could be passed by position after ``fields``.
+    The rest of the arguments are the same as `search_read`:func:, excluding
+    `fields` which is not acceptable in this method.
 
     :return: object or list of objects requested or None
 
@@ -178,12 +171,13 @@ def search_browse(self, cr, uid, *args, **kwargs):
     offset = _get(kwargs, 'offset', default=0)
     limit = _get(kwargs, 'limit', default=None)
     order = _get(kwargs, 'order', default=None)
+    ensure_list = _get(kwargs, 'ensure_list', default=False)
     assert not kwargs, \
       "Invalid %s arguments: %s" % (len(kwargs), kwargs.keys())
     # Do it
     ids = self.search(cr, uid, domain, offset=offset, limit=limit,
                       order=order, context=ctx)
-    if len(ids) == 1:
+    if len(ids) == 1 and not ensure_list:
         ids = ids[0]
     return self.browse(cr, uid, ids, context=ctx) if ids else None
 

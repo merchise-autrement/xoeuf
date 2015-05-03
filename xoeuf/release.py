@@ -18,30 +18,6 @@ from __future__ import (division as _py3_division,
                         unicode_literals as _py3_unicode,
                         absolute_import as _py3_abs_imports)
 
-VERSION = '0.4.3'
-
-
-def dev_tag():
-    import os
-    result = ''
-    fn = os.path.abspath(os.path.join(__file__, '..', '..', 'setup.cfg'))
-    if os.path.exists(fn):
-        try:
-            import configparser
-        except ImportError:
-            # Python 2.7
-            import ConfigParser as configparser
-        parser = configparser.SafeConfigParser()
-        parser.read([fn])
-        try:
-            res = parser.get(str('egg_info'), str('tag_build'))
-        except:
-            res = None
-        if res:
-            result = res
-    return result
-
-
 def dev_tag_installed():
     import re
     import pkg_resources
@@ -57,4 +33,6 @@ def dev_tag_installed():
     except:
         return None
 
-RELEASE_TAG = dev_tag_installed() or dev_tag()
+
+VERSION = '0.6.0'
+RELEASE_TAG = dev_tag_installed() or ''
