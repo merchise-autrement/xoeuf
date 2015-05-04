@@ -132,7 +132,7 @@ def search_read(self, cr, uid, *args, **kwargs):
     order = _get(kwargs, 'order', default=None)
     ensure_list = _get(kwargs, 'ensure_list', default=False)
     assert not kwargs, \
-      "Invalid %s arguments: %s" % (len(kwargs), kwargs.keys())
+        "Invalid %s arguments: %s" % (len(kwargs), kwargs.keys())
     # Do it
     ids = self.search(cr, uid, domain, offset=offset, limit=limit,
                       order=order, context=ctx)
@@ -172,7 +172,7 @@ def search_browse(self, cr, uid, *args, **kwargs):
     order = _get(kwargs, 'order', default=None)
     ensure_list = _get(kwargs, 'ensure_list', default=False)
     assert not kwargs, \
-      "Invalid %s arguments: %s" % (len(kwargs), kwargs.keys())
+        "Invalid %s arguments: %s" % (len(kwargs), kwargs.keys())
     # Do it
     ids = self.search(cr, uid, domain, offset=offset, limit=limit,
                       order=order, context=ctx)
