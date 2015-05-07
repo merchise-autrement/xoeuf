@@ -65,9 +65,32 @@ def patch_logging(self, override=True):
 
     '''
     import logging
-    from raven.handlers.logging import SentryHandler
+    from raven.handlers.logging import SentryHandler as Base
     from openerp.netsvc import init_logger
     init_logger()
+
+    try:
+        from openerp.http import request
+
+        class SentryHandler(Base):
+            def emit(self, record):
+                httprequest = getattr(request, 'httprequest', None) if request else None
+                if httprequest:
+                    from xoutil.objects import setdefaultattr
+                    data = setdefaultattr(record, 'data', {})
+                    # Make a copy of the WSGI environment as extra data, but
+                    # remove cookies and wsgi. special keys.
+                    data['wsgi'] = {
+                        key: value
+                        for key, value in httprequest.environ.items()
+                        if key != 'HTTP_COOKIE'
+                        if not key.startswith('wsgi.')
+                        if not key.startswith('werkzeug.')
+                    }
+                return super(SentryHandler, self).emit(record)
+    except ImportError:
+        SentryHandler = Base
+
     client = self.client
     if not client:
         return
