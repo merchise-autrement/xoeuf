@@ -58,7 +58,11 @@ class CommandsProxy(object):
         if not res:
             import sys
             from importlib import import_module
-            from openerp.cli import commands
+            try:
+                from openerp.cli import commands
+            except ImportError:
+                # future-proof
+                from openerp.cli.command import commands
             from openerp.modules.module import get_modules
             from openerp.modules.module import initialize_sys_path
             cls._discover_addons_path()
