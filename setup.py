@@ -2,8 +2,9 @@
 # -*- encoding: utf-8 -*-
 # ---------------------------------------------------------------------
 # setup
-# ---------------------------------------------------------------------
-# Copyright (c) 2013-2015 Merchise Autrement and Contributors
+#----------------------------------------------------------------------
+# Copyright (c) 2015 Merchise and Contributors
+# Copyright (c) 2013, 2014 Merchise Autrement and Contributors
 # All rights reserved.
 #
 # This is free software; you can redistribute it and/or modify it under the
@@ -18,7 +19,8 @@ from __future__ import (division as _py3_division,
                         unicode_literals as _py3_unicode)
                         # XXX: Don't put absolute imports in setup.py
 
-import sys, os
+import sys
+import os
 from setuptools import setup, find_packages
 
 # Import the version from the release module
@@ -62,7 +64,7 @@ setup(name=project_name,
           'xoutil>=1.6.6,<1.7',
           'six',
           'ipython',
-          'raven>=5.2.0',
+          'raven>=5.3.1',
           'raven-sanitize-openerp',
       ],
       entry_points="""

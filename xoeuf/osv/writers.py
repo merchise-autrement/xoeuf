@@ -2,7 +2,8 @@
 # ---------------------------------------------------------------------
 # xoeuf.osv.writers
 # ---------------------------------------------------------------------
-# Copyright (c) 2014, 2015 Merchise Autrement and Contributors
+# Copyright (c) 2015 Merchise and Contributors
+# Copyright (c) 2014 Merchise Autrement and Contributors
 # All rights reserved.
 #
 # This is free software; you can redistribute it and/or modify it under the
@@ -63,7 +64,10 @@ class _BaseWriter(object):
         return self._commands.peek()
 
     def __enter__(self):
-        self._commands.push()
+        # Try to use xoutil 1.7 (i.e push_level) but fallback to push if
+        # xoutil is older.
+        push = getattr(self._commands, 'push_level', self._commands.push)
+        push()
         return self
 
     def __exit__(self, ex_type, exc_value, exc_tb):

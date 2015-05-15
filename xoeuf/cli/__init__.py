@@ -3,7 +3,8 @@
 # ---------------------------------------------------------------------
 # xoeuf.cli
 # ---------------------------------------------------------------------
-# Copyright (c) 2013-2015 Merchise Autrement and Contributors
+# Copyright (c) 2015 Merchise and Contributors
+# Copyright (c) 2013, 2014 Merchise Autrement and Contributors
 # All rights reserved.
 #
 # This is free software; you can redistribute it and/or modify it under
@@ -57,7 +58,11 @@ class CommandsProxy(object):
         if not res:
             import sys
             from importlib import import_module
-            from openerp.cli import commands
+            try:
+                from openerp.cli import commands
+            except ImportError:
+                # future-proof
+                from openerp.cli.command import commands
             from openerp.modules.module import get_modules
             from openerp.modules.module import initialize_sys_path
             cls._discover_addons_path()

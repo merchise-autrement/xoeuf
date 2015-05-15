@@ -28,6 +28,7 @@ from __future__ import (division as _py3_division,
 
 from xoutil.functools import lru_cache
 from xoutil.modules import moduleproperty, modulemethod
+from xoutil.objects import setdefaultattr
 
 # A dictionary holding the Raven's client keyword arguments.  You should
 # modify this dictionary before patching the logging.
@@ -65,9 +66,53 @@ def patch_logging(self, override=True):
 
     '''
     import logging
-    from raven.handlers.logging import SentryHandler
+    from raven.handlers.logging import SentryHandler as Base
     from openerp.netsvc import init_logger
     init_logger()
+
+    class SentryHandler(Base):
+        def _handle_http_tags(self, record, request):
+            tags = setdefaultattr(record, 'tags', {})
+            ua = request.user_agent
+            if ua:
+                tags['os'] = ua.platform.capitalize()
+                tags['browser'] = ua.browser.capitalize() + ' ' + ua.version
+            tags['url'] = request.url
+
+        def _handle_db_tags(self, record, request):
+            db = getattr(request, 'session', {}).get('db', None)
+            if db:
+                tags = setdefaultattr(record, 'tags', {})
+                tags['db'] = db
+
+        def _handle_http_request(self, record):
+            try:
+                from openerp.http import request
+                httprequest = getattr(request, 'httprequest', None)
+                if httprequest:
+                    data = setdefaultattr(record, 'data', {})
+                    # Make a copy of the WSGI environment as extra data, but
+                    # remove cookies and wsgi. special keys.
+                    data['wsgi'] = {
+                        key: value
+                        for key, value in httprequest.environ.items()
+                        if key != 'HTTP_COOKIE'
+                        if not key.startswith('wsgi.')
+                        if not key.startswith('werkzeug.')
+                    }
+                self._handle_http_tags(record, httprequest)
+                self._handle_db_tags(record, httprequest)
+            except ImportError:
+                pass
+            except RuntimeError:
+                # When upgrading a DB the request may exists but the bound to
+                # it does not.
+                pass
+
+        def emit(self, record):
+            self._handle_http_request(record)
+            return super(SentryHandler, self).emit(record)
+
     client = self.client
     if not client:
         return

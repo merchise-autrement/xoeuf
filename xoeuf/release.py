@@ -3,7 +3,8 @@
 # ---------------------------------------------------------------------
 # xoeuf.release
 # ---------------------------------------------------------------------
-# Copyright (c) 2013-2015 Merchise Autrement and Contributors
+# Copyright (c) 2015 Merchise and Contributors
+# Copyright (c) 2013, 2014 Merchise Autrement and Contributors
 # All rights reserved.
 #
 # This is free software; you can redistribute it and/or modify it under
@@ -34,5 +35,5 @@ def dev_tag_installed():
         return None
 
 
-VERSION = '0.6.1'
+VERSION = '0.6.2'
 RELEASE_TAG = dev_tag_installed() or ''

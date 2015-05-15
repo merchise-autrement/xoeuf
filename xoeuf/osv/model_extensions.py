@@ -2,7 +2,8 @@
 # ---------------------------------------------------------------------
 # xoeuf.osv.model_extensions
 # ---------------------------------------------------------------------
-# Copyright (c) 2014, 2015 Merchise Autrement and Contributors
+# Copyright (c) 2015 Merchise and Contributors
+# Copyright (c) 2014 Merchise Autrement and Contributors
 # All rights reserved.
 #
 # This is free software; you can redistribute it and/or modify it under
@@ -26,7 +27,6 @@ extensions.
 
 from __future__ import (division as _py3_division,
                         print_function as _py3_print,
-                        unicode_literals as _py3_unicode,
                         absolute_import)
 
 INTEGRATED = False    # True after integrated to `ModelBase`
@@ -132,7 +132,7 @@ def search_read(self, cr, uid, *args, **kwargs):
     order = _get(kwargs, 'order', default=None)
     ensure_list = _get(kwargs, 'ensure_list', default=False)
     assert not kwargs, \
-      "Invalid %s arguments: %s" % (len(kwargs), kwargs.keys())
+        "Invalid %s arguments: %s" % (len(kwargs), kwargs.keys())
     # Do it
     ids = self.search(cr, uid, domain, offset=offset, limit=limit,
                       order=order, context=ctx)
@@ -172,7 +172,7 @@ def search_browse(self, cr, uid, *args, **kwargs):
     order = _get(kwargs, 'order', default=None)
     ensure_list = _get(kwargs, 'ensure_list', default=False)
     assert not kwargs, \
-      "Invalid %s arguments: %s" % (len(kwargs), kwargs.keys())
+        "Invalid %s arguments: %s" % (len(kwargs), kwargs.keys())
     # Do it
     ids = self.search(cr, uid, domain, offset=offset, limit=limit,
                       order=order, context=ctx)
