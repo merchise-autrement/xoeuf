@@ -78,6 +78,9 @@ def patch_logging(self, override=True):
                 tags['os'] = ua.platform.capitalize()
                 tags['browser'] = ua.browser.capitalize() + ' ' + ua.version
             tags['url'] = request.url
+            username = getattr(request, 'session', {}).get('login', None)
+            if username:
+                tags['username'] = username
 
         def _handle_db_tags(self, record, request):
             db = getattr(request, 'session', {}).get('db', None)
@@ -100,8 +103,8 @@ def patch_logging(self, override=True):
                         if not key.startswith('wsgi.')
                         if not key.startswith('werkzeug.')
                     }
-                self._handle_http_tags(record, httprequest)
-                self._handle_db_tags(record, httprequest)
+                    self._handle_http_tags(record, httprequest)
+                    self._handle_db_tags(record, httprequest)
             except ImportError:
                 pass
             except RuntimeError:
