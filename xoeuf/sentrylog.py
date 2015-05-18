@@ -100,8 +100,8 @@ def patch_logging(self, override=True):
                         if not key.startswith('wsgi.')
                         if not key.startswith('werkzeug.')
                     }
-                self._handle_http_tags(record, httprequest)
-                self._handle_db_tags(record, httprequest)
+                    self._handle_http_tags(record, httprequest)
+                    self._handle_db_tags(record, httprequest)
             except ImportError:
                 pass
             except RuntimeError:
