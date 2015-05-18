@@ -78,6 +78,9 @@ def patch_logging(self, override=True):
                 tags['os'] = ua.platform.capitalize()
                 tags['browser'] = ua.browser.capitalize() + ' ' + ua.version
             tags['url'] = request.url
+            username = getattr(request, 'session', {}).get('login', None)
+            if username:
+                tags['username'] = username
 
         def _handle_db_tags(self, record, request):
             db = getattr(request, 'session', {}).get('db', None)
