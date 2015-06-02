@@ -71,6 +71,16 @@ def patch_logging(self, override=True):
     init_logger()
 
     class SentryHandler(Base):
+        def _handle_cli_tags(self, record):
+            import sys
+            cmd = sys.argv[0] if sys.argv else None
+            if cmd:
+                import os
+                cmd = os.path.basename(cmd)
+            if cmd:
+                tags = setdefaultattr(record, 'tags', {})
+                tags['cmd'] = cmd
+
         def _handle_http_tags(self, record, request):
             tags = setdefaultattr(record, 'tags', {})
             ua = request.user_agent
@@ -81,6 +91,9 @@ def patch_logging(self, override=True):
             username = getattr(request, 'session', {}).get('login', None)
             if username:
                 tags['username'] = username
+            remote_addr = getattr(request, 'remote_addr')
+            if remote_addr:
+                tags['remote_addr'] = remote_addr
 
         def _handle_db_tags(self, record, request):
             db = getattr(request, 'session', {}).get('db', None)
@@ -112,7 +125,35 @@ def patch_logging(self, override=True):
                 # it does not.
                 pass
 
+        def can_record(self, record):
+            res = super(SentryHandler, self).can_record(record)
+            if not res:
+                return False
+            exc_info = record.exc_info
+            if not exc_info:
+                return False
+            from openerp.exceptions import Warning
+            ignored = (Warning, )
+            try:
+                from openerp.exceptions import RedirectWarning
+                ignored += (RedirectWarning, )
+            except ImportError:
+                pass
+            try:
+                from openerp.exceptions import except_orm
+            except ImportError:
+                from openerp.osv.orm import except_orm
+            ignored += (except_orm, )
+            try:
+                from openerp.osv.osv import except_osv
+                ignored += (except_osv, )
+            except ImportError:
+                pass
+            _type, value, _tb = exc_info
+            return isinstance(value, ignored)
+
         def emit(self, record):
+            self._handle_cli_tags(record)
             self._handle_http_request(record)
             return super(SentryHandler, self).emit(record)
 
