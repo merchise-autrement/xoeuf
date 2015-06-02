@@ -71,6 +71,16 @@ def patch_logging(self, override=True):
     init_logger()
 
     class SentryHandler(Base):
+        def _handle_cli_tags(self, record):
+            import sys
+            cmd = sys.argv[0] if sys.argv else None
+            if cmd:
+                import os
+                cmd = os.path.basename(cmd)
+            if cmd:
+                tags = setdefaultattr(record, 'tags', {})
+                tags['cmd'] = cmd
+
         def _handle_http_tags(self, record, request):
             tags = setdefaultattr(record, 'tags', {})
             ua = request.user_agent
@@ -143,6 +153,7 @@ def patch_logging(self, override=True):
             return isinstance(value, ignored)
 
         def emit(self, record):
+            self._handle_cli_tags(record)
             self._handle_http_request(record)
             return super(SentryHandler, self).emit(record)
 
