@@ -25,10 +25,6 @@ DEFAULT_COMMAND = str('server')
 from xoeuf.modules import patch_modules
 patch_modules()
 
-import openerp
-if openerp.release.version_info < (8, 0, 0):
-    raise RuntimeError('xoeuf no longer supports OpenERP')
-
 
 class CommandsProxy(object):
     '''Define a proxy to register all OpenERP CLI commands to "xoutil.cli".
@@ -46,26 +42,14 @@ class CommandsProxy(object):
         name = '__commands_cache__'
         res = getattr(cls, name, None)
         if not res:
-            import sys
-            from importlib import import_module
             try:
                 from openerp.cli import commands
             except ImportError:
                 # future-proof
                 from openerp.cli.command import commands
-            from openerp.modules.module import get_modules
             from openerp.modules.module import initialize_sys_path
             cls._discover_addons_path()
             initialize_sys_path()
-            modules = get_modules()
-            for addon in modules:
-                module_name = str('openerp.addons.' + addon)
-                if not sys.modules.get(module_name):
-                    try:
-                        import_module(module_name)
-                    except Exception:
-                        import traceback
-                        traceback.print_exc()
             res = commands
             setattr(cls, name, res)
         return res.values()
