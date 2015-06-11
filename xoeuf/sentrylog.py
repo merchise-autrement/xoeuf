@@ -152,7 +152,7 @@ def patch_logging(self, override=True):
             except ImportError:
                 pass
             _type, value, _tb = exc_info
-            return isinstance(value, ignored)
+            return not isinstance(value, ignored)
 
         def emit(self, record):
             self._handle_cli_tags(record)
