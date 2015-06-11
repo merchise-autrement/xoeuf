@@ -176,9 +176,12 @@ def search_browse(self, cr, uid, *args, **kwargs):
     # Do it
     ids = self.search(cr, uid, domain, offset=offset, limit=limit,
                       order=order, context=ctx)
-    if len(ids) == 1 and not ensure_list:
-        ids = ids[0]
-    return self.browse(cr, uid, ids, context=ctx) if ids else None
+    if ids:
+        if ensure_list or len(ids) > 1:
+            return list(self.browse(cr, uid, ids, context=ctx))
+        else:
+            return self.browse(cr, uid, ids, context=ctx)
+    return [] if ensure_list else None
 
 
 def field_value(self, cr, uid, ids, field_name, context=None):
