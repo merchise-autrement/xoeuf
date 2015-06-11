@@ -132,9 +132,9 @@ def patch_modules():
 def _get_registry(db_name):
     '''Helper method to get the registry for a `db_name`.'''
     try:
-        from six import string_types
+        from xoutil.eight import string_types
     except ImportError:
-        from xoutil.compat import str_base as string_types
+        from six import string_types
     from xoeuf.osv.registry import Registry
     if isinstance(db_name, string_types):
         from importlib import import_module
