@@ -89,13 +89,9 @@ def patch_logging(self, override=True):
             if ua:
                 tags['os'] = ua.platform.capitalize()
                 tags['browser'] = ua.browser.capitalize() + ' ' + ua.version
-            tags['url'] = request.url
             username = getattr(request, 'session', {}).get('login', None)
             if username:
                 tags['username'] = username
-            remote_addr = getattr(request, 'remote_addr')
-            if remote_addr:
-                tags['remote_addr'] = remote_addr
 
         def _handle_db_tags(self, record, request):
             db = getattr(request, 'session', {}).get('db', None)
