@@ -129,7 +129,7 @@ def patch_logging(self, override=True):
                 return False
             exc_info = record.exc_info
             if not exc_info:
-                return False
+                return res
             from openerp.exceptions import Warning
             ignored = (Warning, )
             try:
@@ -159,9 +159,11 @@ def patch_logging(self, override=True):
     if not client:
         return
 
-    def sethandler(logger, override=override):
+    level = conf.get('report_level', 'ERROR')
+
+    def sethandler(logger, override=override, level=level):
         handler = SentryHandler(client=client)
-        handler.setLevel(logging.ERROR)
+        handler.setLevel(getattr(logging, level.upper(), logging.ERROR))
         if override or not logger.handlers:
             logger.handlers = [handler]
         else:
