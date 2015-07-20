@@ -28,56 +28,6 @@ from xoeuf.tools import normalize_datetime, localtime_as_remotetime, dt_as_timez
 from openerp.osv import fields as _v7_fields
 # from openerp import fields as _v8_fields
 
-try:
-    from xoutil.datetime import strip_tzinfo  # migrate
-except ImportError:
-    def strip_tzinfo(dt):
-        '''Return the given datetime value with tzinfo removed.
-
-        '''
-        from datetime import datetime  # noqa
-        return datetime(*(dt.timetuple()[:6] + (dt.microsecond, )))
-
-
-def datetime_user_to_server_tz(cr, uid, userdate, tz_name=None):
-    """ Convert date values expressed in user's timezone to
-    server-side UTC timestamp.
-
-    :param datetime userdate: datetime in user time zone
-    :return: UTC datetime for server-side use
-    """
-
-    utc = pytz.UTC
-    if userdate.tzinfo:
-        return utc.normalize(userdate)
-    if not tz_name:
-        from openerp import pooler
-        user = pooler.get_pool(cr.dbname)['res.users'].browse(cr, uid, uid)
-        dt = dt_as_timezone(userdate, user.tz) if user.tz else dt_as_timezone(userdate)
-    else:
-        dt = dt_as_timezone(userdate, tz_name)
-    return utc.normalize(dt)
-
-
-def datetime_server_to_user_tz(cr, uid, serverdate, tz_name=None):
-    """ Convert date values expressed in server-side UTC timestamp to
-    user's timezone.
-
-    :param datetime serverdate: datetime in server-side UTC timestamp.
-    :return: datetime on user's timezone
-    """
-
-    dt = dt_as_timezone(serverdate)  # datetime in UTC
-
-    if not tz_name:
-        from openerp import pooler
-        user = pooler.get_pool(cr.dbname)['res.users'].browse(cr, uid, uid)
-        user_tz = pytz.timezone(user.tz) if user.tz else pytz.UTC
-    else:
-        user_tz = pytz.timezone(tz_name)
-
-    return user_tz.normalize(dt)
-
 
 class localized_datetime(_v7_fields.function):
     '''A field for localized datetimes.
