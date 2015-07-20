@@ -23,7 +23,7 @@ from __future__ import (division as _py3_division,
 
 import pytz
 from datetime import datetime
-from xoeuf.tools import normalize_datetime
+from xoeuf.tools import normalize_datetime, localtime_as_remotetime, dt_as_timezone
 
 from openerp.osv import fields as _v7_fields
 # from openerp import fields as _v8_fields
@@ -37,6 +37,46 @@ except ImportError:
         '''
         from datetime import datetime  # noqa
         return datetime(*(dt.timetuple()[:6] + (dt.microsecond, )))
+
+
+def datetime_user_to_server_tz(cr, uid, userdate, tz_name=None):
+    """ Convert date values expressed in user's timezone to
+    server-side UTC timestamp.
+
+    :param datetime userdate: datetime in user time zone
+    :return: UTC datetime for server-side use
+    """
+
+    utc = pytz.UTC
+    if userdate.tzinfo:
+        return utc.normalize(userdate)
+    if not tz_name:
+        from openerp import pooler
+        user = pooler.get_pool(cr.dbname)['res.users'].browse(cr, uid, uid)
+        dt = dt_as_timezone(userdate, user.tz) if user.tz else dt_as_timezone(userdate)
+    else:
+        dt = dt_as_timezone(userdate, tz_name)
+    return utc.normalize(dt)
+
+
+def datetime_server_to_user_tz(cr, uid, serverdate, tz_name=None):
+    """ Convert date values expressed in server-side UTC timestamp to
+    user's timezone.
+
+    :param datetime serverdate: datetime in server-side UTC timestamp.
+    :return: datetime on user's timezone
+    """
+
+    dt = dt_as_timezone(serverdate)  # datetime in UTC
+
+    if not tz_name:
+        from openerp import pooler
+        user = pooler.get_pool(cr.dbname)['res.users'].browse(cr, uid, uid)
+        user_tz = pytz.timezone(user.tz) if user.tz else pytz.UTC
+    else:
+        user_tz = pytz.timezone(tz_name)
+
+    return user_tz.normalize(dt)
 
 
 class localized_datetime(_v7_fields.function):
@@ -79,15 +119,14 @@ class localized_datetime(_v7_fields.function):
                 tzone = pytz.UTC
             else:
                 tzone = pytz.timezone(tzone)
-            dt = normalize_datetime(val)
-            dt = pytz.UTC.localize(dt)
-            # Compute the datetime as seen by the user, then force to it the
+
+            # Compute the datetime in users timezone, then force to it the
             # desired TZ and back to UTC.
-            userdt = tz.normalize(dt) if tz is not pytz.UTC else dt
-            faked = tzone.localize(strip_tzinfo(userdt))
+            if val:
+                val = localtime_as_remotetime(val, tz, tzone)
             obj.write(
                 cr, uid, [row.id],
-                {dt_field: strip_tzinfo(pytz.UTC.normalize(faked))},
+                {dt_field: val},
                 context=context
             )
 
@@ -109,16 +148,16 @@ class localized_datetime(_v7_fields.function):
                 tzone = pytz.UTC
             else:
                 tzone = pytz.timezone(tzone)
-            dt = normalize_datetime(getattr(row, dt_field))
-            dt = pytz.UTC.localize(dt)  # datetimes are UTC in the DB
+
+            dt = getattr(row, dt_field)
             # Compute the datetime in the desired timezone, then extract
             # all datetime components but the TZ and localize it to the
             # users TZ and convert it back to UTC... This makes the UI to
             # reverse the process and show the datetime in the desired
             # timezone.
-            local = tzone.normalize(dt) if tzone is not pytz.UTC else dt
-            faked = tz.localize(strip_tzinfo(local))
-            res[row.id] = strip_tzinfo(pytz.UTC.normalize(faked))
+            if dt:
+                dt = localtime_as_remotetime(dt, tzone, tz)
+            res[row.id] = dt
         return res
 
     def __init__(self, dt_field, tzone_field, **kwargs):
