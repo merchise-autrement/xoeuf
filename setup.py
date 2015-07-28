@@ -61,7 +61,7 @@ setup(name=project_name,
       zip_safe=False,
       install_requires=[
           # -*- Extra requirements: -*-
-          'xoutil>=1.6.6,<1.7',
+          'xoutil>=1.6.6,<1.8',
           'six',
           'ipython',
           'raven>=5.3.1',
