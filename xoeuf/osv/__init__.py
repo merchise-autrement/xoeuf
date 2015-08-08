@@ -67,13 +67,13 @@ def datetime_user_to_server_tz(cr, uid, userdate, tz_name=None):
     :param datetime userdate: datetime in user time zone
     :return: UTC datetime for server-side use
     """
-
     utc = pytz.UTC
     if userdate.tzinfo:
         return utc.normalize(userdate)
     if not tz_name:
-        from openerp import pooler
-        user = pooler.get_pool(cr.dbname)['res.users'].browse(cr, uid, uid)
+        from openerp.modules.registry import RegistryManager
+        registry = RegistryManager.get(cr.dbname)
+        user = registry['res.users'].browse(cr, uid, uid)
         dt = dt_as_timezone(userdate, user.tz) if user.tz else dt_as_timezone(userdate)
     else:
         dt = dt_as_timezone(userdate, tz_name)
@@ -89,12 +89,11 @@ def datetime_server_to_user_tz(cr, uid, serverdate, tz_name=None):
     """
 
     dt = dt_as_timezone(serverdate)  # datetime in UTC
-
     if not tz_name:
-        from openerp import pooler
-        user = pooler.get_pool(cr.dbname)['res.users'].browse(cr, uid, uid)
+        from openerp.modules.registry import RegistryManager
+        registry = RegistryManager.get(cr.dbname)
+        user = registry['res.users'].browse(cr, uid, uid)
         user_tz = pytz.timezone(user.tz) if user.tz else pytz.UTC
     else:
         user_tz = pytz.timezone(tz_name)
-
     return user_tz.normalize(dt)
