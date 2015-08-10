@@ -21,7 +21,21 @@ from openerp.tools import DEFAULT_SERVER_DATE_FORMAT as _SVR_DATE_FMT
 from openerp.tools import DEFAULT_SERVER_DATETIME_FORMAT as _SVR_DATETIME_FMT
 
 
+import pytz
+
+utc = pytz.UTC
+
 _SVR_DATETIME_FMT2 = _SVR_DATETIME_FMT + '.%f'
+
+try:
+    from xoutil.datetime import strip_tzinfo  # migrate
+except ImportError:
+    def strip_tzinfo(dt):
+        '''Return the given datetime value with tzinfo removed.
+
+        '''
+        from datetime import datetime  # noqa
+        return datetime(*(dt.timetuple()[:6] + (dt.microsecond, )))
 
 
 def date2str(d):
@@ -178,3 +192,47 @@ def normalize_date(which):
     else:
         raise TypeError("Expected a string, date or date but a '%s' was given"
                         % type(which))
+
+
+def dt_as_timezone(dt, tz_name=None):
+    """ Localize datetime in desired timezone.
+
+    :param datetime dt: datetime
+    :param string tz_name: name of the timezone to localize the datetime
+    :return: datetime with tzinfo, UTC in case tz_name is none.
+    """
+    dt = normalize_datetime(dt)
+    if tz_name:
+        tz = pytz.timezone(tz_name)
+    else:
+        tz = pytz.UTC
+    return tz.localize(strip_tzinfo(dt))
+
+
+def localtime_as_remotetime(dt_UTC, from_tz=utc, as_tz=utc):
+    """ Compute the datetime as the timezone source,
+    then force to it the desired TZ and back to UTC.
+
+   :param datetime dt_UTC: datetime in UTC
+   :param string from_tz: timezone to compute the datetime
+   :param string as_tz: timezone to localize the datetime
+   :return: datetime in desired timezone
+   """
+
+    dt_UTC = normalize_datetime(dt_UTC)
+    if not isinstance(from_tz, pytz.tzinfo.tzinfo):
+        from_tz = pytz.timezone(from_tz)
+    if not isinstance(as_tz, pytz.tzinfo.tzinfo):
+        as_tz = pytz.timezone(as_tz)
+
+    if not dt_UTC.tzinfo:
+        dt_UTC = dt_as_timezone(dt_UTC)
+
+    #Compute the datetime in the source timezone
+    local = from_tz.normalize(dt_UTC)
+
+    #Localize as desired timezone
+    faked = as_tz.localize(strip_tzinfo(local))
+
+    #Compute in UTC and return without tzinfo
+    return strip_tzinfo(pytz.UTC.normalize(faked))
