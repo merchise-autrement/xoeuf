@@ -88,7 +88,7 @@ def patch_logging(self, override=True):
             ua = request.user_agent
             if ua:
                 tags['os'] = ua.platform.capitalize()
-                tags['browser'] = ua.browser.capitalize() + ' ' + ua.version
+                tags['browser'] = str(ua.browser).capitalize() + ' ' + str(ua.version)
             username = getattr(request, 'session', {}).get('login', None)
             if username:
                 tags['username'] = username
