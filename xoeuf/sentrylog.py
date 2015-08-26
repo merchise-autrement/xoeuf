@@ -44,6 +44,8 @@ SENTRYLOGGER = object()
 def client(self):
     import raven
     if 'dsn' in conf:
+        from openerp.release import version
+        conf['release'] = version
         client = raven.Client(**conf)
         client.processors += (
             'raven_sanitize_openerp.OpenerpPasswordsProcessor',
@@ -73,9 +75,7 @@ def patch_logging(self, override=True):
     class SentryHandler(Base):
         def _handle_cli_tags(self, record):
             import sys
-            from openerp.release import version
             tags = setdefaultattr(record, 'tags', {})
-            tags['odoo-version'] = version
             cmd = sys.argv[0] if sys.argv else None
             if cmd:
                 import os
