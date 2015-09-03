@@ -44,8 +44,9 @@ SENTRYLOGGER = object()
 def client(self):
     import raven
     if 'dsn' in conf:
-        from openerp.release import version
-        conf['release'] = version
+        if 'release' not in conf:
+            from openerp.release import version
+            conf['release'] = version
         client = raven.Client(**conf)
         client.processors += (
             'raven_sanitize_openerp.OpenerpPasswordsProcessor',
