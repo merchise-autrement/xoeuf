@@ -95,3 +95,48 @@ except ImportError:
 
         '''
         return f
+
+
+try:
+    from xoutil.decorator.meta import decorator
+    from openerp import api as _odoo_api
+    multi = _odoo_api.multi
+
+    @decorator
+    def take_one(func, index=0, warn=True):
+        '''A weaker version of `api.one`.
+
+        The decorated method will receive a recordset with a single record
+        just like `api.one` does.
+
+        The single record will the one in the `index` provided in the
+        decorator.
+
+        This means the decorated method *can* make the same assumptions about
+        its `self` it can make when decorated with `api.one`.  Nevertheless
+        its return value *will not* be enclosed in a list.
+
+        If `warn` is True and more than one record is in the record set, a
+        warning will be issued.
+
+        If the given recordset has no `index`, raise an IndexError.
+
+        '''
+        from functools import wraps
+        from xoutil import logger
+
+        @multi
+        @wraps(func)
+        def inner(self):
+            if self[index] != self:
+                # More than one item was in the recordset.
+                if warn:
+                    logger.warn('More than one record for function %s',
+                                func, extra=self)
+                self = self[index]
+            return func(self)
+        return inner
+
+except ImportError:
+    multi = lambda f: f
+    take_first = lambda *args, **kwargs: (lambda f: f)
