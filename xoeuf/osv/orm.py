@@ -76,28 +76,53 @@ def get_modelname(model):
     return result
 
 
-# XXX [manu]  Discovered similar things in openerp/addons/base/ir/ir_fields.
+# Making this a subclass of int allows to be reliably tested for equality in
+# both Python 2.7 and Python 3.4
+class _Command(int):
+    def __new__(cls, value, *args):
+        return super(_Command, cls).__new__(cls, value)
+
+    def __init__(self, value, _lambda):
+        self.value = value
+        self._lambda = _lambda
+
+    def __call__(self, *args, **kwargs):
+        if callable(self._lambda):
+            return self._lambda(*args, **kwargs)
+        else:
+            return self._lambda
+
+
+# The index where the command magic number is in tuples
+COMMAND_INDEX = 0
+
+# For applicable commands this is the index where id/ids are located.
+ID_INDEX = 1
+
+# For applicable commands this is the index where values are located
+VALUE_INDEX = VALUES_INDEX = -1
+
 
 #: Returns a single "command" to create a new related record
-CREATE_RELATED = lambda **values: (0, 0, values)
+CREATE_RELATED = _Command(0, lambda **values: (0, 0, values))
 ONE2MANY_CREATE = MANY2MANY_CREATE = CREATE_RELATED
 
 #: Returns a single "command" to update a linked record
-UPDATE_RELATED = lambda id, **values: (1, id, values)
+UPDATE_RELATED = _Command(1, lambda id, **values: (1, id, values))
 ONE2MANY_UPDATE = MANY2MANY_UPDATE = UPDATE_RELATED
 
 #: Returns a single "command" to remove (and unlink) the related record
-REMOVE_RELATED = lambda id: (2, id)
+REMOVE_RELATED = _Command(2, lambda id: (2, id))
 ONE2MANY_REMOVE = MANY2MANY_REMOVE = REMOVE_RELATED
 
 #: Returns a single command to forget about a relation
-FORGET_RELATED = lambda id: (3, id)
+FORGET_RELATED = _Command(3, lambda id: (3, id))
 
 #: Returns a single command to link a record
-LINK_RELATED = lambda id: (4, id)
+LINK_RELATED = _Command(4, lambda id: (4, id))
 
 #: Returns a single command to unlink all
-UNLINKALL_RELATED = (5, )
+UNLINKALL_RELATED = _Command(5, lambda: (5, ))
 
 #: Returns a single command to replace all related with existing ids
-REPLACEWITH_RELATED = lambda *ids: (6, 0, list(ids))
+REPLACEWITH_RELATED = _Command(6, lambda *ids: (6, 0, list(ids)))

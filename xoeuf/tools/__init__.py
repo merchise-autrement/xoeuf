@@ -224,15 +224,8 @@ def localtime_as_remotetime(dt_UTC, from_tz=utc, as_tz=utc):
         from_tz = pytz.timezone(from_tz)
     if not isinstance(as_tz, pytz.tzinfo.tzinfo):
         as_tz = pytz.timezone(as_tz)
-
     if not dt_UTC.tzinfo:
         dt_UTC = dt_as_timezone(dt_UTC)
-
-    #Compute the datetime in the source timezone
     local = from_tz.normalize(dt_UTC)
-
-    #Localize as desired timezone
     faked = as_tz.localize(strip_tzinfo(local))
-
-    #Compute in UTC and return without tzinfo
     return strip_tzinfo(pytz.UTC.normalize(faked))

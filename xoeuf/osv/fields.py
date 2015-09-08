@@ -69,7 +69,6 @@ class localized_datetime(_v7_fields.function):
                 tzone = pytz.UTC
             else:
                 tzone = pytz.timezone(tzone)
-
             # Compute the datetime in users timezone, then force to it the
             # desired TZ and back to UTC.
             if val:
@@ -98,7 +97,6 @@ class localized_datetime(_v7_fields.function):
                 tzone = pytz.UTC
             else:
                 tzone = pytz.timezone(tzone)
-
             dt = getattr(row, dt_field)
             # Compute the datetime in the desired timezone, then extract
             # all datetime components but the TZ and localize it to the

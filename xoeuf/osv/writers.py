@@ -151,7 +151,7 @@ class _BaseWriter(object):
         assert self._is_many2many(attrname)
         from .orm import UNLINKALL_RELATED
         cmds = self._commands.setdefault(attrname, [])
-        cmds.append(UNLINKALL_RELATED)
+        cmds.append(UNLINKALL_RELATED())
 
     def replace(self, attrname, *ids):
         '''Issues a "replace related objects" command for the attribute named
