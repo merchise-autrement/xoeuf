@@ -201,3 +201,5 @@ class ORMCreator(_BaseWriter):
             return False
         self.result = self.obj.create(self.cr, self.uid, self.commands,
                                       **self.kwargs)
+
+    set = _BaseWriter.update
