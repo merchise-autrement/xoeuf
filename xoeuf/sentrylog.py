@@ -26,9 +26,15 @@ from __future__ import (division as _py3_division,
                         print_function as _py3_print,
                         absolute_import as _py3_abs_import)
 
+import raven
+from raven.utils.serializer.manager import manager as _manager, transform
+from raven.utils.serializer import Serializer
+
 from xoutil.functools import lru_cache
 from xoutil.modules import moduleproperty, modulemethod
 from xoutil.objects import setdefaultattr
+
+from openerp import models
 
 # A dictionary holding the Raven's client keyword arguments.  You should
 # modify this dictionary before patching the logging.
@@ -42,15 +48,11 @@ SENTRYLOGGER = object()
 @moduleproperty
 @lru_cache(1)
 def client(self):
-    import raven
     if 'dsn' in conf:
         if 'release' not in conf:
             from openerp.release import version
             conf['release'] = version
         client = raven.Client(**conf)
-        client.processors += (
-            'raven_sanitize_openerp.OpenerpPasswordsProcessor',
-        )
         return client
     else:
         return None
@@ -175,4 +177,35 @@ def patch_logging(self, override=True):
         sethandler(logger)
 
 
-del moduleproperty, modulemethod, lru_cache
+class OdooRecordSerializer(Serializer):
+    """Expose Odoos local context variables from stacktraces.
+
+    """
+    types = (models.Model, )
+
+    def serialize(self, value, **kwargs):
+        try:
+            if len(value) == 0:
+                return None
+            elif len(value) == 1:
+                return transform({
+                    attr: safe_getattr(value, attr)
+                    for attr in value._columns.keys()
+                })
+            else:
+                return transform(
+                    [self.serialize(record) for record in value]
+                )
+        except:
+            return repr(value)
+
+
+def safe_getattr(which, attr):
+    from xoutil import Undefined
+    try:
+        return repr(getattr(which, attr, None))
+    except:
+        return Undefined
+
+_manager.register(OdooRecordSerializer)
+del Serializer, moduleproperty, modulemethod, lru_cache, _manager,
