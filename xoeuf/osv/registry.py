@@ -149,7 +149,7 @@ class ModelsManager(MutableMapping, SmartDictMixin):
      * An open dictionary allowing access to keys as attributes.
 
     '''
-    from xoutil.collections import opendict as __search_result_type__
+    from xoutil.collections import opendict as __search_result_type__  # noqa
 
     def __new__(cls, registry):
         '''Create, or return if already exists, a instance of a models manager.
@@ -272,7 +272,6 @@ class ModelsManager(MutableMapping, SmartDictMixin):
 
         '''
         return self.wrapped.popitem()
-
 
     def clear(self):
         '''Remove all models.'''
