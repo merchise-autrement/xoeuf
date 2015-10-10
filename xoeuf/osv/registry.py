@@ -454,8 +454,10 @@ class Registry(ModuleType):
         ROOT_USER_NAME = str('uid')
         MODELS_NAME = str('models')
         CONTEXT_NAME = str('context')
+        ENV_NAME = str('env')
         close_names = (CURSOR_NAME, )
-        names = (CURSOR_NAME, ROOT_USER_NAME, MODELS_NAME, CONTEXT_NAME)
+        names = (CURSOR_NAME, ROOT_USER_NAME, MODELS_NAME, CONTEXT_NAME,
+                 ENV_NAME)
         f = _getframe(1)
         vars = f.f_locals
         for name in close_names:
@@ -533,6 +535,11 @@ class Registry(ModuleType):
     @memoized_property
     def models(self):
         return ModelsManager(self)
+
+    @property
+    def env(self):
+        from openerp.api import Environment
+        return Environment(self.cr, self.uid, self.context)
 
     @property
     def context_name(self):
