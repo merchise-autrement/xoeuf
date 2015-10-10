@@ -78,8 +78,15 @@ def patch_logging(self, override=True):
     class SentryHandler(Base):
         def _handle_cli_tags(self, record):
             import sys
+            from itertools import takewhile
             tags = setdefaultattr(record, 'tags', {})
-            cmd = sys.argv[0] if sys.argv else None
+            if sys.argv:
+                cmd = ' '.join(
+                    takewhile(lambda arg: not arg.startswith('-'),
+                              sys.argv)
+                )
+            else:
+                cmd = None
             if cmd:
                 import os
                 cmd = os.path.basename(cmd)
