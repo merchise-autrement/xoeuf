@@ -114,8 +114,9 @@ class MetaOptions(type):
             else:
                 self.wrapped[option] = value
         else:
+            from xoutil.eight import typeof
             msg = 'option name must be str, "%s" of type "%s" is provided!'
-            raise TypeError(msg % (option, type(option).__name__))
+            raise TypeError(msg % (option, typeof(option).__name__))
 
     def __delitem__(self, option):
         if _SECTION_SEP in option:
