@@ -43,9 +43,11 @@ def _valid_model_base(model):
     '''Check if a model has a right base class.'''
     from openerp.osv.orm import BaseModel
     if not isinstance(model, BaseModel):
+        from inspect import getmro
+        from xoutil.eight import typeof
         msg = 'Inappropriate type "%s" for model value!\tMRO=%s'
-        t = type(model)
-        raise TypeError(msg % (t.__name__, t.mro()))
+        t = typeof(model)
+        raise TypeError(msg % (t.__name__, getmro(t)))
 
 
 # The manager of Odoo is now classmethod lock().  This allows both Odoo 8.0
