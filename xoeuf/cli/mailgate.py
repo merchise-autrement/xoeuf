@@ -36,6 +36,8 @@ MAX_TRIES_ON_CONCURRENCY_FAILURE = 5
 
 try:
     # A Py3k more compatible Exception value
+    # TODO: Use `xoutil.eight.exceptions.StandardError`
+    #       Rename all use of `Exception`
     Exception = StandardError
 except NameError:
     pass
