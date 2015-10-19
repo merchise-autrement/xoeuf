@@ -30,3 +30,4 @@ from __future__ import (division as _py3_division,
 
 
 from . import api  # noqa
+from . import signals  # noqa
