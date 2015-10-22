@@ -65,7 +65,11 @@ class CommandsProxy(object):
             config.parse_config([addons_path])
 
 
-from xoutil.objects import metaclass
+try:
+    from xoutil.eight.meta import metaclass
+except ImportError:
+    from xoutil.objects import metaclass
+
 from xoutil.cli import Command as BaseCommand
 
 BaseCommand.register(CommandsProxy)
