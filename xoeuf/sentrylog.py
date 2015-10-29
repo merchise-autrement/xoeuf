@@ -133,6 +133,15 @@ def patch_logging(self, override=True):
                 # it does not.
                 pass
 
+        def _handle_fingerprint(self, record):
+            exc_info = record.exc_info
+            if exc_info:
+                _type, value, _tb = exc_info
+                fingerprint = getattr(value, '_sentry_fingerprint', None)
+                if fingerprint:
+                    extra = setdefaultattr(record, 'extra', {})
+                    extra['fingerprint'] = fingerprint
+
         def can_record(self, record):
             res = super(SentryHandler, self).can_record(record)
             if not res:
@@ -163,6 +172,7 @@ def patch_logging(self, override=True):
         def emit(self, record):
             self._handle_cli_tags(record)
             self._handle_http_request(record)
+            self._handle_fingerprint(record)
             return super(SentryHandler, self).emit(record)
 
     client = self.client
