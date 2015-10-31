@@ -134,13 +134,19 @@ def patch_logging(self, override=True):
                 pass
 
         def _handle_fingerprint(self, record):
+            from xoutil.names import nameof
             exc_info = record.exc_info
             if exc_info:
                 _type, value, _tb = exc_info
-                fingerprint = getattr(value, '_sentry_fingerprint', None)
+                exc = nameof(_type, inner=True, full=True)
+                if exc.startswith('psycopg2.'):
+                    fingerprint = [exc]
+                else:
+                    fingerprint = getattr(value, '_sentry_fingerprint', None)
+                    if not isinstance(fingerprint, list):
+                        fingerprint = [fingerprint]
                 if fingerprint:
-                    extra = setdefaultattr(record, 'extra', {})
-                    extra['fingerprint'] = fingerprint
+                    record.fingerprint = fingerprint
 
         def can_record(self, record):
             res = super(SentryHandler, self).can_record(record)
@@ -170,9 +176,9 @@ def patch_logging(self, override=True):
             return not isinstance(value, ignored)
 
         def emit(self, record):
+            self._handle_fingerprint(record)
             self._handle_cli_tags(record)
             self._handle_http_request(record)
-            self._handle_fingerprint(record)
             return super(SentryHandler, self).emit(record)
 
     client = self.client
