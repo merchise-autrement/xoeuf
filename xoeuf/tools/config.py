@@ -273,6 +273,5 @@ class options(metaclass(MetaOptions)):
     '''
 
 
-del MetaOptions
 del metaclass
 del MutableMapping
