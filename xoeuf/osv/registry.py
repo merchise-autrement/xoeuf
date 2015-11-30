@@ -149,7 +149,7 @@ class ModelsManager(MutableMapping, SmartDictMixin):
      * An open dictionary allowing access to keys as attributes.
 
     '''
-    from xoutil.collections import opendict as __search_result_type__
+    from xoutil.collections import opendict as __search_result_type__  # noqa
 
     def __new__(cls, registry):
         '''Create, or return if already exists, a instance of a models manager.
@@ -272,7 +272,6 @@ class ModelsManager(MutableMapping, SmartDictMixin):
 
         '''
         return self.wrapped.popitem()
-
 
     def clear(self):
         '''Remove all models.'''
@@ -455,8 +454,10 @@ class Registry(ModuleType):
         ROOT_USER_NAME = str('uid')
         MODELS_NAME = str('models')
         CONTEXT_NAME = str('context')
+        ENV_NAME = str('env')
         close_names = (CURSOR_NAME, )
-        names = (CURSOR_NAME, ROOT_USER_NAME, MODELS_NAME, CONTEXT_NAME)
+        names = (CURSOR_NAME, ROOT_USER_NAME, MODELS_NAME, CONTEXT_NAME,
+                 ENV_NAME)
         f = _getframe(1)
         vars = f.f_locals
         for name in close_names:
@@ -534,6 +535,11 @@ class Registry(ModuleType):
     @memoized_property
     def models(self):
         return ModelsManager(self)
+
+    @property
+    def env(self):
+        from openerp.api import Environment
+        return Environment(self.cr, self.uid, self.context)
 
     @property
     def context_name(self):

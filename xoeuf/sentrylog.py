@@ -26,9 +26,16 @@ from __future__ import (division as _py3_division,
                         print_function as _py3_print,
                         absolute_import as _py3_abs_import)
 
+import raven
+
+from raven.utils.serializer.manager import manager as _manager, transform
+from raven.utils.serializer import Serializer
+
 from xoutil.functools import lru_cache
 from xoutil.modules import moduleproperty, modulemethod
 from xoutil.objects import setdefaultattr
+
+from openerp import models
 
 # A dictionary holding the Raven's client keyword arguments.  You should
 # modify this dictionary before patching the logging.
@@ -42,15 +49,19 @@ SENTRYLOGGER = object()
 @moduleproperty
 @lru_cache(1)
 def client(self):
-    import raven
     if 'dsn' in conf:
         if 'release' not in conf:
             from openerp.release import version
             conf['release'] = version
+        transport = conf.get('transport', None)
+        if transport == 'sync':
+            transport = raven.transport.http.HTTPTransport
+        elif transport == 'gevent':
+            transport = raven.transport.gevent.GeventedHTTPTransport
+        else:
+            transport = raven.transport.threaded.ThreadedHTTPTransport
+        conf['transport'] = transport
         client = raven.Client(**conf)
-        client.processors += (
-            'raven_sanitize_openerp.OpenerpPasswordsProcessor',
-        )
         return client
     else:
         return None
@@ -76,8 +87,15 @@ def patch_logging(self, override=True):
     class SentryHandler(Base):
         def _handle_cli_tags(self, record):
             import sys
+            from itertools import takewhile
             tags = setdefaultattr(record, 'tags', {})
-            cmd = sys.argv[0] if sys.argv else None
+            if sys.argv:
+                cmd = ' '.join(
+                    takewhile(lambda arg: not arg.startswith('-'),
+                              sys.argv)
+                )
+            else:
+                cmd = None
             if cmd:
                 import os
                 cmd = os.path.basename(cmd)
@@ -124,6 +142,21 @@ def patch_logging(self, override=True):
                 # it does not.
                 pass
 
+        def _handle_fingerprint(self, record):
+            from xoutil.names import nameof
+            exc_info = record.exc_info
+            if exc_info:
+                _type, value, _tb = exc_info
+                exc = nameof(_type, inner=True, full=True)
+                if exc.startswith('psycopg2.'):
+                    fingerprint = [exc]
+                else:
+                    fingerprint = getattr(value, '_sentry_fingerprint', None)
+                    if not isinstance(fingerprint, list):
+                        fingerprint = [fingerprint]
+                if fingerprint:
+                    record.fingerprint = fingerprint
+
         def can_record(self, record):
             res = super(SentryHandler, self).can_record(record)
             if not res:
@@ -152,6 +185,7 @@ def patch_logging(self, override=True):
             return not isinstance(value, ignored)
 
         def emit(self, record):
+            self._handle_fingerprint(record)
             self._handle_cli_tags(record)
             self._handle_http_request(record)
             return super(SentryHandler, self).emit(record)
@@ -175,4 +209,35 @@ def patch_logging(self, override=True):
         sethandler(logger)
 
 
-del moduleproperty, modulemethod, lru_cache
+class OdooRecordSerializer(Serializer):
+    """Expose Odoos local context variables from stacktraces.
+
+    """
+    types = (models.Model, )
+
+    def serialize(self, value, **kwargs):
+        try:
+            if len(value) == 0:
+                return transform((None, 'record with 0 items'))
+            elif len(value) == 1:
+                return transform({
+                    attr: safe_getattr(value, attr)
+                    for attr in value._columns.keys()
+                })
+            else:
+                return transform(
+                    [self.serialize(record) for record in value]
+                )
+        except:
+            return repr(value)
+
+
+def safe_getattr(which, attr):
+    from xoutil import Undefined
+    try:
+        return repr(getattr(which, attr, None))
+    except:
+        return Undefined
+
+_manager.register(OdooRecordSerializer)
+del Serializer, moduleproperty, modulemethod, lru_cache, _manager,
