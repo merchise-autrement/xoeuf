@@ -50,9 +50,10 @@ SENTRYLOGGER = object()
 @lru_cache(1)
 def client(self):
     if 'dsn' in conf:
+        releasetag = conf.pop('sentrylog.release-tag', '')
         if 'release' not in conf:
             from openerp.release import version
-            conf['release'] = version
+            conf['release'] = '%s/%s' % (version, releasetag)
         transport = conf.get('transport', None)
         if transport == 'sync':
             transport = raven.transport.http.HTTPTransport
