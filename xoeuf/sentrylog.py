@@ -27,6 +27,7 @@ from __future__ import (division as _py3_division,
                         absolute_import as _py3_abs_import)
 
 import raven
+
 from raven.utils.serializer.manager import manager as _manager, transform
 from raven.utils.serializer import Serializer
 
@@ -52,6 +53,14 @@ def client(self):
         if 'release' not in conf:
             from openerp.release import version
             conf['release'] = version
+        transport = conf.get('transport', None)
+        if transport == 'sync':
+            transport = raven.transport.http.HTTPTransport
+        elif transport == 'gevent':
+            transport = raven.transport.gevent.GeventedHTTPTransport
+        else:
+            transport = raven.transport.threaded.ThreadedHTTPTransport
+        conf['transport'] = transport
         client = raven.Client(**conf)
         return client
     else:
