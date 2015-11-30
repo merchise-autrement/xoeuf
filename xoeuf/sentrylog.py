@@ -209,7 +209,7 @@ class OdooRecordSerializer(Serializer):
     def serialize(self, value, **kwargs):
         try:
             if len(value) == 0:
-                return None
+                return transform((None, 'record with 0 items'))
             elif len(value) == 1:
                 return transform({
                     attr: safe_getattr(value, attr)
