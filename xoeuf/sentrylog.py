@@ -27,6 +27,7 @@ from __future__ import (division as _py3_division,
                         absolute_import as _py3_abs_import)
 
 import raven
+
 from raven.utils.serializer.manager import manager as _manager, transform
 from raven.utils.serializer import Serializer
 
@@ -49,9 +50,18 @@ SENTRYLOGGER = object()
 @lru_cache(1)
 def client(self):
     if 'dsn' in conf:
+        releasetag = conf.pop('sentrylog.release-tag', '')
         if 'release' not in conf:
             from openerp.release import version
-            conf['release'] = version
+            conf['release'] = '%s/%s' % (version, releasetag)
+        transport = conf.get('transport', None)
+        if transport == 'sync':
+            transport = raven.transport.http.HTTPTransport
+        elif transport == 'gevent':
+            transport = raven.transport.gevent.GeventedHTTPTransport
+        else:
+            transport = raven.transport.threaded.ThreadedHTTPTransport
+        conf['transport'] = transport
         client = raven.Client(**conf)
         return client
     else:
@@ -78,8 +88,15 @@ def patch_logging(self, override=True):
     class SentryHandler(Base):
         def _handle_cli_tags(self, record):
             import sys
+            from itertools import takewhile
             tags = setdefaultattr(record, 'tags', {})
-            cmd = sys.argv[0] if sys.argv else None
+            if sys.argv:
+                cmd = ' '.join(
+                    takewhile(lambda arg: not arg.startswith('-'),
+                              sys.argv)
+                )
+            else:
+                cmd = None
             if cmd:
                 import os
                 cmd = os.path.basename(cmd)
@@ -126,6 +143,21 @@ def patch_logging(self, override=True):
                 # it does not.
                 pass
 
+        def _handle_fingerprint(self, record):
+            from xoutil.names import nameof
+            exc_info = record.exc_info
+            if exc_info:
+                _type, value, _tb = exc_info
+                exc = nameof(_type, inner=True, full=True)
+                if exc.startswith('psycopg2.'):
+                    fingerprint = [exc]
+                else:
+                    fingerprint = getattr(value, '_sentry_fingerprint', None)
+                    if not isinstance(fingerprint, list):
+                        fingerprint = [fingerprint]
+                if fingerprint:
+                    record.fingerprint = fingerprint
+
         def can_record(self, record):
             res = super(SentryHandler, self).can_record(record)
             if not res:
@@ -154,6 +186,7 @@ def patch_logging(self, override=True):
             return not isinstance(value, ignored)
 
         def emit(self, record):
+            self._handle_fingerprint(record)
             self._handle_cli_tags(record)
             self._handle_http_request(record)
             return super(SentryHandler, self).emit(record)
@@ -186,7 +219,7 @@ class OdooRecordSerializer(Serializer):
     def serialize(self, value, **kwargs):
         try:
             if len(value) == 0:
-                return None
+                return transform((None, 'record with 0 items'))
             elif len(value) == 1:
                 return transform({
                     attr: safe_getattr(value, attr)
