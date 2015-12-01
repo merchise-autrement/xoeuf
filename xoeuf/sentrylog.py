@@ -27,6 +27,7 @@ from __future__ import (division as _py3_division,
                         absolute_import as _py3_abs_import)
 
 import raven
+
 from raven.utils.serializer.manager import manager as _manager, transform
 from raven.utils.serializer import Serializer
 
@@ -49,9 +50,18 @@ SENTRYLOGGER = object()
 @lru_cache(1)
 def client(self):
     if 'dsn' in conf:
+        releasetag = conf.pop('sentrylog.release-tag', '')
         if 'release' not in conf:
             from openerp.release import version
-            conf['release'] = version
+            conf['release'] = '%s/%s' % (version, releasetag)
+        transport = conf.get('transport', None)
+        if transport == 'sync':
+            transport = raven.transport.http.HTTPTransport
+        elif transport == 'gevent':
+            transport = raven.transport.gevent.GeventedHTTPTransport
+        else:
+            transport = raven.transport.threaded.ThreadedHTTPTransport
+        conf['transport'] = transport
         client = raven.Client(**conf)
         return client
     else:
@@ -209,7 +219,7 @@ class OdooRecordSerializer(Serializer):
     def serialize(self, value, **kwargs):
         try:
             if len(value) == 0:
-                return None
+                return transform((None, 'record with 0 items'))
             elif len(value) == 1:
                 return transform({
                     attr: safe_getattr(value, attr)
