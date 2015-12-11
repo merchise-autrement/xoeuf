@@ -448,6 +448,7 @@ class Registry(ModuleType):
 
         '''
         from sys import _getframe
+        from openerp.api import Environment
         from xoeuf.osv.improve import (fix_documentations,
                                        integrate_extensions)
         CURSOR_NAME = str('cr')
@@ -456,10 +457,17 @@ class Registry(ModuleType):
         CONTEXT_NAME = str('context')
         ENV_NAME = str('env')
         close_names = (CURSOR_NAME, )
-        names = (CURSOR_NAME, ROOT_USER_NAME, MODELS_NAME, CONTEXT_NAME,
-                 ENV_NAME)
+        clear_names = (ENV_NAME, )
+        names = (CURSOR_NAME, ROOT_USER_NAME, MODELS_NAME, CONTEXT_NAME)
         f = _getframe(1)
         vars = f.f_locals
+        for name in clear_names:
+            if name in vars:
+                var = vars[name]
+                try:
+                    var.clear()
+                except:
+                    pass
         for name in close_names:
             if name in vars:
                 var = vars[name]
@@ -471,6 +479,13 @@ class Registry(ModuleType):
             var = getattr(self, name, Unset)
             if var is not Unset:
                 vars[name] = var
+        # The env cannot be simply gotten from the Registry cause it will
+        # create another cursor for it. The property Registry.cursor is not
+        # memoized, and it probably shouldn't since that would render the
+        # registry a single-use thing.
+        vars[ENV_NAME] = Environment(vars[CURSOR_NAME],
+                                     vars[ROOT_USER_NAME],
+                                     vars[CONTEXT_NAME])
         if kwargs:
             models = getattr(self, MODELS_NAME)
             for kwname in kwargs:
