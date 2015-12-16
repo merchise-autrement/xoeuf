@@ -153,9 +153,9 @@ def patch_logging(self, override=True):
                     fingerprint = [exc]
                 else:
                     fingerprint = getattr(value, '_sentry_fingerprint', None)
+                if fingerprint:
                     if not isinstance(fingerprint, list):
                         fingerprint = [fingerprint]
-                if fingerprint:
                     record.fingerprint = fingerprint
 
         def can_record(self, record):
