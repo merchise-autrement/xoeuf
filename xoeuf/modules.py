@@ -193,7 +193,7 @@ def mark_dangling_modules(db):
         return dangling
 
 
-def get_object_module(obj):
+def get_object_module(obj, typed=False):
     '''Return the name of the OpenERP addon the `obj` has been defined.
 
     If the `obj` is not defined (imported) from the "openerp.addons."
@@ -201,7 +201,7 @@ def get_object_module(obj):
 
     '''
     from xoutil.names import nameof
-    name = nameof(obj, inner=True, full=True)
+    name = nameof(obj, inner=True, full=True, typed=typed)
     match = _ADDONS_NAMESPACE.match(name)
     if match:
         module = match.group(1)
