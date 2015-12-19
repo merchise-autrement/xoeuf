@@ -1,7 +1,23 @@
+#!/usr/bin/env python
+# -*- encoding: utf-8 -*-
+# ---------------------------------------------------------------------
+# xoeuf.signals
+# ---------------------------------------------------------------------
+# Copyright (c) 2015 Merchise Autrement and Contributors
+# All rights reserved.
+#
+# This is free software; you can redistribute it and/or modify it under the
+# terms of the LICENCE attached (see LICENCE file) in the distribution
+# package.
+#
+# Created on 2015-12-19
+
+from __future__ import (division as _py3_division,
+                        print_function as _py3_print,
+                        absolute_import as _py3_abs_import)
+
 from openerp import api, models
 from xoutil import logger
-
-__author__ = 'yo'
 
 
 def _make_id(target):
@@ -212,4 +228,3 @@ models.Model.fields_view_get = fields_view_get
 models.BaseModel.create = create
 models.BaseModel.write = write
 models.BaseModel.unlink = unlink
-
