@@ -50,19 +50,16 @@ class Signal(object):
     def connect(self, receiver, sender=None):
         """Connect receiver to sender for signal.
 
-        :param receiver:
+        :param receiver: A function or an instance method which is to receive
+                signals.  Receivers must be hashable objects and must be able
+                to accept keyword arguments.
 
-                A function or an instance method which is to receive signals.
-                Receivers must be hashable objects and must be able to
-                accept keyword arguments.
-
-        :param sender:
-
-                The sender(s) to which the receiver should respond. Must
-                either a model name, list of model names or None to receive
-                events from any sender.
+        :param sender: The sender(s) to which the receiver should
+                respond. Must either a model name, list of model names or None
+                to receive events from any sender.
 
         :return: None
+
         """
         if not isinstance(sender, (list, tuple)):
             sender = [sender]
@@ -75,8 +72,9 @@ class Signal(object):
         """Disconnect receiver from sender for signal.
 
         :param receiver: The registered receiver to disconnect.
-                         May be none if dispatch_uid is specified.
+
         :param sender: The registered sender to disconnect
+
         """
         receiver_item = (_make_id(receiver), sender), receiver
         if receiver_item in self.receivers:
@@ -95,6 +93,7 @@ class Signal(object):
         :param sender: The sender of the signal either a model or None.
         :param kwargs: Named arguments which will be passed to receivers.
         :return: Returns a list of tuple pairs [(receiver, response), ... ].
+
         """
         responses = []
         if not self.receivers:
@@ -129,11 +128,11 @@ class Signal(object):
         return responses
 
     def _live_receivers(self, sender):
-        """
-        Filter sequence of receivers to get resolved, live receivers.
+        """Filter sequence of receivers to get resolved, live receivers.
 
         This checks for weak references and resolves them, then returning only
         live receivers.
+
         """
         senderkey = getattr(sender, '_name', None)
         receivers = []
@@ -144,9 +143,10 @@ class Signal(object):
 
 
 def receiver(signal, **kwargs):
-    """
-    A decorator for connecting receivers to signals. Used by passing in the
-    signal (or list of signals) and keyword arguments to connect::
+    """A decorator for connecting receivers to signals.
+
+    Used by passing in the signal (or list of signals) and keyword arguments
+    to connect::
 
         @receiver(post_save, sender=MyModel)
         def signal_receiver(sender, **kwargs):
