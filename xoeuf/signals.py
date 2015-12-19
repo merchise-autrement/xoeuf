@@ -12,6 +12,14 @@
 #
 # Created on 2015-12-19
 
+'''Signals.
+
+Caveats:
+
+- Receivers must ensure to be registered on every thread/process.
+
+'''
+
 from __future__ import (division as _py3_division,
                         print_function as _py3_print,
                         absolute_import as _py3_abs_import)
@@ -34,9 +42,10 @@ class Signal(object):
         receivers
             [(receriverkey (id), receiver)]
     """
-    def __init__(self, action=None):
+    def __init__(self, action=None, doc=None):
         self.receivers = []
         self.action = action
+        self.__doc__ = doc
 
     def connect(self, receiver, sender=None):
         """Connect receiver to sender for signal.
@@ -162,8 +171,28 @@ def receiver(signal, **kwargs):
 pre_fields_view_get = Signal('fields_view_get')
 post_fields_view_get = Signal('fields_view_get')
 
-pre_create = Signal('create')
-post_create = Signal('create')
+pre_create = Signal('create', '''
+Signal sent when the 'create' method is to be invoked.
+
+Signature for handlers:
+
+:param sender: The recordset where the 'create' was called.
+
+:keyword values: The values passed to 'create'.
+
+''')
+
+post_create = Signal('create', '''
+Signal sent when the 'create' method has finished but before data is committed
+to the DB.
+
+Signature for handlers:
+
+:param sender: The recordset where the 'create' was called.
+
+:keyword result: The result of the call to 'create'.
+:keyword values: The values passed to 'create'.
+''')
 
 pre_write = Signal('write')
 post_write = Signal('write')
