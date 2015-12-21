@@ -14,9 +14,21 @@
 
 '''Signals.
 
+A basic signals system for Odoo.  Allows you to define Signal and dispatch
+them when certain events happen in the system.
+
+Includes four basic pairs of signals:
+
+- `pre_create`:obj: and `post_create`:obj:
+- `pre_write`:obj: and `post_write`:obj:
+- `pre_unlink`:obj: and `post_unlink`:obj:
+- `pre_fields_view_get`:obj: and `post_fields_view_get`:obj:
+
+
 Caveats:
 
-- Receivers must ensure to be registered on every thread/process.
+- Receivers must ensure to be registered on every thread/process.  Most of the
+  time this requires little effort, though.
 
 '''
 
@@ -233,7 +245,11 @@ post_fields_view_get = Signal('fields_view_get')
 pre_create = Signal('create', '''
 Signal sent when the 'create' method is to be invoked.
 
-Signature for handlers:
+If a handler raises an error is trapped (see `safe_send`) and the create is
+allowed to run.  However, if the error renders the cursor unusable the create
+will be aborted.
+
+Arguments:
 
 :param sender: The recordset where the 'create' was called.
 
@@ -245,7 +261,11 @@ post_create = Signal('create', '''
 Signal sent when the 'create' method has finished but before data is committed
 to the DB.
 
-Signature for handlers:
+If the 'create' raises an error no receiver is invoked.  If a receiver raises
+an error, is trapped and other receivers are allowed to run.  However if the
+error renders the cursor unusable, other receivers may fail as well.
+
+Arguments:
 
 :param sender: The recordset where the 'create' was called.
 
@@ -253,11 +273,66 @@ Signature for handlers:
 :keyword values: The values passed to 'create'.
 ''')
 
-pre_write = Signal('write')
-post_write = Signal('write')
+pre_write = Signal('write', '''
+Signal sent when the 'write' method of model is to be invoked.
 
-pre_unlink = Signal('unlink')
-post_unlink = Signal('unlink')
+If a handler raises an error is trapped (see `safe_send`) and the write is
+allowed to run.  However, if the error renders the cursor unusable the write
+will be aborted.
+
+Arguments:
+
+:param sender: The recordset sending the signal.
+
+:keyword values: The values passed to the write method.
+
+''')
+post_write = Signal('write', '''
+Signal sent after the 'write' method of model was executed.
+
+If 'write' raises an error no receiver is invoked.  If a handler raises an
+error is trapped (see `safe_send`) and other receivers are allowed to run.
+However, if the error renders the cursor unusable other receivers may fail and
+the write may fail to commit.
+
+Arguments:
+
+:param sender: The recordset sending the signal.
+
+:keyword result: The result from the write method.
+
+:keyword values: The values passed to the write method.
+
+''')
+
+pre_unlink = Signal('unlink', '''
+Signal sent when the 'unlink' method of model is to be invoked.
+
+If a handler raises an error is trapped (see `safe_send`) and the unlink is
+allowed to run.  However, if the error renders the cursor unusable the unlink
+will be aborted.
+
+Arguments:
+
+:param sender: The recordset sending the signal.
+
+''')
+
+post_unlink = Signal('unlink', '''
+Signal sent when the 'unlink' method of a model was executed.
+
+If the 'unlink' raises an error no receiver is invoked.  If a handler raises
+an error is trapped (see `safe_send`) other receivers are allowed to run.
+However, if the error renders the cursor unusable other receivers may fail and
+the unlink may fail to commit.
+
+Arguments:
+
+:param sender: The recordset sending the signal.
+
+:keyword result:  The result from the unlink method.
+
+''')
 
 pre_save = [pre_create, pre_write, pre_unlink]
 post_save = [post_create, post_write, post_unlink]
