@@ -298,17 +298,17 @@ def create(self, vals):
 
 @api.multi
 def write(self, vals):
-    pre_write.send(self, values=vals)
+    pre_write.safe_send(self, values=vals)
     res = super_write(self, vals)
-    post_write.send(self, result=res, values=vals)
+    post_write.safe_send(self, result=res, values=vals)
     return res
 
 
 @api.multi
 def unlink(self):
-    pre_unlink.send(self)
+    pre_unlink.safe_send(self)
     res = super_unlink(self)
-    post_unlink.send(self, result=res)
+    post_unlink.safe_send(self, result=res)
     return res
 
 
