@@ -130,16 +130,30 @@ class Signal(object):
     def _live_receivers(self, sender):
         """Filter sequence of receivers to get resolved, live receivers.
 
-        This checks for weak references and resolves them, then returning only
-        live receivers.
-
         """
         senderkey = getattr(sender, '_name', None)
         receivers = []
         for (receiverkey, r_senderkey), receiver in self.receivers:
-            if not r_senderkey or r_senderkey == senderkey:
+            if self._installed(sender, receiver) and not r_senderkey or r_senderkey == senderkey:
                 receivers.append(receiver)
         return receivers
+
+    def _installed(self, sender, receiver):
+        '''Return True if the receiver is defined in a module installed in
+        sender's database.
+
+        If the receiver is not inside an addon it is considered system-wide,
+        and thus, return True.
+
+        '''
+        from xoeuf.modules import get_object_module
+        module = get_object_module(receiver, typed=True)
+        if module:
+            mm = sender.env['ir.module.module']
+            query = [('state', '=', 'installed'), ('name', '=', module)]
+            return bool(mm.search(query))
+        else:
+            return True
 
 
 def receiver(signal, **kwargs):
