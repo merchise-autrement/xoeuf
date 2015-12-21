@@ -182,11 +182,11 @@ def receiver(signal, **kwargs):
     Used by passing in the signal (or list of signals) and keyword arguments
     to connect::
 
-        @receiver(post_save, sender=MyModel)
+        @receiver(post_save, sender='my.model')
         def signal_receiver(sender, **kwargs):
             ...
 
-        @receiver([post_save, post_delete], sender=MyModel)
+        @receiver([post_save, post_delete], sender='my.model')
         def signals_receiver(sender, **kwargs):
             ...
 
