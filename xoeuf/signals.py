@@ -53,8 +53,11 @@ from __future__ import (division as _py3_division,
                         print_function as _py3_print,
                         absolute_import as _py3_abs_import)
 
-from openerp import api, models
+
 from xoutil import logger
+
+from openerp import api, models
+from openerp.exceptions import ValidationError
 
 
 def _make_id(target):
@@ -287,9 +290,12 @@ post_fields_view_get = Signal('fields_view_get')
 pre_create = Signal('create', '''
 Signal sent when the 'create' method is to be invoked.
 
-If a handler raises an error is trapped (see `safe_send`) and the create is
+If a receiver raises an error is trapped (see `safe_send`) and the create is
 allowed to run.  However, if the error renders the cursor unusable the create
 will be aborted.
+
+If a receiver raises a `openerp.exceptions.ValidationError`:class: the create
+is halted and the error is propagated.
 
 Arguments:
 
@@ -305,7 +311,11 @@ to the DB.
 
 If the 'create' raises an error no receiver is invoked.  If a receiver raises
 an error, is trapped and other receivers are allowed to run.  However if the
-error renders the cursor unusable, other receivers may fail as well.
+error renders the cursor unusable, other receivers and the commit to DB may
+fail.
+
+If a receiver raises a `openerp.exceptions.ValidationError`:class: the create
+is halted and the error is propagated.
 
 Arguments:
 
@@ -318,9 +328,12 @@ Arguments:
 pre_write = Signal('write', '''
 Signal sent when the 'write' method of model is to be invoked.
 
-If a handler raises an error is trapped (see `safe_send`) and the write is
+If a receiver raises an error is trapped (see `safe_send`) and the write is
 allowed to run.  However, if the error renders the cursor unusable the write
 will be aborted.
+
+If a receiver raises a `openerp.exceptions.ValidationError`:class: the create
+is halted and the error is propagated.
 
 Arguments:
 
@@ -332,7 +345,7 @@ Arguments:
 post_write = Signal('write', '''
 Signal sent after the 'write' method of model was executed.
 
-If 'write' raises an error no receiver is invoked.  If a handler raises an
+If 'write' raises an error no receiver is invoked.  If a receiver raises an
 error is trapped (see `safe_send`) and other receivers are allowed to run.
 However, if the error renders the cursor unusable other receivers may fail and
 the write may fail to commit.
@@ -350,9 +363,12 @@ Arguments:
 pre_unlink = Signal('unlink', '''
 Signal sent when the 'unlink' method of model is to be invoked.
 
-If a handler raises an error is trapped (see `safe_send`) and the unlink is
+If a receiver raises an error is trapped (see `safe_send`) and the unlink is
 allowed to run.  However, if the error renders the cursor unusable the unlink
 will be aborted.
+
+If a receiver raises a `openerp.exceptions.ValidationError`:class: the create
+is halted and the error is propagated.
 
 Arguments:
 
@@ -363,7 +379,7 @@ Arguments:
 post_unlink = Signal('unlink', '''
 Signal sent when the 'unlink' method of a model was executed.
 
-If the 'unlink' raises an error no receiver is invoked.  If a handler raises
+If the 'unlink' raises an error no receiver is invoked.  If a receiver raises
 an error is trapped (see `safe_send`) other receivers are allowed to run.
 However, if the error renders the cursor unusable other receivers may fail and
 the unlink may fail to commit.
@@ -407,7 +423,7 @@ def fields_view_get(self, cr, uid, view_id=None, view_type='form',
 @api.model
 @api.returns('self', lambda value: value.id)
 def create(self, vals):
-    pre_create.safe_send(sender=self, values=vals)
+    pre_create.safe_send(sender=self, values=vals, thrown=(ValidationError, ))
     res = super_create(self, vals)
     post_create.safe_send(sender=self, result=res, values=vals)
     return res
@@ -415,7 +431,7 @@ def create(self, vals):
 
 @api.multi
 def write(self, vals):
-    pre_write.safe_send(self, values=vals)
+    pre_write.safe_send(self, values=vals, thrown=(ValidationError, ))
     res = super_write(self, vals)
     post_write.safe_send(self, result=res, values=vals)
     return res
@@ -423,7 +439,7 @@ def write(self, vals):
 
 @api.multi
 def unlink(self):
-    pre_unlink.safe_send(self)
+    pre_unlink.safe_send(self, thrown=(ValidationError, ))
     res = super_unlink(self)
     post_unlink.safe_send(self, result=res)
     return res
