@@ -152,26 +152,46 @@ class Signal(object):
             responses.append((receiver, response))
         return responses
 
-    def safe_send(self, sender, **kwargs):
+    def safe_send(self, sender, catched=(Exception, ), thrown=None, **kwargs):
         """Send signal from sender to all connected receivers catching errors.
 
         :param sender: The sender of the signal either a model or None.
-        :param kwargs: Named arguments which will be passed to receivers.
+
+        :keyword catched: A (tuple of ) exception to safely catch. The default
+                          is ``(Exception, )``.
+
+        :keyword thrown: A (tuple of) exceptions to re-raise even though in
+                         `catched`.  The default (None) is not to re-raise
+                         catched exceptions.
+
         :return: Returns a list of tuple pairs [(receiver, response), ... ].
+
+        All remaining keyword arguments are passed to receivers.
 
         If any receiver raises an error (specifically any subclass of
         Exception), the error instance is returned as the result for that
         receiver.
+
         """
         responses = []
+        if thrown and not isinstance(thrown, (list, tuple)):
+            thrown = (thrown, )
         if not self.receivers:
             return responses
         for receiver in self._live_receivers(sender):
             try:
                 response = receiver(sender, signal=self, **kwargs)
-            except Exception as err:
-                logger.exception(err)
-                responses.append((receiver, err))
+            except catched as err:
+                if thrown and isinstance(err, thrown):
+                    # Don't log: I expect you'll log where you actually catch
+                    # it.
+                    raise
+                else:
+                    logger.exception(err)
+                    responses.append((receiver, err))
+            except:
+                # Don't log: I expect you'll log where you actually catch it.
+                raise
             else:
                 responses.append((receiver, response))
         return responses
