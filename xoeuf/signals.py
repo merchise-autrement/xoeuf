@@ -163,7 +163,7 @@ class Signal(object):
         """Filter sequence of receivers to get resolved, live receivers.
 
         """
-        senderkey = getattr(sender, '_name', None)
+        senderkey = _make_model_id(sender)
         receivers = []
         for (receiverkey, r_senderkey), receiver in self.receivers:
             if self._installed(sender, receiver) and not r_senderkey or r_senderkey == senderkey:
