@@ -34,6 +34,26 @@ def _make_id(target):
     return id(target)
 
 
+def _issubcls(which, Class):
+    return isinstance(which, type) and issubclass(which, Class)
+
+
+def _make_model_id(sender):
+    '''Creates a unique key for 'senders'.
+
+    Since Odoo models can be spread across several classes we can't simply
+    compare by class object.  So if 'sender' is a BaseModel (subclass or
+    instance), the key will be the same for all classes targeting the same
+    model.
+
+    '''
+    BaseModel = models.BaseModel
+    if isinstance(sender, BaseModel) or _issubcls(sender, BaseModel):
+        return sender._name
+    else:
+        return sender
+
+
 class Signal(object):
     """Base class for all signals
 
@@ -64,7 +84,7 @@ class Signal(object):
         if not isinstance(sender, (list, tuple)):
             sender = [sender]
         for s in sender:
-            lookup_key = (_make_id(receiver), s)
+            lookup_key = (_make_id(receiver), _make_model_id(s))
             if not any(lookup_key == r_key for r_key, _ in self.receivers):
                 self.receivers.append((lookup_key, receiver))
 
