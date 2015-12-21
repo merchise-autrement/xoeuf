@@ -25,6 +25,23 @@ Includes four basic pairs of signals:
 - `pre_fields_view_get`:obj: and `post_fields_view_get`:obj:
 
 
+Usage::
+
+   >>> @receiver([pre_write, pre_create], 'account.move.line')
+   ... def watch_for_something(self, values=None, **kwargs):
+   ...     pass
+
+The `watch_for_something` function will be called each time a ``.create()`` or
+``.write()`` performed for an 'account.move.line'.
+
+Notice that a single call is made per recordset.  The receiver is called only
+if the addon where it is defined is installed in the DB where the signal was
+dispatched.
+
+This signal scheme can be applied to non Odoo models, in which case all
+receivers matching receives will be applied despite the addon where they are
+defined.
+
 Caveats:
 
 - Receivers must ensure to be registered on every thread/process.  Most of the
@@ -177,11 +194,16 @@ class Signal(object):
         If the receiver is not inside an addon it is considered system-wide,
         and thus, return True.
 
+        If the sender does not have an 'env' attribute it will considered
+        installed as well (this is for dispatching outside the Odoo model
+        framework.)
+
         '''
         from xoeuf.modules import get_object_module
         module = get_object_module(receiver, typed=True)
-        if module:
-            mm = sender.env['ir.module.module']
+        env = getattr(sender, 'env', None)
+        if module and env:
+            mm = env['ir.module.module']
             query = [('state', '=', 'installed'), ('name', '=', module)]
             return bool(mm.search(query))
         else:
