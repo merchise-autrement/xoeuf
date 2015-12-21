@@ -332,7 +332,7 @@ If a receiver raises an error is trapped (see `safe_send`) and the write is
 allowed to run.  However, if the error renders the cursor unusable the write
 will be aborted.
 
-If a receiver raises a `openerp.exceptions.ValidationError`:class: the create
+If a receiver raises a `openerp.exceptions.ValidationError`:class: the write
 is halted and the error is propagated.
 
 Arguments:
@@ -367,7 +367,7 @@ If a receiver raises an error is trapped (see `safe_send`) and the unlink is
 allowed to run.  However, if the error renders the cursor unusable the unlink
 will be aborted.
 
-If a receiver raises a `openerp.exceptions.ValidationError`:class: the create
+If a receiver raises a `openerp.exceptions.ValidationError`:class: the unlink
 is halted and the error is propagated.
 
 Arguments:
