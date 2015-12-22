@@ -28,7 +28,7 @@ Includes four basic pairs of signals:
 Usage::
 
    >>> @receiver([pre_write, pre_create], 'account.move.line')
-   ... def watch_for_something(self, values=None, **kwargs):
+   ... def watch_for_something(sender, signal, values=None, **kwargs):
    ...     pass
 
 The `watch_for_something` function will be called each time a ``.create()`` or
@@ -41,6 +41,11 @@ dispatched.
 This signal scheme can be applied to non Odoo models, in which case all
 receivers matching receives will be applied despite the addon where they are
 defined.
+
+.. warning:: The first positional is always the sender.
+
+   It's best to make your receivers functions outside Odoo models to gain
+   readability.
 
 Caveats:
 
