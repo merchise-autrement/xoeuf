@@ -49,8 +49,16 @@ defined.
 
 Caveats:
 
-- Receivers must ensure to be registered on every thread/process.  Most of the
-  time this requires little effort, though.
+- Signals may be bypassed if any model extension redefines the Model method
+  and does not issue the signal.
+
+  To the best of our knowledge all model extension call the `super` and,
+  thus, the signal is called but probably after some code of the extension
+  method, and the 'post' signals will be called before the code following
+  the call to `super`.
+
+- Receivers must ensure to be registered on every thread/process.  Most of
+  the time this requires little effort, though.
 
 '''
 
