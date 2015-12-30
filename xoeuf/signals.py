@@ -169,8 +169,7 @@ class Signal(object):
                           is ``(Exception, )``.
 
         :keyword thrown: A (tuple of) exceptions to re-raise even though in
-                         `catched`.  The default (None) is not to re-raise
-                         catched exceptions.
+                 `catched`.  The default is not to re-raise any error.
 
         :return: Returns a list of tuple pairs [(receiver, response), ... ].
 
@@ -295,12 +294,8 @@ post_fields_view_get = Signal('fields_view_get')
 pre_create = Signal('create', '''
 Signal sent when the 'create' method is to be invoked.
 
-If a receiver raises an error is trapped (see `safe_send`) and the create is
-allowed to run.  However, if the error renders the cursor unusable the create
-will be aborted.
-
-If a receiver raises a `openerp.exceptions.ValidationError`:class: the create
-is halted and the error is propagated.
+If a receiver raises an error the create is aborted, and post_create won't be
+issued.  The error is propagated.
 
 Arguments:
 
@@ -314,10 +309,11 @@ post_create = Signal('create', '''
 Signal sent when the 'create' method has finished but before data is committed
 to the DB.
 
-If the 'create' raises an error no receiver is invoked.  If a receiver raises
-an error, is trapped and other receivers are allowed to run.  However if the
-error renders the cursor unusable, other receivers and the commit to DB may
-fail.
+If the 'create' raises an error no receiver is invoked.
+
+If a receiver raises an error, is trapped and other receivers are allowed
+to run.  However if the error renders the cursor unusable, other receivers
+and the commit to DB may fail.
 
 If a receiver raises a `openerp.exceptions.ValidationError`:class: the create
 is halted and the error is propagated.
@@ -333,12 +329,8 @@ Arguments:
 pre_write = Signal('write', '''
 Signal sent when the 'write' method of model is to be invoked.
 
-If a receiver raises an error is trapped (see `safe_send`) and the write is
-allowed to run.  However, if the error renders the cursor unusable the write
-will be aborted.
-
-If a receiver raises a `openerp.exceptions.ValidationError`:class: the write
-is halted and the error is propagated.
+If a receiver raises an error the write is aborted and 'post_write' is not
+sent.  The error is propagated.
 
 Arguments:
 
@@ -352,8 +344,8 @@ Signal sent after the 'write' method of model was executed.
 
 If 'write' raises an error no receiver is invoked.  If a receiver raises an
 error is trapped (see `safe_send`) and other receivers are allowed to run.
-However, if the error renders the cursor unusable other receivers may fail and
-the write may fail to commit.
+However, if the error renders the cursor unusable other receivers may fail
+and the write may fail to commit.
 
 Arguments:
 
@@ -368,12 +360,8 @@ Arguments:
 pre_unlink = Signal('unlink', '''
 Signal sent when the 'unlink' method of model is to be invoked.
 
-If a receiver raises an error is trapped (see `safe_send`) and the unlink is
-allowed to run.  However, if the error renders the cursor unusable the unlink
-will be aborted.
-
-If a receiver raises a `openerp.exceptions.ValidationError`:class: the unlink
-is halted and the error is propagated.
+If a receiver raises an error unlink is aborted and 'post_unlink' is not
+called.  The error is propagated.
 
 Arguments:
 
@@ -384,10 +372,10 @@ Arguments:
 post_unlink = Signal('unlink', '''
 Signal sent when the 'unlink' method of a model was executed.
 
-If the 'unlink' raises an error no receiver is invoked.  If a receiver raises
-an error is trapped (see `safe_send`) other receivers are allowed to run.
-However, if the error renders the cursor unusable other receivers may fail and
-the unlink may fail to commit.
+If the 'unlink' raises an error no receiver is invoked.  If a receiver
+raises an error is trapped (see `safe_send`) other receivers are allowed to
+run.  However, if the error renders the cursor unusable other receivers may
+fail and the unlink may fail to commit.
 
 Arguments:
 
@@ -419,7 +407,7 @@ def fields_view_get(self, cr, uid, view_id=None, view_type='form',
         submenu=submenu
     )
     self = self.browse(cr, uid, None, context=context)
-    pre_fields_view_get.safe_send(sender=self, **kwargs)
+    pre_fields_view_get.send(sender=self, **kwargs)
     result = super(models.Model, self).fields_view_get(**kwargs)
     post_fields_view_get.safe_send(sender=self, result=result, **kwargs)
     return result
@@ -428,7 +416,7 @@ def fields_view_get(self, cr, uid, view_id=None, view_type='form',
 @api.model
 @api.returns('self', lambda value: value.id)
 def create(self, vals):
-    pre_create.safe_send(sender=self, values=vals, thrown=(ValidationError, ))
+    pre_create.send(sender=self, values=vals)
     res = super_create(self, vals)
     post_create.safe_send(sender=self, result=res, values=vals)
     return res
@@ -436,7 +424,7 @@ def create(self, vals):
 
 @api.multi
 def write(self, vals):
-    pre_write.safe_send(self, values=vals, thrown=(ValidationError, ))
+    pre_write.send(self, values=vals)
     res = super_write(self, vals)
     post_write.safe_send(self, result=res, values=vals)
     return res
@@ -444,7 +432,7 @@ def write(self, vals):
 
 @api.multi
 def unlink(self):
-    pre_unlink.safe_send(self, thrown=(ValidationError, ))
+    pre_unlink.send(self)
     res = super_unlink(self)
     post_unlink.safe_send(self, result=res)
     return res
