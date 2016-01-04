@@ -217,13 +217,16 @@ class OdooRecordSerializer(Serializer):
     types = (models.Model, )
 
     def serialize(self, value, **kwargs):
+        from openerp.osv import fields
         try:
             if len(value) == 0:
                 return transform((None, 'record with 0 items'))
             elif len(value) == 1:
                 return transform({
                     attr: safe_getattr(value, attr)
-                    for attr in value._columns.keys()
+                    for attr, val in value._columns.items()
+                    # NOTE: Avoid function, they could be costly.
+                    if not isinstance(val, fields.function)
                 })
             else:
                 return transform(
