@@ -28,7 +28,7 @@ Includes four basic pairs of signals:
 Usage::
 
    >>> @receiver([pre_write, pre_create], 'account.move.line')
-   ... def watch_for_something(self, values=None, **kwargs):
+   ... def watch_for_something(sender, signal, values=None, **kwargs):
    ...     pass
 
 The `watch_for_something` function will be called each time a ``.create()`` or
@@ -42,10 +42,23 @@ This signal scheme can be applied to non Odoo models, in which case all
 receivers matching receives will be applied despite the addon where they are
 defined.
 
+.. warning:: The first positional is always the sender.
+
+   It's best to make your receivers functions outside Odoo models to gain
+   readability.
+
 Caveats:
 
-- Receivers must ensure to be registered on every thread/process.  Most of the
-  time this requires little effort, though.
+- Signals may be bypassed if any model extension redefines the Model method
+  and does not issue the signal.
+
+  To the best of our knowledge all model extension call the `super` and,
+  thus, the signal is called but probably after some code of the extension
+  method, and the 'post' signals will be called before the code following
+  the call to `super`.
+
+- Receivers must ensure to be registered on every thread/process.  Most of
+  the time this requires little effort, though.
 
 '''
 
@@ -53,8 +66,11 @@ from __future__ import (division as _py3_division,
                         print_function as _py3_print,
                         absolute_import as _py3_abs_import)
 
-from openerp import api, models
+
 from xoutil import logger
+
+from openerp import api, models
+from openerp.exceptions import ValidationError
 
 
 def _make_id(target):
@@ -152,26 +168,45 @@ class Signal(object):
             responses.append((receiver, response))
         return responses
 
-    def safe_send(self, sender, **kwargs):
+    def safe_send(self, sender, catched=(Exception, ), thrown=None, **kwargs):
         """Send signal from sender to all connected receivers catching errors.
 
         :param sender: The sender of the signal either a model or None.
-        :param kwargs: Named arguments which will be passed to receivers.
+
+        :keyword catched: A (tuple of ) exception to safely catch. The default
+                          is ``(Exception, )``.
+
+        :keyword thrown: A (tuple of) exceptions to re-raise even though in
+                 `catched`.  The default is not to re-raise any error.
+
         :return: Returns a list of tuple pairs [(receiver, response), ... ].
+
+        All remaining keyword arguments are passed to receivers.
 
         If any receiver raises an error (specifically any subclass of
         Exception), the error instance is returned as the result for that
         receiver.
+
         """
         responses = []
+        if thrown and not isinstance(thrown, (list, tuple)):
+            thrown = (thrown, )
         if not self.receivers:
             return responses
         for receiver in self._live_receivers(sender):
             try:
                 response = receiver(sender, signal=self, **kwargs)
-            except Exception as err:
-                logger.exception(err)
-                responses.append((receiver, err))
+            except catched as err:
+                if thrown and isinstance(err, thrown):
+                    # Don't log: I expect you'll log where you actually catch
+                    # it.
+                    raise
+                else:
+                    logger.exception(err)
+                    responses.append((receiver, err))
+            except:
+                # Don't log: I expect you'll log where you actually catch it.
+                raise
             else:
                 responses.append((receiver, response))
         return responses
@@ -267,9 +302,8 @@ post_fields_view_get = Signal('fields_view_get')
 pre_create = Signal('create', '''
 Signal sent when the 'create' method is to be invoked.
 
-If a handler raises an error is trapped (see `safe_send`) and the create is
-allowed to run.  However, if the error renders the cursor unusable the create
-will be aborted.
+If a receiver raises an error the create is aborted, and post_create won't be
+issued.  The error is propagated.
 
 Arguments:
 
@@ -283,9 +317,14 @@ post_create = Signal('create', '''
 Signal sent when the 'create' method has finished but before data is committed
 to the DB.
 
-If the 'create' raises an error no receiver is invoked.  If a receiver raises
-an error, is trapped and other receivers are allowed to run.  However if the
-error renders the cursor unusable, other receivers may fail as well.
+If the 'create' raises an error no receiver is invoked.
+
+If a receiver raises an error, is trapped and other receivers are allowed
+to run.  However if the error renders the cursor unusable, other receivers
+and the commit to DB may fail.
+
+If a receiver raises a `openerp.exceptions.ValidationError`:class: the create
+is halted and the error is propagated.
 
 Arguments:
 
@@ -298,9 +337,8 @@ Arguments:
 pre_write = Signal('write', '''
 Signal sent when the 'write' method of model is to be invoked.
 
-If a handler raises an error is trapped (see `safe_send`) and the write is
-allowed to run.  However, if the error renders the cursor unusable the write
-will be aborted.
+If a receiver raises an error the write is aborted and 'post_write' is not
+sent.  The error is propagated.
 
 Arguments:
 
@@ -312,10 +350,10 @@ Arguments:
 post_write = Signal('write', '''
 Signal sent after the 'write' method of model was executed.
 
-If 'write' raises an error no receiver is invoked.  If a handler raises an
+If 'write' raises an error no receiver is invoked.  If a receiver raises an
 error is trapped (see `safe_send`) and other receivers are allowed to run.
-However, if the error renders the cursor unusable other receivers may fail and
-the write may fail to commit.
+However, if the error renders the cursor unusable other receivers may fail
+and the write may fail to commit.
 
 Arguments:
 
@@ -330,9 +368,8 @@ Arguments:
 pre_unlink = Signal('unlink', '''
 Signal sent when the 'unlink' method of model is to be invoked.
 
-If a handler raises an error is trapped (see `safe_send`) and the unlink is
-allowed to run.  However, if the error renders the cursor unusable the unlink
-will be aborted.
+If a receiver raises an error unlink is aborted and 'post_unlink' is not
+called.  The error is propagated.
 
 Arguments:
 
@@ -343,10 +380,10 @@ Arguments:
 post_unlink = Signal('unlink', '''
 Signal sent when the 'unlink' method of a model was executed.
 
-If the 'unlink' raises an error no receiver is invoked.  If a handler raises
-an error is trapped (see `safe_send`) other receivers are allowed to run.
-However, if the error renders the cursor unusable other receivers may fail and
-the unlink may fail to commit.
+If the 'unlink' raises an error no receiver is invoked.  If a receiver
+raises an error is trapped (see `safe_send`) other receivers are allowed to
+run.  However, if the error renders the cursor unusable other receivers may
+fail and the unlink may fail to commit.
 
 Arguments:
 
@@ -378,7 +415,7 @@ def fields_view_get(self, cr, uid, view_id=None, view_type='form',
         submenu=submenu
     )
     self = self.browse(cr, uid, None, context=context)
-    pre_fields_view_get.safe_send(sender=self, **kwargs)
+    pre_fields_view_get.send(sender=self, **kwargs)
     result = super(models.Model, self).fields_view_get(**kwargs)
     post_fields_view_get.safe_send(sender=self, result=result, **kwargs)
     return result
@@ -387,7 +424,7 @@ def fields_view_get(self, cr, uid, view_id=None, view_type='form',
 @api.model
 @api.returns('self', lambda value: value.id)
 def create(self, vals):
-    pre_create.safe_send(sender=self, values=vals)
+    pre_create.send(sender=self, values=vals)
     res = super_create(self, vals)
     post_create.safe_send(sender=self, result=res, values=vals)
     return res
@@ -395,7 +432,7 @@ def create(self, vals):
 
 @api.multi
 def write(self, vals):
-    pre_write.safe_send(self, values=vals)
+    pre_write.send(self, values=vals)
     res = super_write(self, vals)
     post_write.safe_send(self, result=res, values=vals)
     return res
@@ -403,7 +440,7 @@ def write(self, vals):
 
 @api.multi
 def unlink(self):
-    pre_unlink.safe_send(self)
+    pre_unlink.send(self)
     res = super_unlink(self)
     post_unlink.safe_send(self, result=res)
     return res
