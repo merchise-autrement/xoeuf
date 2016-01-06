@@ -3,7 +3,7 @@
 # ---------------------------------------------------------------------
 # sentrylog
 # ---------------------------------------------------------------------
-# Copyright (c) 2015 Merchise Autrement and Contributors
+# Copyright (c) 2015-2016 Merchise Autrement and Contributors
 # All rights reserved.
 #
 # This is free software; you can redistribute it and/or modify it under the
@@ -30,6 +30,11 @@ import raven
 
 from raven.utils.serializer.manager import manager as _manager, transform
 from raven.utils.serializer import Serializer
+from raven.utils.wsgi import get_headers, get_environ
+from raven.utils.compat import _urlparse
+
+# This module is about logging-only, not wrapping the WSGI application in a
+# middleware, etc.
 
 from xoutil.functools import lru_cache
 from xoutil.modules import moduleproperty, modulemethod
@@ -85,7 +90,51 @@ def patch_logging(self, override=True):
     from openerp.netsvc import init_logger
     init_logger()
 
+    def _require_httprequest(func):
+        def inner(self, record):
+            try:
+                from openerp.http import request
+                httprequest = getattr(request, 'httprequest', None)
+                if httprequest:
+                    return func(self, record, httprequest)
+            except ImportError:
+                # Not inside an HTTP request
+                pass
+            except RuntimeError:
+                # When upgrading a DB the request may exists but the bound to
+                # it does not.
+                pass
+        return inner
+
     class SentryHandler(Base):
+        def _emit(self, record, **kwargs):
+            self.set_record_tags(record)
+            self.client.http_context(self._get_http_context(record))
+            self.client.user_context(self._get_user_context(record))
+            try:
+                super(SentryHandler, self)._emit(record, **kwargs)
+            finally:
+                self.client.context.clear()
+
+        @_require_httprequest
+        def _get_http_context(self, record, request):
+            urlparts = _urlparse.urlsplit(request.url)
+            return {
+                'url': '%s://%s%s' % (urlparts.scheme, urlparts.netloc,
+                                      urlparts.path),
+                'query_string': urlparts.query,
+                'method': request.method,
+                'data': self._get_http_request_data(request),
+                'headers': dict(get_headers(request.environ)),
+                'env': dict(get_environ(request.environ)),
+            }
+
+        @_require_httprequest
+        def _get_user_context(self, record, request):
+            return {
+                'id': getattr(request, 'session', {}).get('login', None)
+            }
+
         def _handle_cli_tags(self, record):
             import sys
             from itertools import takewhile
@@ -103,45 +152,20 @@ def patch_logging(self, override=True):
             if cmd:
                 tags['cmd'] = cmd
 
-        def _handle_http_tags(self, record, request):
+        @_require_httprequest
+        def _handle_browser_tags(self, record, request):
             tags = setdefaultattr(record, 'tags', {})
             ua = request.user_agent
             if ua:
                 tags['os'] = ua.platform.capitalize()
                 tags['browser'] = str(ua.browser).capitalize() + ' ' + str(ua.version)
-            username = getattr(request, 'session', {}).get('login', None)
-            if username:
-                tags['username'] = username
 
+        @_require_httprequest
         def _handle_db_tags(self, record, request):
             db = getattr(request, 'session', {}).get('db', None)
             if db:
                 tags = setdefaultattr(record, 'tags', {})
                 tags['db'] = db
-
-        def _handle_http_request(self, record):
-            try:
-                from openerp.http import request
-                httprequest = getattr(request, 'httprequest', None)
-                if httprequest:
-                    data = setdefaultattr(record, 'data', {})
-                    # Make a copy of the WSGI environment as extra data, but
-                    # remove cookies and wsgi. special keys.
-                    data['wsgi'] = {
-                        key: value
-                        for key, value in httprequest.environ.items()
-                        if key != 'HTTP_COOKIE'
-                        if not key.startswith('wsgi.')
-                        if not key.startswith('werkzeug.')
-                    }
-                    self._handle_http_tags(record, httprequest)
-                    self._handle_db_tags(record, httprequest)
-            except ImportError:
-                pass
-            except RuntimeError:
-                # When upgrading a DB the request may exists but the bound to
-                # it does not.
-                pass
 
         def _handle_fingerprint(self, record):
             from xoutil.names import nameof
@@ -157,6 +181,18 @@ def patch_logging(self, override=True):
                     if not isinstance(fingerprint, list):
                         fingerprint = [fingerprint]
                     record.fingerprint = fingerprint
+
+        def _get_http_request_data(self, request):
+            from openerp.http import JsonRequest, HttpRequest
+            from openerp.http import request  # Let it raise
+            # We can't simply use `isinstance` cause request is actual a
+            # 'werkzeug.local.LocalProxy' instance.
+            if request._request_type == JsonRequest._request_type:
+                return request.jsonrequest
+            elif request._request_type == HttpRequest._request_type:
+                return request.params
+            else:
+                return None
 
         def can_record(self, record):
             res = super(SentryHandler, self).can_record(record)
@@ -185,11 +221,13 @@ def patch_logging(self, override=True):
             _type, value, _tb = exc_info
             return not isinstance(value, ignored)
 
-        def emit(self, record):
-            self._handle_fingerprint(record)
-            self._handle_cli_tags(record)
-            self._handle_http_request(record)
-            return super(SentryHandler, self).emit(record)
+        def set_record_tags(self, record):
+            methods = (
+                getattr(self, m)
+                for m in dir(self) if m.startswith('_handle_')
+            )
+            for method in methods:
+                method(record)
 
     client = self.client
     if not client:
@@ -243,5 +281,5 @@ def safe_getattr(which, attr):
     except:
         return Undefined
 
-_manager.register(OdooRecordSerializer)
+# _manager.register(OdooRecordSerializer)
 del Serializer, moduleproperty, modulemethod, lru_cache, _manager,
