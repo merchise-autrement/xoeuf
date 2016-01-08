@@ -414,3 +414,27 @@ def cascade_search(self, cr, uid, *queries, **options):
         query = queries.popleft()
         result = self.search(cr, uid, query, context=context)
     return result
+
+
+def get_treeview_action(self, cr, uid, ids, context=None):
+    if len(ids) > 1:
+        vtype = 'list'
+        active_id = None
+    else:
+        vtype = 'form'
+        active_id = ids[0]
+    result = {
+        'type': 'ir.actions.act_window',
+        'res_model': self._name,
+        'src_model': False,
+        'view_id': False,
+        'view_type': vtype,
+        'view_mode': 'list,form',
+        'views': [(False, 'list'), (False, 'form')],
+        'target': 'current',
+        'domain': [('id', 'in', tuple(ids))],
+        'context': context,
+    }
+    if active_id:
+        result['active_id'] = active_id
+    return result
