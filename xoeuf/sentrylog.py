@@ -113,6 +113,8 @@ def patch_logging(self, override=True):
             self.client.user_context(self._get_user_context(record))
             try:
                 super(SentryHandler, self)._emit(record, **kwargs)
+            except:
+                pass
             finally:
                 self.client.context.clear()
 
