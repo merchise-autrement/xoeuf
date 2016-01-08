@@ -422,6 +422,7 @@ def get_treeview_action(self, cr, uid, ids, context=None):
         'res_model': self._name,
         'view_type': 'form',
         'view_mode': 'tree,form',
+        'views': [(False, 'list')],
         'target': 'current',
         'domain': [('id', 'in', tuple(ids))],
         'context': context,
