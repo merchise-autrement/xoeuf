@@ -112,7 +112,7 @@ class Signal(object):
         self.action = action
         self.__doc__ = doc
 
-    def connect(self, receiver, sender=None):
+    def connect(self, receiver, sender=None, require_registry=True):
         """Connect receiver to sender for signal.
 
         :param receiver: A function or an instance method which is to receive
@@ -123,6 +123,9 @@ class Signal(object):
                 respond. Must either a model name, list of model names or None
                 to receive events from any sender.
 
+        :param require_registry: If True the receiver will only be called if a
+               the actual `sender` of the signal has a ready DB registry.
+
         :return: None
 
         """
@@ -131,7 +134,11 @@ class Signal(object):
         for s in sender:
             lookup_key = (_make_id(receiver), _make_model_id(s))
             if not any(lookup_key == r_key for r_key, _ in self.receivers):
-                self.receivers.append((lookup_key, receiver))
+                self.receivers.append(
+                    (lookup_key,
+                     Receiver(receiver, sender=sender,
+                              require_registry=require_registry))
+                )
 
     def disconnect(self, receiver=None, sender=None):
         """Disconnect receiver from sender for signal.
@@ -154,6 +161,9 @@ class Signal(object):
         If any receiver raises an error, the error propagates back through
         send, terminating the dispatch loop, so it is quite possible to not
         have all receivers called if a raises an error.
+
+        If the `sender` is not an Odoo model any `receiver`:func: that
+        requires a ready registry will no be called.
 
         :param sender: The sender of the signal either a model or None.
         :param kwargs: Named arguments which will be passed to receivers.
@@ -215,11 +225,16 @@ class Signal(object):
         """Filter sequence of receivers to get resolved, live receivers.
 
         """
+        if isinstance(sender, models.Model):
+            registry_ready = sender.pool.ready
+        else:
+            registry_ready = False
         senderkey = _make_model_id(sender)
         receivers = []
         for (receiverkey, r_senderkey), receiver in self.receivers:
             if self._installed(sender, receiver) and not r_senderkey or r_senderkey == senderkey:
-                receivers.append(receiver)
+                if registry_ready or not receiver.require_registry:
+                    receivers.append(receiver)
         return receivers
 
     def _installed(self, sender, receiver):
@@ -245,8 +260,35 @@ class Signal(object):
             return True
 
 
+class Receiver(object):
+    '''Wraps a receiver, so that we can store some metadata.'''
+    def __init__(self, receiver, **kwargs):
+        from xoutil.objects import smart_copy
+        self.receiver = receiver
+        smart_copy(
+            kwargs,
+            self.__dict__,
+            defaults={'require_registry': True, }
+        )
+
+    def __call__(self, *args, **kwargs):
+        return self.receiver(*args, **kwargs)
+
+    # So that the original receiver compares equal to this wrapper.
+    def __hash__(self):
+        return hash(self.receiver)
+
+    def __eq__(self, other):
+        return self.receiver == other
+
+
 def receiver(signal, **kwargs):
     """A decorator for connecting receivers to signals.
+
+    :param signal: Either a single signal or a list of signals.
+
+    :keyword require_registry: If set to True the receiver will only be called
+             if the Odoo DB registry is ready.
 
     Used by passing in the signal (or list of signals) and keyword arguments
     to connect::
