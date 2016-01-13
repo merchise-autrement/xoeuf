@@ -86,9 +86,8 @@ class Secure(Command):
 
     @classmethod
     def database_factory(cls, database):
-        import importlib
-        module = 'xoeuf.pool.%s' % database
-        return importlib.import_module(module)
+        from xoeuf.osv.registry import Registry
+        return Registry(database)
 
     def run(self, args=None):
         from xoeuf.security import reset_all_passwords
