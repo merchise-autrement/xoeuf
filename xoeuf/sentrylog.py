@@ -27,6 +27,9 @@ from __future__ import (division as _py3_division,
                         absolute_import as _py3_abs_import)
 
 import raven
+from raven.transport.http import HTTPTransport
+from raven.transport.threaded import ThreadedHTTPTransport
+from raven.transport.gevent import GeventedHTTPTransport
 
 from raven.utils.serializer.manager import manager as _manager, transform
 from raven.utils.serializer import Serializer
@@ -61,11 +64,11 @@ def client(self):
             conf['release'] = '%s/%s' % (version, releasetag)
         transport = conf.get('transport', None)
         if transport == 'sync':
-            transport = raven.transport.http.HTTPTransport
+            transport = HTTPTransport
         elif transport == 'gevent':
-            transport = raven.transport.gevent.GeventedHTTPTransport
+            transport = GeventedHTTPTransport
         else:
-            transport = raven.transport.threaded.ThreadedHTTPTransport
+            transport = ThreadedHTTPTransport
         conf['transport'] = transport
         client = raven.Client(**conf)
         return client
