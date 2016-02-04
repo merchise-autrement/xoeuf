@@ -27,7 +27,7 @@ Includes four basic pairs of signals:
 
 Usage::
 
-   >>> @receiver([pre_write, pre_create], 'account.move.line')
+   >>> @receiver([pre_write, pre_create], sender='account.move.line')
    ... def watch_for_something(sender, signal, values=None, **kwargs):
    ...     pass
 
