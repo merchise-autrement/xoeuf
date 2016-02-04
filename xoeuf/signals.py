@@ -70,7 +70,6 @@ from __future__ import (division as _py3_division,
 from xoutil import logger
 
 from openerp import api, models
-from openerp.exceptions import ValidationError
 
 
 def _make_id(target):
@@ -365,8 +364,8 @@ If a receiver raises an error, is trapped and other receivers are allowed
 to run.  However if the error renders the cursor unusable, other receivers
 and the commit to DB may fail.
 
-If a receiver raises a `openerp.exceptions.ValidationError`:class: the create
-is halted and the error is propagated.
+If a receiver raises an error the create is halted and the error is
+propagated.
 
 Arguments:
 
