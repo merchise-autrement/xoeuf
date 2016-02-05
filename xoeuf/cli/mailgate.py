@@ -205,11 +205,12 @@ class Mailgate(Command):
         else:
             msg = message
             message = msg.as_string()
-        msgid = safe_encode(msg.get('Message-Id', '<NO ID>'))  # noqa
-        sender = safe_encode(  # noqa
-            msg.get('Sender', msg.get('From', '<nobody>'))
-        )
-        logger.exception("Error while processing incoming message.")
+        # The follow locals vars are mean to be retrieved from tracebacks.
+        msgid = msg.get('Message-Id', '<NO ID>')  # noqa
+        mail_from = msg.get('From', '<nobody>')  # noqa
+        sender = msg.get('Sender', '<nobody>')  # noqa
+        logger.critical("Error while processing incoming message.",
+                        exc_info=1)
 
     def run(self, args=None):
         from openerp import SUPERUSER_ID
