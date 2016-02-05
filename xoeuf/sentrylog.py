@@ -27,6 +27,9 @@ from __future__ import (division as _py3_division,
                         absolute_import as _py3_abs_import)
 
 import raven
+from raven.transport.http import HTTPTransport
+from raven.transport.threaded import ThreadedHTTPTransport
+from raven.transport.gevent import GeventedHTTPTransport
 
 from raven.utils.serializer.manager import manager as _manager, transform
 from raven.utils.serializer import Serializer
@@ -36,8 +39,6 @@ from raven.utils.compat import _urlparse
 # This module is about logging-only, not wrapping the WSGI application in a
 # middleware, etc.
 
-from xoutil.functools import lru_cache
-from xoutil.modules import moduleproperty, modulemethod
 from xoutil.objects import setdefaultattr
 
 from openerp import models
@@ -51,30 +52,30 @@ conf = {}
 SENTRYLOGGER = object()
 
 
-@moduleproperty
-@lru_cache(1)
-def client(self):
-    if 'dsn' in conf:
+# A singleton
+_sentry_client = None
+
+
+def get_client():
+    global _sentry_client
+    if not _sentry_client and 'dsn' in conf:
         releasetag = conf.pop('sentrylog.release-tag', '')
         if 'release' not in conf:
             from openerp.release import version
             conf['release'] = '%s/%s' % (version, releasetag)
         transport = conf.get('transport', None)
         if transport == 'sync':
-            transport = raven.transport.http.HTTPTransport
+            transport = HTTPTransport
         elif transport == 'gevent':
-            transport = raven.transport.gevent.GeventedHTTPTransport
+            transport = GeventedHTTPTransport
         else:
-            transport = raven.transport.threaded.ThreadedHTTPTransport
+            transport = ThreadedHTTPTransport
         conf['transport'] = transport
-        client = raven.Client(**conf)
-        return client
-    else:
-        return None
+        _sentry_client = raven.Client(**conf)
+    return _sentry_client
 
 
-@modulemethod
-def patch_logging(self, override=True):
+def patch_logging(override=True):
     '''Patch openerp's logging.
 
     :param override: If True suppress all normal logging.  All logs will be
@@ -160,7 +161,8 @@ def patch_logging(self, override=True):
             ua = request.user_agent
             if ua:
                 tags['os'] = ua.platform.capitalize()
-                tags['browser'] = str(ua.browser).capitalize() + ' ' + str(ua.version)
+                browser = str(ua.browser).capitalize() + ' ' + str(ua.version)
+                tags['browser'] = browser
 
         @_require_httprequest
         def _handle_db_tags(self, record, request):
@@ -231,7 +233,7 @@ def patch_logging(self, override=True):
             for method in methods:
                 method(record)
 
-    client = self.client
+    client = get_client()
     if not client:
         return
 
@@ -284,4 +286,4 @@ def safe_getattr(which, attr):
         return Undefined
 
 # _manager.register(OdooRecordSerializer)
-del Serializer, moduleproperty, modulemethod, lru_cache, _manager,
+del Serializer, _manager,
