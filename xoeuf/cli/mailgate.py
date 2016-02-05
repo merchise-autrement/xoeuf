@@ -246,7 +246,7 @@ class Mailgate(Command):
                         import random
                         import time
                         retries += 1
-                        wait_time = random.uniform(0.0, 2 ** retries)
+                        wait_time = random.uniform(0.0, 2**retries)
                         time.sleep(wait_time)
                     else:
                         raise
