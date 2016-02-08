@@ -33,18 +33,21 @@ PG_CONCURRENCY_ERRORS_TO_RETRY = (
 )
 MAX_TRIES_ON_CONCURRENCY_FAILURE = 5
 
-
 try:
     # A Py3k more compatible Exception value
     Exception = StandardError
 except NameError:
     pass
 
-
 from xoutil.string import safe_encode, safe_decode
 
 # TODO: This has grown into a monstrous pile of code that needs
 # refactorization.
+
+
+CR = str('\r')
+LF = str('\n')
+CRLF = CR + LF
 
 
 # TODO: Should this be moved elsewhere?
@@ -142,6 +145,10 @@ class Mailgate(Command):
                              'instead of the stdin.')
             res.add_argument('--defer', default=False, action='store_true',
                              help='Treat errors as transient.')
+            res.add_argument('--queue-id', dest='queue_id', default='',
+                             help=('The queue ID the MTA queue.  If provided '
+                                   'the header X-Queue-ID will be injected '
+                                   'to the message'))
             # Deprecated, but simply ignored
             loggroup = res.add_argument_group('Logging')
             loggroup.add_argument('--log-level',
@@ -228,6 +235,9 @@ class Mailgate(Command):
             else:
                 with open(options.input, 'rb') as f:
                     message = f.read()
+            if options.queue_id:
+                message = ('X-Queue-ID: %s%s' % (options.queue_id, CRLF)
+                           + message)
             # TODO: assert message is bytes
             db = self.database_factory(options.database)
             retries = 0
