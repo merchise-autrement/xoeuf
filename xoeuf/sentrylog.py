@@ -110,12 +110,17 @@ def patch_logging(override=True):
     class SentryHandler(Base):
         def _emit(self, record, **kwargs):
             self.set_record_tags(record)
-            self.client.http_context(self._get_http_context(record))
-            self.client.user_context(self._get_user_context(record))
+            request_context = self._get_http_context(record)
+            if request_context:
+                self.client.http_context(request_context)
+            user_context = self._get_user_context(record)
+            if user_context:
+                self.client.user_context(user_context)
             try:
                 super(SentryHandler, self)._emit(record, **kwargs)
-            except Exception as error:
-                print(error)
+            except:
+                import traceback
+                traceback.print_exc()
             finally:
                 self.client.context.clear()
 
