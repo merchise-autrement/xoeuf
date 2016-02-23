@@ -47,6 +47,8 @@ class CommandsProxy(object):
             except ImportError:
                 # future-proof
                 from openerp.cli.command import commands
+            from openerp.netsvc import init_logger
+            init_logger()
             from openerp.modules.module import initialize_sys_path
             cls._discover_addons_path()
             initialize_sys_path()
