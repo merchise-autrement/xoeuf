@@ -261,11 +261,9 @@ class Mailgate(Command):
                         time.sleep(wait_time)
                     else:
                         raise
-                except Exception:
-                    raise
                 else:
                     done = True
-        except Exception:
+        except:
             import sys
             if options.defer:
                 print(str('4.3.5 System incorrectly configured'),
