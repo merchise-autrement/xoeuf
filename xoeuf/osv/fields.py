@@ -3,7 +3,7 @@
 # ---------------------------------------------------------------------
 # xouef.osv.fields
 # ---------------------------------------------------------------------
-# Copyright (c) 2015 Merchise Autrement and Contributors
+# Copyright (c) 2015-2016 Merchise Autrement and Contributors
 # All rights reserved.
 #
 # This is free software; you can redistribute it and/or modify it under the
@@ -22,8 +22,7 @@ from __future__ import (division as _py3_division,
 
 
 import pytz
-from datetime import datetime
-from xoeuf.tools import normalize_datetime, localtime_as_remotetime, dt_as_timezone
+from xoeuf.tools import localtime_as_remotetime
 
 from openerp.osv import fields as _v7_fields
 # from openerp import fields as _v8_fields

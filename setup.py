@@ -61,10 +61,10 @@ setup(name=project_name,
       zip_safe=False,
       install_requires=[
           # -*- Extra requirements: -*-
-          'xoutil>=1.6.6,<1.8',
+          'xoutil>=1.7.1.dev20151028,<1.8',
           'six',
           'ipython',
-          'raven>=5.5.0',
+          'raven>=5.8.0',
           'raven-sanitize-openerp',
       ],
       entry_points="""

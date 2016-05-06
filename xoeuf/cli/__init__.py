@@ -3,7 +3,7 @@
 # ---------------------------------------------------------------------
 # xoeuf.cli
 # ---------------------------------------------------------------------
-# Copyright (c) 2015 Merchise and Contributors
+# Copyright (c) 2015-2016 Merchise and Contributors
 # Copyright (c) 2013, 2014 Merchise Autrement and Contributors
 # All rights reserved.
 #
@@ -47,6 +47,8 @@ class CommandsProxy(object):
             except ImportError:
                 # future-proof
                 from openerp.cli.command import commands
+            from openerp.netsvc import init_logger
+            init_logger()
             from openerp.modules.module import initialize_sys_path
             cls._discover_addons_path()
             initialize_sys_path()
@@ -65,7 +67,11 @@ class CommandsProxy(object):
             config.parse_config([addons_path])
 
 
-from xoutil.objects import metaclass
+try:
+    from xoutil.eight.meta import metaclass
+except ImportError:
+    from xoutil.objects import metaclass
+
 from xoutil.cli import Command as BaseCommand
 
 BaseCommand.register(CommandsProxy)

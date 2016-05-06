@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------
 # xoeuf.cli.secure
 # ---------------------------------------------------------------------
-# Copyright (c) 2015 Merchise and Contributors
+# Copyright (c) 2015-2016 Merchise and Contributors
 # Copyright (c) 2014 Merchise Autrement and Contributors
 # All rights reserved.
 #
@@ -86,9 +86,8 @@ class Secure(Command):
 
     @classmethod
     def database_factory(cls, database):
-        import importlib
-        module = 'xoeuf.pool.%s' % database
-        return importlib.import_module(module)
+        from xoeuf.osv.registry import Registry
+        return Registry(database)
 
     def run(self, args=None):
         from xoeuf.security import reset_all_passwords

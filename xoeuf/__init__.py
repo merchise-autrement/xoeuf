@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-#----------------------------------------------------------------------
+# ---------------------------------------------------------------------
 # xoeuf
-#----------------------------------------------------------------------
-# Copyright (c) 2015 Merchise and Contributors
+# ---------------------------------------------------------------------
+# Copyright (c) 2015-2016 Merchise and Contributors
 # Copyright (c) 2013, 2014 Merchise Autrement and Contributors
 # All rights reserved.
 #
@@ -30,3 +30,4 @@ from __future__ import (division as _py3_division,
 
 
 from . import api  # noqa
+from . import signals  # noqa

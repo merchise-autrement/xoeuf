@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------
 # xoeuf.cli.mailgate
 # ---------------------------------------------------------------------
-# Copyright (c) 2015 Merchise and Contributors
+# Copyright (c) 2015-2016 Merchise and Contributors
 # Copyright (c) 2014 Merchise Autrement and Contributors
 # All rights reserved.
 #
@@ -22,9 +22,22 @@ from __future__ import (division as _py3_division,
                         absolute_import as _py3_abs_import)
 
 
-from . import Command
+import time
+import random
+
 from logging import Handler
 from psycopg2 import OperationalError, errorcodes
+
+try:
+    from openerp.jobs import Deferred
+except ImportError:
+    Deferred = None
+
+# A size limit for messages sent through the message broker.
+MAX_SIZE_FOR_DEFERRED = 200 * 1024
+
+from . import Command
+
 
 PG_CONCURRENCY_ERRORS_TO_RETRY = (
     errorcodes.LOCK_NOT_AVAILABLE,
@@ -32,7 +45,6 @@ PG_CONCURRENCY_ERRORS_TO_RETRY = (
     errorcodes.DEADLOCK_DETECTED
 )
 MAX_TRIES_ON_CONCURRENCY_FAILURE = 5
-
 
 try:
     # A Py3k more compatible Exception value
@@ -42,11 +54,15 @@ try:
 except NameError:
     pass
 
-
 from xoutil.string import safe_encode, safe_decode
 
 # TODO: This has grown into a monstrous pile of code that needs
 # refactorization.
+
+
+CR = str('\r')
+LF = str('\n')
+CRLF = CR + LF
 
 
 # TODO: Should this be moved elsewhere?
@@ -101,6 +117,14 @@ class Mailgate(Command):
             from argparse import ArgumentParser
             res = ArgumentParser()
             cls._arg_parser = res
+            res.add_argument('--quick', dest='quick',
+                             action='store_true',
+                             default=False,
+                             help=('Accept the message as quickly as '
+                                   'possible, deferring actions if needed. '
+                                   'NOTICE: This means your Odoo application '
+                                   'needs to be prepared to send bounces '
+                                   'if needed.'))
             res.add_argument('-c', '--config', dest='conf',
                              required=False,
                              type=path(),
@@ -144,6 +168,10 @@ class Mailgate(Command):
                              'instead of the stdin.')
             res.add_argument('--defer', default=False, action='store_true',
                              help='Treat errors as transient.')
+            res.add_argument('--queue-id', dest='queue_id', default='',
+                             help=('The queue ID the MTA queue.  If provided '
+                                   'the header X-Queue-ID will be injected '
+                                   'to the message'))
             # Deprecated, but simply ignored
             loggroup = res.add_argument_group('Logging')
             loggroup.add_argument('--log-level',
@@ -201,26 +229,51 @@ class Mailgate(Command):
         import logging
         import email
         from email.message import Message
-        logger = logging.getLogger(__name__)
-        if not isinstance(message, Message):
-            msg = email.message_from_string(safe_encode(message))
-        else:
-            msg = message
-            message = msg.as_string()
-        msgid = safe_encode(msg.get('Message-Id', '<NO ID>'))  # noqa
-        sender = safe_encode(  # noqa
-            msg.get('Sender', msg.get('From', '<nobody>'))
+        try:
+            logger = logging.getLogger(__name__)
+            if not isinstance(message, Message):
+                msg = email.message_from_string(safe_encode(message))
+            else:
+                msg = message
+                message = safe_encode(msg.as_string())
+            # The follow locals vars are mean to be retrieved from tracebacks.
+            msgid = safe_encode(msg.get('Message-Id', '<NO ID>'))  # noqa
+            mail_from = safe_encode(msg.get('From', '<nobody>'))  # noqa
+            sender = safe_encode(msg.get('Sender', '<nobody>'))  # noqa
+            logger.critical("Error while processing incoming message.",
+                            exc_info=1)
+        except:
+            # Avoid errors... This should be logged to the syslog instead and
+            # raven prints the connection error.
+            pass
+
+    def send_immediate(self, options, message):
+        from openerp import SUPERUSER_ID
+        default_model = options.default_model
+        db = self.database_factory(options.database)
+        with db(transactional=True) as cr:
+            obj = db.models.mail_thread
+            obj.message_process(
+                cr, SUPERUSER_ID, default_model,
+                message, save_original=options.save_original,
+                strip_attachments=options.strip_attachments)
+
+    def send_deferred(self, options, message):
+        from openerp import SUPERUSER_ID
+        default_model = options.default_model
+        Deferred(
+            str('mail.thread'),
+            options.database, SUPERUSER_ID, 'message_process',
+            default_model, message, save_original=options.save_original,
+            strip_attachments=options.strip_attachments
         )
-        logger.exception("Error while processing incoming message.")
 
     def run(self, args=None):
-        from openerp import SUPERUSER_ID
         parser = self.get_arg_parser()
         options = parser.parse_args(args)
         conffile = options.conf
         if conffile:
             self.read_conffile(conffile)
-        default_model = options.default_model
         message = None
         try:
             if not options.input:
@@ -230,33 +283,33 @@ class Mailgate(Command):
                 with open(options.input, 'rb') as f:
                     message = f.read()
             # TODO: assert message is bytes
-            db = self.database_factory(options.database)
+            if options.queue_id:
+                message = ('X-Queue-ID: %s%s' % (options.queue_id, CRLF)
+                           + message)
             retries = 0
             done = False
             while not done:
                 try:
-                    with db(transactional=True) as cr:
-                        obj = db.models.mail_thread
-                        obj.message_process(
-                            cr, SUPERUSER_ID, default_model,
-                            message, save_original=options.save_original,
-                            strip_attachments=options.strip_attachments)
+                    if Deferred and options.quick and random.random() < 0.1 and len(message) < MAX_SIZE_FOR_DEFERRED:  # noqa
+                        # In order to test this feature we're only deferring a
+                        # 10% of messages.  Increase this number with care
+                        # until you reach 100%.  Also don't send large emails
+                        # through the broker, that may breaker the broker ;)
+                        self.send_deferred(options, message)
+                    else:
+                        self.send_immediate(options, message)
                 except OperationalError as error:
                     if error.pgcode not in PG_CONCURRENCY_ERRORS_TO_RETRY:
                         raise
                     if retries < MAX_TRIES_ON_CONCURRENCY_FAILURE:
-                        import random
-                        import time
                         retries += 1
-                        wait_time = random.uniform(0.0, 2 ** retries)
+                        wait_time = random.uniform(0.0, 2**retries)
                         time.sleep(wait_time)
                     else:
                         raise
-                except Exception:
-                    raise
                 else:
                     done = True
-        except Exception:
+        except:
             import sys
             if options.defer:
                 print(str('4.3.5 System incorrectly configured'),
@@ -295,7 +348,8 @@ class Mailgate(Command):
             with open(filename, 'rb') as fh:
                 return exec_(compile(fh.read(), filename, 'exec'), cfg, cfg)
         except Exception:
-            import traceback, sys
+            import traceback
+            import sys
             print("Failed to read config file: %s" % filename)
             traceback.print_exc()
             sys.exit(1)

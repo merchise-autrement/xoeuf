@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------
 # xoeuf.tools
 # ---------------------------------------------------------------------
-# Copyright (c) 2015 Merchise and Contributors
+# Copyright (c) 2015-2016 Merchise and Contributors
 # Copyright (c) 2013, 2014 Merchise Autrement and Contributors
 # All rights reserved.
 #
@@ -36,6 +36,35 @@ except ImportError:
         '''
         from datetime import datetime  # noqa
         return datetime(*(dt.timetuple()[:6] + (dt.microsecond, )))
+
+
+def localize_datetime(self, datetime_value=None, from_tz='UTC', to_tz='UTC'):
+    """Convert datetime value (assumed)in from_tz timezone to to_tz timezone.
+
+    If datetime is None then context today is used.
+
+    If from_tz or to_tz is None then user timezone is used.
+
+    If from_tz is equal to_tz datetime_value is returned.
+
+    """
+    from openerp import fields
+    if not from_tz:
+        from_tz = self.env.user.tz or 'UTC'
+    if not to_tz:
+        to_tz = self.env.user.tz or 'UTC'
+    if datetime_value:
+        datetime_value = normalize_datetime(datetime_value)
+    elif from_tz != 'UTC':
+        datetime_value = normalize_datetime(fields.Date.context_today(self))
+    else:
+        datetime_value = normalize_datetime(fields.Datetime.now())
+    if from_tz == to_tz:
+        return datetime_value
+    from_tz = pytz.timezone(from_tz)
+    to_tz = pytz.timezone(to_tz)
+    local_timestamp = from_tz.localize(datetime_value, is_dst=False)
+    return strip_tzinfo(local_timestamp.astimezone(to_tz))
 
 
 def date2str(d):

@@ -2,7 +2,7 @@
 # ---------------------------------------------------------------------
 # xoeuf.osv.orm
 # ---------------------------------------------------------------------
-# Copyright (c) 2015 Merchise and Contributors
+# Copyright (c) 2015-2016 Merchise and Contributors
 # Copyright (c) 2013, 2014 Merchise Autrement and Contributors
 # All rights reserved.
 #
@@ -16,8 +16,29 @@
 
 from __future__ import (division as _py3_division,
                         print_function as _py3_print,
-                        unicode_literals as _py3_unicode,
                         absolute_import)
+
+
+def guess_id(which, attr='id'):
+    '''Guess the id of an object.
+
+    If `which` is an integer, it is returned unchanged.  If it is a dict
+    or a browse_record the attribute/key given by `attr` is look up and
+    return.  If not found an AttibuteError is raised.  Any other type is a
+    TypeError.
+
+    '''
+    from openerp.osv.orm import browse_record
+    from xoutil.collections import Mapping
+    from six import integer_types
+    if isinstance(which, integer_types):
+        return which
+    elif isinstance(which, (Mapping, browse_record)):
+        from xoutil.objects import smart_getter
+        get = smart_getter(which, strict=True)
+        return get(attr)
+    else:
+        raise TypeError
 
 
 def store_identity(self, cr, uid, ids, context=None):
