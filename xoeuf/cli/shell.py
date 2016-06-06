@@ -20,10 +20,22 @@ from __future__ import (division as _py3_division,
 
 
 from . import Command
+from xoeuf.api import contextual
 
 
-class Shell(Command):
+class Base(object):
+    @contextual
     def run(self, argv=None):
         self.invalidate_logging()
         from IPython import start_ipython
         start_ipython(argv=argv)
+
+
+# The following commands is shadowed by the Odoo 9's shell.  So we create an
+# alias ishell.
+class Shell(Base, Command):
+    pass
+
+
+class IShell(Base, Command):
+    command_cli_name = 'ishell'
