@@ -119,8 +119,11 @@ def patch_logging(override=True):
             try:
                 super(SentryHandler, self)._emit(record, **kwargs)
             except:
-                import traceback
-                traceback.print_exc()
+                # We should never fail if emitting the log to Sentry fails.
+                # Neither we should print the error, other programs may think
+                # we have fail because of it: For instance, the mailgate
+                # integrated with postfix does.
+                pass
             finally:
                 self.client.context.clear()
 
