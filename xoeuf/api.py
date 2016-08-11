@@ -109,7 +109,7 @@ try:
         The decorated method will receive a recordset with a single record
         just like `api.one` does.
 
-        The single record will the one in the `index` provided in the
+        The single record will be the one in the `index` provided in the
         decorator.
 
         This means the decorated method *can* make the same assumptions about

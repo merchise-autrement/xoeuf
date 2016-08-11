@@ -18,7 +18,6 @@
 
 from __future__ import (division as _py3_division,
                         print_function as _py3_print,
-                        unicode_literals as _py3_unicode,
                         absolute_import as _py3_abs_import)
 
 import logging
@@ -170,7 +169,7 @@ def get_dangling_modules(db):
         available = get_modules()
         dangling = search_read(ir_modules, cr, SUPERUSER_ID,
                                [('name', 'not in', available)],
-                               context=None)
+                               context=None, ensure_list=True)
         return dangling
 
 
