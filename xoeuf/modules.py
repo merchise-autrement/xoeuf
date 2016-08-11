@@ -169,7 +169,7 @@ def get_dangling_modules(db):
         available = get_modules()
         dangling = search_read(ir_modules, cr, SUPERUSER_ID,
                                [('name', 'not in', available)],
-                               context=None)
+                               context=None, ensure_list=True)
         return dangling
 
 
