@@ -12,6 +12,10 @@
 #
 # Created on 2016-07-14
 
+from __future__ import (division as _py3_division,
+                        print_function as _py3_print,
+                        absolute_import as _py3_abs_import)
+
 import argparse
 import io
 import os
@@ -21,6 +25,7 @@ import textwrap
 from openerp import SUPERUSER_ID
 from openerp.fields import date, Date
 from openerp.modules.module import get_module_path
+
 from . import Command
 
 MIGRATION_TEMPLATE = """#!/usr/bin/env python
