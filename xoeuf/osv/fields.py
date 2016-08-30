@@ -63,7 +63,7 @@ class localized_datetime(_v7_fields.function):
         if isinstance(ids, (int, long)):
             ids = [ids]
         for row in obj.browse(cr, uid, ids, context=context):
-            tzone = getattr(row, tzone_field, None)
+            tzone = getattr(row, tzone_field)
             if not tzone:
                 tzone = pytz.UTC
             else:
@@ -91,7 +91,7 @@ class localized_datetime(_v7_fields.function):
             ids = [ids]
         res = {}
         for row in obj.browse(cr, uid, ids, context=context):
-            tzone = getattr(row, tzone_field, None)
+            tzone = getattr(row, tzone_field)
             if not tzone:
                 tzone = pytz.UTC
             else:

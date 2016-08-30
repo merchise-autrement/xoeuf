@@ -114,6 +114,8 @@ class ModuleManager(object):
                 res = self._load_module(test_db=self.db_name)
                 if not res:
                     raise
+            # TODO (med): sys.modules[fullname] = res ?? To be consistent with
+            # the test above.
             sys.modules[str('.'.join((__name__, self.db_name)))] = res
         else:
             assert res is self.registry
