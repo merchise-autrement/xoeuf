@@ -100,30 +100,28 @@ class ModelProxy(ModuleType):
         self.__env = None
 
     def __getattr__(self, attr):
-        if self.__env is None:
-            import sys
-            f = sys._getframe(1)
-            try:
-                this, tries = None, 5
-                while this is None and tries and f:
-                    this = f.f_locals.get('self', None)
-                    if not isinstance(this, openerp.models.BaseModel):
-                        this = cr = uid = None
-                    elif not hasattr(this, 'env'):
-                        # We still need to support possible old-API methods
-                        cr = f.f_locals.get('cr', None)
-                        uid = f.f_locals.get('uid', None)
-                        context = f.f_locals.get('context', None)
-                        this = this.browse(cr, uid, context=context)
-                    f = f.f_back
-                    tries -= 1
-                if this is not None:
-                    self.__env = this.env
-                else:
-                    raise AttributeError('%s.%s' % (self.__model, attr))
-            finally:
-                f = None
-        return getattr(self.__env[self.__model], attr)
+        import sys
+        f = sys._getframe(1)
+        try:
+            this, tries = None, 5
+            while this is None and tries and f:
+                this = f.f_locals.get('self', None)
+                if not isinstance(this, openerp.models.BaseModel):
+                    this = cr = uid = None
+                elif not hasattr(this, 'env'):
+                    # We still need to support possible old-API methods
+                    cr = f.f_locals.get('cr', None)
+                    uid = f.f_locals.get('uid', None)
+                    context = f.f_locals.get('context', None)
+                    this = this.browse(cr, uid, context=context)
+                f = f.f_back
+                tries -= 1
+            if this is not None:
+                return getattr(this.env[self.__model], attr)
+            else:
+                raise AttributeError('%s.%s' % (self.__model, attr))
+        finally:
+            f = None
 
 
 def _get_model(name):
