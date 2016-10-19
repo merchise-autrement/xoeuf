@@ -107,7 +107,7 @@ class ModelProxy(ModuleType):
                 this, tries = None, 5
                 while this is None and tries and f:
                     this = f.f_locals.get('self', None)
-                    if not isinstance(this, openerp.models.Model):
+                    if not isinstance(this, openerp.models.BaseModel):
                         this = cr = uid = None
                     elif not hasattr(this, 'env'):
                         # We still need to support possible old-API methods
@@ -120,7 +120,7 @@ class ModelProxy(ModuleType):
                 if this is not None:
                     self.__env = this.env
                 else:
-                    raise AttributeError(attr)
+                    raise AttributeError('%s.%s' % (self.__model, attr))
             finally:
                 f = None
         return getattr(self.__env[self.__model], attr)
