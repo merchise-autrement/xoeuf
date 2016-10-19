@@ -359,9 +359,22 @@ def touch_fields(self, cr, uid, ids, only=None, context=None):
         )
 
 
-def get_writer(self, cr, uid, ids, context=None):
+def get_writer(*args, **kwargs):
     '''Returns a context manager that handles all eases writing objects with
     the OpenERP's ORM.
+
+    Two possible signatures:
+
+    - ``get_creator(Model)``
+    - ``get_creator(obj, cr, uid, context=None)``
+
+    In the first case, ``Model`` should be a model obtained from an
+    `openerp.api.Environment`:class: object.  The second case is for the old
+    API.
+
+    .. note:: Currently we use the old API to implement the writer.  Even if
+              you provide new API Model, the result will correspond to the old
+              API.
 
     Usage::
 
@@ -384,15 +397,39 @@ def get_writer(self, cr, uid, ids, context=None):
 
     '''
     from .writers import ORMWriter
+    try:
+        if kwargs or len(args) > 1:
+            context = kwargs.pop('context', None)
+            self, cr, uid = args
+        elif len(args) == 1:
+            Model = args[0]
+            cr = Model.env.cr
+            uid = Model.env.uid
+            context = Model.env.context
+            self = Model.pool[Model._name]
+    except (KeyError, ValueError):
+        raise TypeError('Invalid signature for get_creator')
     return ORMWriter(self, cr, uid, ids, context=context)
 orm_writer = get_writer
 
 
-def get_creator(self, cr, uid, context=None):
+def get_creator(*args, **kwargs):
     '''Similar to `get_writer`:func: but issues a ``obj.create()``.
 
     '''
     from .writers import ORMCreator
+    try:
+        if kwargs or len(args) > 1:
+            context = kwargs.pop('context', None)
+            self, cr, uid = args
+        elif len(args) == 1:
+            Model = args[0]
+            cr = Model.env.cr
+            uid = Model.env.uid
+            context = Model.env.context
+            self = Model.pool[Model._name]
+    except (KeyError, ValueError):
+        raise TypeError('Invalid signature for get_creator')
     return ORMCreator(self, cr, uid, context=context)
 orm_creator = get_creator
 
