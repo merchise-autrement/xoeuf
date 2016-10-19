@@ -1,0 +1,1 @@
+-e git+git@gitlab.lahavane.com:mercurio/odoo.git@merchise-8.0#egg=odoo

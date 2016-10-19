@@ -5,6 +5,24 @@
 Beta releases (series 0.X)
 ==========================
 
+2016-10-19. Summary of changes up to release 0.6.6
+--------------------------------------------------
+
+- Added the `xoeuf.sentrylog`:mod: to make Odoo report errors to Sentry.
+
+- Added the `xoeuf.signals`:mod: module (ported to our Odoo version).
+
+- Provide an 'ishell' alias to our own shell for Odoo >= 9.0
+
+- Make `xoeuf.osv.fields.localized_datetime`:class: fail if the time-zone
+  field does not exist.
+
+- Allow the new API in `xoeuf.osv.model_extensions.get_writer`:func: and
+  `xoeuf.osv.model_extensions.get_creator`:func:.
+
+- Added `xoeuf.api.take_one`:func:.
+
+
 2015-01-21. Release 0.5.0
 -------------------------
 
