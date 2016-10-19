@@ -35,7 +35,7 @@ except ImportError:
 
 
 def contextual(func):
-    '''Decorate a function to run in a proper Odoo environment.
+    '''Decorate a function to run within a proper Odoo environment.
 
     You should decorate every function that represents an "entry point" for
     working with the ORM.  If Odoo is not installed, the original function is
@@ -90,8 +90,8 @@ except ImportError:
         .. warning:: The order is very important.
 
            Since we simply return the function unchanged when running OpenERP
-           you must place the ``v7`` after the ``v8``, for the module to work
-           properly.
+           you must place the ``v7`` **after** the ``v8``, for the module to
+           work properly.
 
         '''
         return f

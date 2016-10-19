@@ -14,8 +14,8 @@
 
 .. autofunction:: obj_ref
 
-.. autofunction:: orm_writer
+.. autofunction:: get_writer(model, [cr, uid, context=None])
 
-.. autofunction:: orm_creator
+.. autofunction:: get_creator(model, [cr, uid, context=None])
 
 .. autofunction:: cascade_search(self, cr, uid, *queries, context=None)
