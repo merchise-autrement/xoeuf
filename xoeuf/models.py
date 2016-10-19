@@ -43,7 +43,15 @@ import re
 from os.path import splitext
 from types import ModuleType
 
-import openerp.models
+try:
+    import odoo.models as models
+except ImportError:
+    # Odoo < 10.0
+    try:
+        import openerp.models as models
+    except ImportError:
+        # So that we can generate the docs easily
+        pass
 
 
 class ModelImporter(object):
@@ -99,14 +107,15 @@ class ModelProxy(ModuleType):
         self.__model = _get_model(name)
         self.__env = None
 
-    def __getattr__(self, attr):
+    @property
+    def _this(self):
         import sys
         f = sys._getframe(1)
         try:
             this, tries = None, 5
             while this is None and tries and f:
                 this = f.f_locals.get('self', None)
-                if not isinstance(this, openerp.models.BaseModel):
+                if not isinstance(this, models.BaseModel):
                     this = cr = uid = None
                 elif not hasattr(this, 'env'):
                     # We still need to support possible old-API methods
@@ -116,12 +125,23 @@ class ModelProxy(ModuleType):
                     this = this.browse(cr, uid, context=context)
                 f = f.f_back
                 tries -= 1
-            if this is not None:
-                return getattr(this.env[self.__model], attr)
-            else:
-                raise AttributeError('%s.%s' % (self.__model, attr))
+            return this
         finally:
             f = None
+
+    def __dir__(self):
+        this = self._this
+        if this is not None:
+            return dir(this)
+        else:
+            return dir(models.BaseModel)
+
+    def __getattr__(self, attr):
+        this = self._this
+        if this is not None:
+            return getattr(this.env[self.__model], attr)
+        else:
+            raise AttributeError(attr)
 
 
 def _get_model(name):

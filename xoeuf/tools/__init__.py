@@ -17,9 +17,23 @@
 
 from datetime import datetime as _dt, date as _d
 
-from openerp.tools import DEFAULT_SERVER_DATE_FORMAT as _SVR_DATE_FMT
-from openerp.tools import DEFAULT_SERVER_DATETIME_FORMAT as _SVR_DATETIME_FMT
-
+try:
+    from odoo.tools import (
+        DEFAULT_SERVER_DATE_FORMAT as _SVR_DATE_FMT,
+        DEFAULT_SERVER_DATETIME_FORMAT as _SVR_DATETIME_FMT
+    )
+except ImportError:
+    # Odoo < 10.0
+    try:
+        from openerp.tools import (
+            DEFAULT_SERVER_DATE_FORMAT as _SVR_DATE_FMT,
+            DEFAULT_SERVER_DATETIME_FORMAT as _SVR_DATETIME_FMT
+        )
+    except ImportError:
+        # This allows to generate the documentation without actually
+        # installing Odoo
+        _SVR_DATE_FMT = '%Y-%m-%d'
+        _SVR_DATETIME_FMT = '%Y-%m-%d %H:%M:%S'
 
 import pytz
 
