@@ -62,7 +62,6 @@ setup(name=project_name,
       install_requires=[
           # -*- Extra requirements: -*-
           'xoutil>=1.7.1.dev20151028,<1.8',
-          'six',
           'ipython',
           'raven>=5.8.0',
           'raven-sanitize-openerp',

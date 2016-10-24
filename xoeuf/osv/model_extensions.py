@@ -332,7 +332,7 @@ def touch_fields(self, cr, uid, ids, only=None, context=None):
        (Remember ``crm_meeting`` is actually the place for every event.)
 
     '''
-    from six import iteritems, string_types
+    from xoutil.eight import iteritems, string_types
     from xoutil.names import nameof
     from xoutil.types import is_collection
     from openerp.osv.fields import function

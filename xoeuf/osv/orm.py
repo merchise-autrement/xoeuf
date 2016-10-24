@@ -30,7 +30,7 @@ def guess_id(which, attr='id'):
     '''
     from openerp.osv.orm import browse_record
     from xoutil.collections import Mapping
-    from six import integer_types
+    from xoutil.eight import integer_types
     if isinstance(which, integer_types):
         return which
     elif isinstance(which, (Mapping, browse_record)):
@@ -82,7 +82,7 @@ def get_modelname(model):
         'account.fiscalyear'
 
     '''
-    from six import string_types
+    from xoutil.eight import string_types
     from openerp.osv.orm import BaseModel
     if not isinstance(model, BaseModel) and not issubclass(model, BaseModel):
         msg = "Invalid argument '%s' for param 'model'" % model

@@ -98,7 +98,7 @@ class MetaOptions(type):
             return self.wrapped[option]
 
     def __setitem__(self, option, value):
-        from six import string_types
+        from xoutil.eight import string_types
         if isinstance(option, string_types):
             option = str(option)
             if value in ('True', 'true'):
