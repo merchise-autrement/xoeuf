@@ -205,7 +205,7 @@ class Mailgate(Command):
         The result is always bytes.
 
         '''
-        from six import binary_type as bytes
+        from xoutil.eight import binary_type as bytes
         import select
         import sys
         import logging
@@ -336,7 +336,7 @@ class Mailgate(Command):
 
     @staticmethod
     def load_config_from_script(filename):
-        from six import exec_
+        from xoutil.eight import exec_
         cfg = {
             "__builtins__": __builtins__,
             "__name__": "__config__",

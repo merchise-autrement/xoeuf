@@ -169,7 +169,7 @@ def normalize_datetime(which):
        ValueError: ...
 
     '''
-    from six import string_types
+    from xoutil.eight import string_types
     if isinstance(which, _dt):
         return str2dt(dt2str(which))
     elif isinstance(which, _d):
@@ -222,7 +222,7 @@ def normalize_date(which):
        ValueError: ...
 
     '''
-    from six import string_types
+    from xoutil.eight import string_types
     if isinstance(which, _dt):
         return which.date()
     elif isinstance(which, _d):
