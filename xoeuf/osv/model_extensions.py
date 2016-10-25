@@ -365,10 +365,10 @@ def get_writer(*args, **kwargs):
 
     Two possible signatures:
 
-    - ``get_creator(Model)``
-    - ``get_creator(obj, cr, uid, context=None)``
+    - ``get_writer(ModelRecordSet)``
+    - ``get_writer(obj, cr, uid, ids, context=None)``
 
-    In the first case, ``Model`` should be a model obtained from an
+    In the first case, ``Model`` should be a record set obtained from an
     `openerp.api.Environment`:class: object.  The second case is for the old
     API.
 
@@ -400,11 +400,12 @@ def get_writer(*args, **kwargs):
     try:
         if kwargs or len(args) > 1:
             context = kwargs.pop('context', None)
-            self, cr, uid = args
+            self, cr, uid, ids = args
         elif len(args) == 1:
             Model = args[0]
             cr = Model.env.cr
             uid = Model.env.uid
+            ids = Model.ids
             context = Model.env.context
             self = Model.pool[Model._name]
     except (KeyError, ValueError):

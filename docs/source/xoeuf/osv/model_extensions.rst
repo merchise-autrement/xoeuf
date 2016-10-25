@@ -14,7 +14,7 @@
 
 .. autofunction:: obj_ref
 
-.. autofunction:: get_writer(model, [cr, uid, context=None])
+.. autofunction:: get_writer(model, [cr, uid, ids, context=None])
 
 .. autofunction:: get_creator(model, [cr, uid, context=None])
 
