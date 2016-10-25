@@ -1,12 +1,18 @@
-==============================================================
- `xoeuf.models`:mod: -- High-level importer for Odoo's models
-==============================================================
+====================================================================
+ `xoeuf.models.proxy`:mod: -- High-level importer for Odoo's models
+====================================================================
 
-.. automodule:: xoeuf.models
+.. automodule:: xoeuf.models.proxy
+
+.. warning:: In the previous release this was named `xoeuf.models`, however
+   that's now a package that contains a lot more, and the `ModelProxy`:class:
+   is just a part.
+
+   This is backwards breaking change.
 
 This module allows to *import* the models for the DB like::
 
-  >>> from xoeuf.models import AccountAccount
+  >>> from xoeuf.models.proxy import AccountAccount
 
 This returns a `ModelProxy`:class: to a model name.  The model name is
 obtained by converting the 'CamelCase' to Odoo's "standard" on models name:
