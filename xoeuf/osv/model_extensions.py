@@ -368,9 +368,10 @@ def get_writer(*args, **kwargs):
     - ``get_writer(ModelRecordSet)``
     - ``get_writer(obj, cr, uid, ids, context=None)``
 
-    In the first case, ``Model`` should be a record set obtained from an
-    `openerp.api.Environment`:class: object.  The second case is for the old
-    API.
+    In the first case, ``ModelRecordSet`` should be a record set obtained from
+    new API ``browse`` method. If the record set is empty, raise a ValueError.
+
+    The second case is for the old API.
 
     .. note:: Currently we use the old API to implement the writer.  Even if
               you provide new API Model, the result will correspond to the old
@@ -406,10 +407,12 @@ def get_writer(*args, **kwargs):
             cr = Model.env.cr
             uid = Model.env.uid
             ids = Model.ids
+            if not ids:
+                raise ValueError('Invalid record set for get_writer')
             context = Model.env.context
             self = Model.pool[Model._name]
     except (KeyError, ValueError):
-        raise TypeError('Invalid signature for get_creator')
+        raise TypeError('Invalid signature for get_writer')
     return ORMWriter(self, cr, uid, ids, context=context)
 orm_writer = get_writer
 
