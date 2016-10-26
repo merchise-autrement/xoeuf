@@ -27,27 +27,26 @@ class _BaseWriter(object):
     .. warning:: Currently we don't support nested context managers.
 
     '''
-    def __init__(self, obj, cr, uid, **kwargs):
+    def __init__(self, model):
         from xoutil.collections import StackedDict
-        self.obj = obj
-        self.cr = cr
-        self.uid = uid
-        self.kwargs = kwargs
+        self.model = model
         self._commands = StackedDict()
         self.result = None
 
     def _get_field(self, attrname):
-        return self.obj._all_columns[attrname].column
+        return self.model._all_columns[attrname].column
 
     __getitem__ = _get_field
 
     def _is_many2many(self, attrname):
+        from openerp.fields import Many2many
         from openerp.osv.fields import many2many
-        return isinstance(self[attrname], many2many)
+        return isinstance(self[attrname], (many2many, Many2many))
 
     def _is_one2many(self, attrname):
+        from openerp.fields import One2many
         from openerp.osv.fields import one2many
-        return isinstance(self[attrname], one2many)
+        return isinstance(self[attrname], (one2many, One2many))
 
     @property
     def commands(self):
@@ -174,31 +173,100 @@ class _BaseWriter(object):
 
 
 class ORMWriter(_BaseWriter):
-    '''A writer that issues a ``obj.write`` when exiting the context manager.
+    '''A context manager that eases writing objects with the Odoo's ORM.
 
-    Most likely you'll be using `xoeuf.osv.model_extensions.get_writer`:func:,
-    but there are times when you need to build the commands without entering
-    the context manager; in such cases you may get the command by retrieving
-    the property `_BaseWriter.commands`:attr:.
+    Two possible signatures:
+
+    - ``get_writer(ModelRecordSet)``
+    - ``get_writer(obj, cr, uid, ids, context=None)``
+
+    In the first case, ``ModelRecordSet`` should be a record set obtained from
+    new API ``browse`` method. If the record set is empty, raise a ValueError.
+
+    The second case is for the old API.
+
+    Usage::
+
+       with get_writer(obj, cr, uid, ids, context=context) as writer:
+          writer.update(attr1=val1, attr2=val2, attr3=None)
+          writer.update(attr4=val4)
+          writer.add(many2manycolumn, id1, id2, id3)
+          writer.forget(many2manycolumn, id4, id5)
+
+    At the end of the `with` sentence the equivalent ``obj.write()`` method
+    will be called.
+
+    .. warning:: Non-magical disclaimer.
+
+       The sole purpose of writers is to ease the writing of write sentences.
+       If the OpenERP does not understand the commands you produce is not our
+       fault.
 
     '''
-    def __init__(self, obj, cr, uid, ids, **kwargs):
-        super(ORMWriter, self).__init__(obj, cr, uid, **kwargs)
-        self.ids = ids
+    def __init__(self, *args, **kwargs):
+        try:
+            if kwargs or len(args) > 1:
+                context = kwargs.pop('context', None)
+                _self, cr, uid, ids = args
+                recordset = _self.browse(cr, uid, ids, context=context)
+            elif len(args) == 1:
+                recordset = args[0]
+                if not recordset.ids:
+                    raise ValueError('Invalid record set for get_writer')
+        except (KeyError, ValueError):
+            raise TypeError('Invalid signature for get_writer')
+        super(ORMWriter, self).__init__(recordset)
 
     def __exit__(self, exc_type, exc_value, exc_tb):
         if exc_type or exc_value:
             return False
-        self.result = self.obj.write(self.cr, self.uid, self.ids,
-                                     self.commands, **self.kwargs)
+        # Both the new API and old API return True/False, no downgrade needed.
+        self.result = self.model.write(self.commands)
 
 
 class ORMCreator(_BaseWriter):
-    '''A writer that emits `create` at manager's exit.'''
+    '''A context manager that eases creation of objects with Odoo's ORM.
+
+    Two possible signatures:
+
+    - ``get_creator(ModelRecordSet)``
+    - ``get_creator(obj, cr, uid, ids, context=None)``
+
+    In the first case, ``ModelRecordSet`` should be a record set obtained from
+    new API ``browse`` method.  The recordset may be empty.
+
+    The second case is for the old API (we do the browse).
+
+    This is similar to `get_writer`:func: but issues a 'create' call at the
+    exit of the ``with`` block.  The context manager yields a creator that,
+    after creating the object, stores the result in the attribute ``result``.
+    If you use the new API call style, the ``result`` will be the record
+    created.  If you use the old API call style, you'll get the id of created
+    record.
+
+    '''
+    def __init__(self, *args, **kwargs):
+        try:
+            if kwargs or len(args) > 1:
+                context = kwargs.pop('context', None)
+                _self, cr, uid = args
+                self.downgrade = True
+                model = _self.browse(cr, uid, [], context=context)
+            elif len(args) == 1:
+                self.downgrade = False
+                model = args[0]
+        except (KeyError, ValueError):
+            raise TypeError('Invalid signature for get_creator')
+        super(ORMCreator, self).__init__(model)
+
     def __exit__(self, exc_type, exc_value, exc_tb):
         if exc_type or exc_value:
             return False
-        self.result = self.obj.create(self.cr, self.uid, self.commands,
-                                      **self.kwargs)
+        result = self.model.create(self.commands)
+        if self.downgrade:
+            # old API used, old API expectations returned
+            self.result = result.id
+        else:
+            self.result = result
 
     set = _BaseWriter.update
