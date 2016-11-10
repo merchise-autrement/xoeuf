@@ -84,6 +84,10 @@ def get_modelname(model):
     '''
     from xoutil.eight import string_types
     from openerp.osv.orm import BaseModel
+    from xoeuf.models._proxy import ModelProxy
+    if isinstance(model, ModelProxy):
+        # Minor hack to support models imported using 'xoeuf.models' stuff
+        return model._ModelProxy__model
     if not isinstance(model, BaseModel) and not issubclass(model, BaseModel):
         msg = "Invalid argument '%s' for param 'model'" % model
         raise TypeError(msg)
