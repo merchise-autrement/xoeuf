@@ -44,11 +44,12 @@ class CommandsProxy(object):
             try:
                 from openerp.cli import commands
             except ImportError:
-                # future-proof
-                from openerp.cli.command import commands
-            from openerp.netsvc import init_logger
-            init_logger()
-            from openerp.modules.module import initialize_sys_path
+                from odoo.cli import commands
+            try:
+                from openerp.modules.module import initialize_sys_path
+            except ImportError:
+                from odoo.modules.module import initialize_sys_path
+
             cls._discover_addons_path()
             initialize_sys_path()
             res = commands
@@ -62,7 +63,10 @@ class CommandsProxy(object):
         prefix = '--addons-path='
         addons_path = next((a for a in args if a.startswith(prefix)), None)
         if addons_path:
-            from openerp.tools import config
+            try:
+                from openerp.tools import config
+            except ImportError:
+                from odoo.tools import config
             config.parse_config([addons_path])
 
 
