@@ -75,7 +75,7 @@ def get_client():
     return _sentry_client
 
 
-def patch_logging(override=True):
+def patch_logging(override=True, force=False):
     '''Patch openerp's logging.
 
     :param override: If True suppress all normal logging.  All logs will be
@@ -83,9 +83,31 @@ def patch_logging(override=True):
            False, extends the loogers to sent the errors to the Sentry but
            keep the console log as well.
 
+    :param force: Force the patching even if working with an Odoo
+           implementation that supports Sentry.  This is basically useful for
+           scripts like `mailgate` that run custom code but should log the
+           same as the core of Odoo.
+
+           If set to True, `override` will happen has well.
+
     The Sentry will only receive the error-level messages.
 
     '''
+    try:
+        # If the openerp has the sentrylog module, this means that we have
+        # integrated sentrylog within the core of Odoo.  So this patching does
+        # not make any sense.
+        from openerp import sentrylog  # noqa
+    except ImportError:
+        try:
+            from odoo import sentrylog  # noqa
+        except ImportError:
+            sentrylog = None
+    if sentrylog and not force:
+        return   # Bail out
+    elif sentrylog:
+        override = True
+
     import logging
     from raven.handlers.logging import SentryHandler as Base
     from openerp.netsvc import init_logger
