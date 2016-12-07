@@ -178,7 +178,9 @@ class ORMWriter(_BaseWriter):
     Two possible signatures:
 
     - ``get_writer(ModelRecordSet)``
-    - ``get_writer(obj, cr, uid, ids, context=None)``
+    - ``get_writer(obj, cr, uid, ids, *, context=None)``
+
+    .. warning:: `context` is a keyword-only argument.
 
     In the first case, ``ModelRecordSet`` should be a record set obtained from
     new API ``browse`` method. If the record set is empty, raise a ValueError.
@@ -213,6 +215,8 @@ class ORMWriter(_BaseWriter):
                 recordset = args[0]
                 if not recordset.ids:
                     raise ValueError('Invalid record set for get_writer')
+            else:
+                raise TypeError('Invalid signature for get_writer')
         except (KeyError, ValueError):
             raise TypeError('Invalid signature for get_writer')
         super(ORMWriter, self).__init__(recordset)
@@ -230,7 +234,9 @@ class ORMCreator(_BaseWriter):
     Two possible signatures:
 
     - ``get_creator(ModelRecordSet)``
-    - ``get_creator(obj, cr, uid, ids, context=None)``
+    - ``get_creator(obj, cr, uid, ids, *, context=None)``
+
+    .. warning:: `context` is a keyword-only argument.
 
     In the first case, ``ModelRecordSet`` should be a record set obtained from
     new API ``browse`` method.  The recordset may be empty.
@@ -255,6 +261,8 @@ class ORMCreator(_BaseWriter):
             elif len(args) == 1:
                 self.downgrade = False
                 model = args[0]
+            else:
+                raise TypeError('Invalid signature for get_creator')
         except (KeyError, ValueError):
             raise TypeError('Invalid signature for get_creator')
         super(ORMCreator, self).__init__(model)
