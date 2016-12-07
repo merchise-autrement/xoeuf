@@ -62,10 +62,7 @@ class _BaseWriter(object):
         return self._commands.peek()
 
     def __enter__(self):
-        # Try to use xoutil 1.7 (i.e push_level) but fallback to push if
-        # xoutil is older.
-        push = getattr(self._commands, 'push_level', self._commands.push)
-        push()
+        self._commands.push_level()
         return self
 
     def __exit__(self, ex_type, exc_value, exc_tb):
