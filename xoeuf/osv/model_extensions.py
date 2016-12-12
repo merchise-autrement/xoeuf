@@ -359,79 +359,11 @@ def touch_fields(self, cr, uid, ids, only=None, context=None):
         )
 
 
-def get_writer(*args, **kwargs):
-    '''Returns a context manager that handles all eases writing objects with
-    the OpenERP's ORM.
-
-    Two possible signatures:
-
-    - ``get_writer(ModelRecordSet)``
-    - ``get_writer(obj, cr, uid, ids, context=None)``
-
-    In the first case, ``Model`` should be a record set obtained from an
-    `openerp.api.Environment`:class: object.  The second case is for the old
-    API.
-
-    .. note:: Currently we use the old API to implement the writer.  Even if
-              you provide new API Model, the result will correspond to the old
-              API.
-
-    Usage::
-
-       with get_writer(obj, cr, uid, ids, context=context) as writer:
-          writer.update(attr1=val1, attr2=val2, attr3=None)
-          writer.update(attr4=val4)
-          writer.add(many2manycolumn, id1, id2, id3)
-          writer.forget(many2manycolumn, id4, id5)
-
-    At the end of the `with` sentence the equivalent ``obj.write()`` method
-    will be called.
-
-    .. seealso:: :class:`xoeuf.osv.writers.ORMWriter`.
-
-    .. warning:: Non-magical disclaimer.
-
-       The sole purpose of writers is to ease the writing of write sentences.
-       If the OpenERP does not understand the commands you produce is not our
-       fault.
-
-    '''
-    from .writers import ORMWriter
-    try:
-        if kwargs or len(args) > 1:
-            context = kwargs.pop('context', None)
-            self, cr, uid, ids = args
-        elif len(args) == 1:
-            Model = args[0]
-            cr = Model.env.cr
-            uid = Model.env.uid
-            ids = Model.ids
-            context = Model.env.context
-            self = Model.pool[Model._name]
-    except (KeyError, ValueError):
-        raise TypeError('Invalid signature for get_creator')
-    return ORMWriter(self, cr, uid, ids, context=context)
+from .writers import ORMWriter as get_writer  # noqa
 orm_writer = get_writer
 
 
-def get_creator(*args, **kwargs):
-    '''Similar to `get_writer`:func: but issues a ``obj.create()``.
-
-    '''
-    from .writers import ORMCreator
-    try:
-        if kwargs or len(args) > 1:
-            context = kwargs.pop('context', None)
-            self, cr, uid = args
-        elif len(args) == 1:
-            Model = args[0]
-            cr = Model.env.cr
-            uid = Model.env.uid
-            context = Model.env.context
-            self = Model.pool[Model._name]
-    except (KeyError, ValueError):
-        raise TypeError('Invalid signature for get_creator')
-    return ORMCreator(self, cr, uid, context=context)
+from .writers import ORMCreator as get_creator  # noqa
 orm_creator = get_creator
 
 
