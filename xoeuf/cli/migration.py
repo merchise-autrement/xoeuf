@@ -86,7 +86,7 @@ def write(msg):
     print(msg)
 
 
-def read_bool_vale(prompt=None):
+def read_bool_value(prompt=None):
     _input = raw_input(prompt)
     _input = _input.lower()
     for result, valid_values in INPUT_VALID_VALUES:
@@ -200,16 +200,16 @@ class Migration(Command):
                   "Yes response must be explicit (<Enter> means no).")
             for ref, model_field in get_fields(
                     options.database.db, options.src_module):
-                if read_bool_vale('Model: %s; Field: %s >>>    ' % model_field):
+                if read_bool_value('Model: %s; Field: %s >>> ' % model_field):
                     fields.append(ref)
         if not fields:
             raise ValueError('No field selected')
         file_name = options.dst_module.get_file_name(options.src_module)
         content = _get_content(options.src_module, options.dst_module,
-                                    file_name, fields)
+                               file_name, fields)
         try:
             write_migration(options.dst_module.get_migration_path(),
-                                 file_name, content)
+                            file_name, content)
         except Exception as e:
             write(e.message)
             newline()

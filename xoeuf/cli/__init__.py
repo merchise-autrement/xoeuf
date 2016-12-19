@@ -44,7 +44,10 @@ class CommandsProxy(object):
             try:
                 from openerp.cli import commands
             except ImportError:
-                from odoo.cli import commands
+                try:
+                    from openerp.cli.command import commands
+                except ImportError:
+                    from odoo.cli.command import commands
             try:
                 from openerp.modules.module import initialize_sys_path
             except ImportError:
@@ -115,4 +118,4 @@ from . import migration
 from . import shell as _shell
 from . import secure as _secure
 from . import addons as _addons
-del _, _shell, _secure, _addons
+del _, _shell, _secure, _addons, migration

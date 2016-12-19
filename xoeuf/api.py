@@ -23,15 +23,19 @@ from __future__ import (division as _py3_division,
                         print_function as _py3_print,
                         absolute_import as _py3_abs_import)
 
+from xoutil.decorator.meta import decorator
+
 try:
     from openerp.api import guess
 except ImportError:
-    guess = lambda f: f
+    # Try Odoo 10+
+    from odoo.api import guess
 
 try:
     from openerp.api import Environment
 except ImportError:
-    Environment = None
+    # Try Odoo 10+
+    from odoo.api import Environment
 
 
 def contextual(func):
@@ -45,9 +49,6 @@ def contextual(func):
     Every command in the `xoeuf.cli`:mod: is automatically decorated.
 
     '''
-    if Environment is None:
-        return func
-
     def inner(*args, **kwargs):
         with Environment.manage():
             return func(*args, **kwargs)
@@ -57,86 +58,46 @@ def contextual(func):
 try:
     from openerp.api import v8, v7  # noqa
 except ImportError:
-    from xoutil.decorator import aliases
-
-    @aliases('v8', 'v7')
-    def _version_X(f):
-        '''Mimic the `openerp.api.v8`:func: and `openerp.api.v7`:func: behaviour in
-        Odoo.
-
-        Odoo has introduced a new API for model methods.  Basically it has
-        removed the ``(cr, uid, ..., context=None)`` boilerplate.  See the
-        ``api.py`` file in the branch 8.0 of Odoo for details.
-
-        To ease the upgrade path for modules, they allow to keep using both
-        signatures.  Furthermore a model may provide two different
-        implementations for both versions by using the `api.v8
-        <openerp.api.v8>`:func: and `api.v7 <openerp.api.v7>`:func: decorators
-        like in::
-
-           @api.v8
-           def browse(self, ids=None):
-               pass
-
-           @api.v7
-           def browse(self, cr, uid, ids, context=None):
-               pass
-
-        When running Odoo, these are actually aliases to ``openerp.api.v8()``
-        and ``openerp.api.v7()``.
-
-        When running OpenERP, return the decorated function unchanged.
-
-        .. warning:: The order is very important.
-
-           Since we simply return the function unchanged when running OpenERP
-           you must place the ``v7`` **after** the ``v8``, for the module to
-           work properly.
-
-        '''
-        return f
-
+    from odoo.api import v8, v7  # noqa
 
 try:
-    from xoutil.decorator.meta import decorator
     from openerp import api as _odoo_api
-    multi = _odoo_api.multi
+except ImportError:  # Odoo 10+
+    from odoo import api as _odoo_api
+multi = _odoo_api.multi
 
-    @decorator
-    def take_one(func, index=0, warn=True):
-        '''A weaker version of `api.one`.
 
-        The decorated method will receive a recordset with a single record
-        just like `api.one` does.
+@decorator
+def take_one(func, index=0, warn=True):
+    '''A weaker version of `api.one`.
 
-        The single record will be the one in the `index` provided in the
-        decorator.
+    The decorated method will receive a recordset with a single record
+    just like `api.one` does.
 
-        This means the decorated method *can* make the same assumptions about
-        its `self` it can make when decorated with `api.one`.  Nevertheless
-        its return value *will not* be enclosed in a list.
+    The single record will be the one in the `index` provided in the
+    decorator.
 
-        If `warn` is True and more than one record is in the record set, a
-        warning will be issued.
+    This means the decorated method *can* make the same assumptions about
+    its `self` it can make when decorated with `api.one`.  Nevertheless
+    its return value *will not* be enclosed in a list.
 
-        If the given recordset has no `index`, raise an IndexError.
+    If `warn` is True and more than one record is in the record set, a
+    warning will be issued.
 
-        '''
-        from functools import wraps
-        from xoutil import logger
+    If the given recordset has no `index`, raise an IndexError.
 
-        @multi
-        @wraps(func)
-        def inner(self):
-            if self[index] != self:
-                # More than one item was in the recordset.
-                if warn:
-                    logger.warn('More than one record for function %s',
-                                func, extra=self)
-                self = self[index]
-            return func(self)
-        return inner
+    '''
+    from functools import wraps
+    from xoutil import logger
 
-except ImportError:
-    multi = lambda f: f
-    take_first = lambda *args, **kwargs: (lambda f: f)
+    @multi
+    @wraps(func)
+    def inner(self):
+        if self[index] != self:
+            # More than one item was in the recordset.
+            if warn:
+                logger.warn('More than one record for function %s',
+                            func, extra=self)
+            self = self[index]
+        return func(self)
+    return inner

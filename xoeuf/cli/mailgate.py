@@ -269,6 +269,8 @@ class Mailgate(Command):
         )
 
     def run(self, args=None):
+        from xoeuf.sentrylog import patch_logging
+        patch_logging(force=True)
         parser = self.get_arg_parser()
         options = parser.parse_args(args)
         conffile = options.conf

@@ -27,7 +27,11 @@ from xoutil.functools import lru_cache
 from xoutil.modules import customize
 from xoutil.modules import modulemethod
 
-_ADDONS_NAMESPACE = re.compile(r'^openerp\.addons\.(?P<module>[^\.]+)\.')
+try:
+    import openerp as _o  # noqa
+    _ADDONS_NAMESPACE = re.compile(r'^openerp\.addons\.(?P<module>[^\.]+)\.')
+except ImportError:  # Odoo 10+
+    _ADDONS_NAMESPACE = re.compile(r'^odoo\.addons\.(?P<module>[^\.]+)\.')
 
 XOEUF_EXTERNAL_ADDON_GROUP = 'xoeuf.addons'
 
