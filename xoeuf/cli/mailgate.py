@@ -190,9 +190,8 @@ class Mailgate(Command):
 
     @classmethod
     def database_factory(cls, database):
-        import importlib
-        module = 'xoeuf.pool.%s' % database
-        return importlib.import_module(module)
+        from xoeuf.osv.registry import Registry
+        return Registry(database)
 
     @staticmethod
     def get_raw_message(timeout=0, raises=True):
