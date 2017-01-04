@@ -50,9 +50,16 @@ class _PatchesRegistry(object):
         return self._wrapped[name]
 
     def apply(self):
+        try:
+            from openerp.modules import module
+        except ImportError:
+            from odoo.modules import module
+        patched = getattr(module, '__xoeuf_patched__', False)
+        if patched:
+            # This is an Odoo that's being patched by us.
+            return
         bootstraped = getattr(self, 'bootstraped', False)
         if not bootstraped:
-            from openerp.modules import module
             for name, func in self._registry.items():
                 self._wrapped[name] = getattr(module, name)
             module = customize(module)[0]
