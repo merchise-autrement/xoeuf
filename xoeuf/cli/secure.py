@@ -129,6 +129,9 @@ class Secure(Command):
 
     @staticmethod
     def load_config_from_inifile(filename):
-        from openerp.tools import config
+        try:
+            from openerp.tools import config
+        except ImportError:
+            from odoo.tools import config
         config.rcfile = filename
         config.load()

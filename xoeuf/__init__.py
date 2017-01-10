@@ -29,5 +29,4 @@ from __future__ import (division as _py3_division,
                         absolute_import as _py3_abs_import)
 
 
-from . import api  # noqa
 from . import signals  # noqa

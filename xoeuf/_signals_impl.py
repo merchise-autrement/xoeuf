@@ -20,7 +20,10 @@ from __future__ import (division as _py3_division,
                         absolute_import as _py3_abs_import)
 
 from xoutil import logger
-from openerp import api, models
+try:
+    from openerp import api, models
+except ImportError:  # Odoo 10+
+    from odoo import api, models
 
 
 def _make_id(target):
@@ -397,16 +400,15 @@ super_unlink = models.BaseModel.unlink
 
 
 # TODO: change to new api.
-@api.guess
-def fields_view_get(self, cr, uid, view_id=None, view_type='form',
-                    context=None, toolbar=False, submenu=False):
+@api.model
+def fields_view_get(self, view_id=None, view_type='form',
+                    toolbar=False, submenu=False):
     kwargs = dict(
         view_id=view_id,
         view_type=view_type,
         toolbar=toolbar,
         submenu=submenu
     )
-    self = self.browse(cr, uid, None, context=context)
     pre_fields_view_get.send(sender=self, **kwargs)
     result = super(models.Model, self).fields_view_get(**kwargs)
     post_fields_view_get.safe_send(sender=self, result=result, **kwargs)

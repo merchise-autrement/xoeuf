@@ -62,7 +62,10 @@ def localize_datetime(self, datetime_value=None, from_tz='UTC', to_tz='UTC'):
     If from_tz is equal to_tz datetime_value is returned.
 
     """
-    from openerp import fields
+    try:
+        from openerp import fields
+    except ImportError:
+        from odoo import fields
     if not from_tz:
         from_tz = self.env.user.tz or 'UTC'
     if not to_tz:

@@ -144,7 +144,10 @@ def reset_invalid_passwords(db, security_level=_DEF_LEVEL):
 
     '''
     def check(self, cr, id, login):
-        from openerp.exceptions import AccessDenied
+        try:
+            from openerp.exceptions import AccessDenied
+        except ImportError:
+            from odoo.exceptions import AccessDenied
         try:
             self.check_credentials(cr, id, login)
             return True

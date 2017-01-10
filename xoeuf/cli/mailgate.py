@@ -29,7 +29,10 @@ from logging import Handler
 from psycopg2 import OperationalError, errorcodes
 
 try:
-    from openerp.jobs import Deferred
+    try:
+        from openerp.jobs import Deferred
+    except ImportError:
+        from odoo.jobs import Deferred
 except ImportError:
     Deferred = None
 
@@ -247,7 +250,10 @@ class Mailgate(Command):
             pass
 
     def send_immediate(self, options, message):
-        from openerp import SUPERUSER_ID
+        try:
+            from openerp import SUPERUSER_ID
+        except ImportError:
+            from odoo import SUPERUSER_ID
         default_model = options.default_model
         db = self.database_factory(options.database)
         with db(transactional=True) as cr:
@@ -258,7 +264,10 @@ class Mailgate(Command):
                 strip_attachments=options.strip_attachments)
 
     def send_deferred(self, options, message):
-        from openerp import SUPERUSER_ID
+        try:
+            from openerp import SUPERUSER_ID
+        except ImportError:
+            from odoo import SUPERUSER_ID
         default_model = options.default_model
         Deferred(
             str('mail.thread'),
@@ -357,7 +366,10 @@ class Mailgate(Command):
 
     @staticmethod
     def load_config_from_inifile(filename):
-        from openerp.tools import config
+        try:
+            from openerp.tools import config
+        except ImportError:
+            from odoo.tools import config
         config.rcfile = filename
         config.load()
 

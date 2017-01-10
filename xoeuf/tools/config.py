@@ -46,7 +46,10 @@ class MetaOptions(type):
 
     def __new__(cls, name, bases, attrs):
         if cls.__singleton__ is None:
-            from openerp.tools import config
+            try:
+                from openerp.tools import config
+            except ImportError:
+                from odoo.tools import config
             attrs['__new__'] = None     # can't be instantiated!
             attrs['wrapped'] = config
             self = super(MetaOptions, cls).__new__(cls, name, bases, attrs)
