@@ -63,7 +63,7 @@ if year >= 2015:
     year = u'' if year == 2015 else u'-{year}'.format(year=year)
     copyright = u'2015{year}, Merchise and Contributors'
 elif year > 2012:
-    copyright = u'2012-{year}, Merchise Autrement and Contributors'
+    copyright = u'2012-{year}, Merchise Autrement [~º/~] and Contributors'
 else:
     if year < 2012:
         year = u'{year}-2012'.format(year=year)
@@ -232,7 +232,7 @@ latex_elements = {
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
   ('index', 'xoeuf.tex', u'Xœuf Documentation',
-   u'Merchise Autrement and Contributors', 'manual'),
+   u'Merchise Autrement [~º/~] and Contributors', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -262,7 +262,7 @@ latex_documents = [
 # (source start file, name, description, authors, manual section).
 man_pages = [
     ('index', 'xoeuf', u'Xœuf Documentation',
-     [u'Merchise Autrement and Contributors'], 1)
+     [u'Merchise Autrement [~º/~] and Contributors'], 1)
 ]
 
 # If true, show URL addresses after external links.
@@ -276,7 +276,7 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
   ('index', 'xoeuf', u'Xœuf Documentation',
-   u'Merchise Autrement and Contributors', 'xoeuf',
+   u'Merchise Autrement [~º/~] and Contributors', 'xoeuf',
     'Common services for OpenERP.',
    'Miscellaneous'),
 ]

@@ -3,14 +3,12 @@
 # ---------------------------------------------------------------------
 # xoeuf.pool
 # ---------------------------------------------------------------------
-# Copyright (c) 2015-2016 Merchise and Contributors
-# Copyright (c) 2013, 2014 Merchise Autrement and Contributors
+# Copyright (c) 2013-2017 Merchise Autrement [~º/~] and Contributors
 # All rights reserved.
 #
 # This is free software; you can redistribute it and/or modify it under
 # the terms of the LICENCE attached in the distribution package.
 #
-# Created on 30 avr. 2013
 
 '''A smart pool of OpenERP database connections managed by Xœuf.
 

@@ -2,15 +2,13 @@
 # ---------------------------------------------------------------------
 # xoeuf.osv.writers
 # ---------------------------------------------------------------------
-# Copyright (c) 2015-2016 Merchise and Contributors
-# Copyright (c) 2014 Merchise Autrement and Contributors
+# Copyright (c) 2014-2017 Merchise Autrement [~º/~] and Contributors
 # All rights reserved.
 #
 # This is free software; you can redistribute it and/or modify it under the
 # terms of the LICENCE attached (see LICENCE file) in the distribution
 # package.
 #
-# Created on 2014-03-18
 
 '''Helpers to generate ``BaseModel.write`` commands.
 
