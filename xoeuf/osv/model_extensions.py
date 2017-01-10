@@ -2,14 +2,12 @@
 # ---------------------------------------------------------------------
 # xoeuf.osv.model_extensions
 # ---------------------------------------------------------------------
-# Copyright (c) 2015-2016 Merchise and Contributors
-# Copyright (c) 2014 Merchise Autrement and Contributors
+# Copyright (c) 2014-2017 Merchise Autrement [~º/~] and Contributors
 # All rights reserved.
 #
 # This is free software; you can redistribute it and/or modify it under
 # the terms of the LICENCE attached in the distribution package.
 #
-# @created: 2013-01-03
 
 '''Xœuf ORM extensions for Open Object (OpenERP) models.
 
