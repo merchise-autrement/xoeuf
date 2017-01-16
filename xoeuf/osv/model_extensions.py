@@ -2,14 +2,12 @@
 # ---------------------------------------------------------------------
 # xoeuf.osv.model_extensions
 # ---------------------------------------------------------------------
-# Copyright (c) 2015-2016 Merchise and Contributors
-# Copyright (c) 2014 Merchise Autrement and Contributors
+# Copyright (c) 2014-2017 Merchise Autrement [~º/~] and Contributors
 # All rights reserved.
 #
 # This is free software; you can redistribute it and/or modify it under
 # the terms of the LICENCE attached in the distribution package.
 #
-# @created: 2013-01-03
 
 '''Xœuf ORM extensions for Open Object (OpenERP) models.
 
@@ -28,6 +26,9 @@ extensions.
 from __future__ import (division as _py3_division,
                         print_function as _py3_print,
                         absolute_import)
+
+from xoutil.deprecation import deprecated
+
 
 INTEGRATED = False    # True after integrated to `ModelBase`
 
@@ -141,6 +142,7 @@ def search_read(self, cr, uid, *args, **kwargs):
     return self.read(cr, uid, ids, fields=fields, context=ctx) if ids else []
 
 
+@deprecated('search', 'Use the new API search method')
 def search_browse(self, cr, uid, *args, **kwargs):
     '''Search based on a domain and with the returned ids browse corresponding
     records or return None if nothing is found.
@@ -173,15 +175,13 @@ def search_browse(self, cr, uid, *args, **kwargs):
     ensure_list = _get(kwargs, 'ensure_list', default=False)
     assert not kwargs, \
         "Invalid %s arguments: %s" % (len(kwargs), kwargs.keys())
-    # Do it
-    ids = self.search(cr, uid, domain, offset=offset, limit=limit,
-                      order=order, context=ctx)
-    if ids:
-        if ensure_list or len(ids) > 1:
-            return list(self.browse(cr, uid, ids, context=ctx))
-        else:
-            return self.browse(cr, uid, ids, context=ctx)
-    return [] if ensure_list else None
+    self = self.browse(cr, uid, context=ctx)
+    result = self.search(domain, offset=offset, limit=limit,
+                         order=order)
+    if ensure_list:
+        return list(result)  # note: is result is empty returns the empty list
+    else:
+        return result
 
 
 def field_value(self, cr, uid, ids, field_name, context=None):
@@ -408,3 +408,6 @@ def get_treeview_action(self, cr, uid, ids, context=None):
     if active_id:
         result['active_id'] = active_id
     return result
+
+
+del deprecated

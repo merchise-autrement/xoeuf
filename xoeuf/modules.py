@@ -2,8 +2,7 @@
 # ---------------------------------------------------------------------
 # xoeuf.modules
 # ---------------------------------------------------------------------
-# Copyright (c) 2015-2016 Merchise and Contributors
-# Copyright (c) 2014 Merchise Autrement and Contributors
+# Copyright (c) 2014-2017 Merchise Autrement [~º/~] and Contributors
 # All rights reserved.
 #
 # This is free software; you can redistribute it and/or modify it under the
@@ -118,7 +117,10 @@ def find_external_addons(self):
 @modulemethod
 def initialize_sys_path(self):
     from xoutil.objects import setdefaultattr
-    from openerp.modules import module
+    try:
+        from openerp.modules import module
+    except ImportError:
+        from odoo.modules import module
     _super = patch.get_super('initialize_sys_path')
     external_addons = setdefaultattr(self, '__addons', [])
     if not external_addons:
@@ -168,11 +170,15 @@ def get_dangling_modules(db):
                <xoeuf.osv.registry.Registry>`:class:.
 
     '''
-    registry = _get_registry(db)
-    with registry() as cr:
+    try:
         from openerp import SUPERUSER_ID
         from openerp.modules.module import get_modules
-        from xoeuf.osv.model_extensions import search_read
+    except ImportError:
+        from odoo import SUPERUSER_ID
+        from odoo.modules.module import get_modules
+    from xoeuf.osv.model_extensions import search_read
+    registry = _get_registry(db)
+    with registry() as cr:
         ir_modules = registry['ir.module.module']
         available = get_modules()
         dangling = search_read(ir_modules, cr, SUPERUSER_ID,
@@ -188,10 +194,13 @@ def mark_dangling_modules(db):
     :func:`get_dangling_modules`.
 
     '''
+    try:
+        from openerp import SUPERUSER_ID
+    except ImportError:
+        from odoo import SUPERUSER_ID
+    from xoeuf.osv.model_extensions import get_writer
     registry = _get_registry(db)
     with registry() as cr:
-        from openerp import SUPERUSER_ID
-        from xoeuf.osv.model_extensions import get_writer
         ir_mods = registry['ir.module.module']
         dangling = get_dangling_modules(registry)  # reuse the registry
         dangling_ids = [module['id'] for module in dangling]

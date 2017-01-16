@@ -2,14 +2,12 @@
 # ---------------------------------------------------------------------
 # xoeuf.osv.orm
 # ---------------------------------------------------------------------
-# Copyright (c) 2015-2016 Merchise and Contributors
-# Copyright (c) 2013, 2014 Merchise Autrement and Contributors
+# Copyright (c) 2013-2017 Merchise Autrement [~º/~] and Contributors
 # All rights reserved.
 #
 # This is free software; you can redistribute it and/or modify it under
 # the terms of the LICENCE attached in the distribution package.
 #
-# @created: 2013-11-27
 
 '''Xœuf basic ORM extensions for Open Object (OpenERP) models.'''
 
@@ -83,7 +81,10 @@ def get_modelname(model):
 
     '''
     from xoutil.eight import string_types
-    from openerp.osv.orm import BaseModel
+    try:
+        from openerp.models import BaseModel
+    except ImportError:
+        from odoo.models import BaseModel
     from xoeuf.models._proxy import ModelProxy
     if isinstance(model, ModelProxy):
         # Minor hack to support models imported using 'xoeuf.models' stuff

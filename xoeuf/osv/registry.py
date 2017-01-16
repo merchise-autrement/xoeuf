@@ -3,14 +3,12 @@
 # ---------------------------------------------------------------------
 # xoeuf.osv.registry
 # ---------------------------------------------------------------------
-# Copyright (c) 2015-2016 Merchise and Contributors
-# Copyright (c) 2013, 2014 Merchise Autrement and Contributors
+# Copyright (c) 2013-2017 Merchise Autrement [~º/~] and Contributors
 # All rights reserved.
 #
 # This is free software; you can redistribute it and/or modify it under
 # the terms of the LICENCE attached in the distribution package.
 #
-# Created on 2013-04-19
 
 '''Xœuf Models registry for OpenERP databases.
 
@@ -34,13 +32,20 @@ from xoutil.names import strlist as slist
 from xoutil.context import Context
 from xoutil.collections import SmartDictMixin
 from xoutil.decorator import aliases, memoized_property
-from openerp import SUPERUSER_ID
-from openerp.modules.registry import RegistryManager as manager
+try:
+    from openerp import SUPERUSER_ID
+    from openerp.modules.registry import RegistryManager as manager
+except ImportError:
+    from odoo import SUPERUSER_ID
+    from odoo.modules.registry import RegistryManager as manager
 
 
 def _valid_model_base(model):
     '''Check if a model has a right base class.'''
-    from openerp.osv.orm import BaseModel
+    try:
+        from openerp.models import BaseModel
+    except ImportError:
+        from odoo.models import BaseModel
     if not isinstance(model, BaseModel):
         from inspect import getmro
         from xoutil.eight import typeof
@@ -449,7 +454,10 @@ class Registry(ModuleType):
 
         '''
         from sys import _getframe
-        from openerp.api import Environment
+        try:
+            from openerp.api import Environment
+        except ImportError:
+            from odoo.api import Environment
         from xoeuf.osv.improve import (fix_documentations,
                                        integrate_extensions)
         CURSOR_NAME = str('cr')
@@ -505,12 +513,9 @@ class Registry(ModuleType):
         '''Return all database names presents in the connected host.'''
         try:
             from openerp.service.db import exp_list
-            return exp_list()
         except ImportError:
-            # Fallback to OpenERP 7 ways.
-            from openerp.service.web_services import db as DBExportService
-            db = DBExportService()
-            return db.exp_list()
+            from odoo.service.db import exp_list
+        return exp_list()
 
     @aliases('db')
     @property
@@ -554,7 +559,10 @@ class Registry(ModuleType):
 
     @property
     def env(self):
-        from openerp.api import Environment
+        try:
+            from openerp.api import Environment
+        except ImportError:
+            from odoo.api import Environment
         return Environment(self.cr, self.uid, self.context)
 
     @property
@@ -615,8 +623,15 @@ class Registry(ModuleType):
 
         '''
         # TODO: Find out if is it needed
-        from openerp.tools import config
+        try:
+            from openerp.tools import config
+        except ImportError:
+            from odoo.tools import config
         return bool(config['init'] or config['update'])
+
+    def __dir__(self):
+        return list({name for name in self.__dict__.keys() + dir(type(self))
+                     if not name.startswith('_')})
 
 
 # Discarding not neeeded globals

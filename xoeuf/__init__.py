@@ -3,8 +3,7 @@
 # ---------------------------------------------------------------------
 # xoeuf
 # ---------------------------------------------------------------------
-# Copyright (c) 2015-2016 Merchise and Contributors
-# Copyright (c) 2013, 2014 Merchise Autrement and Contributors
+# Copyright (c) 2013-2017 Merchise Autrement [~º/~] and Contributors
 # All rights reserved.
 #
 # This is free software; you can redistribute it and/or modify it under
@@ -29,5 +28,4 @@ from __future__ import (division as _py3_division,
                         absolute_import as _py3_abs_import)
 
 
-from . import api  # noqa
 from . import signals  # noqa

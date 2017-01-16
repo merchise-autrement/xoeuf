@@ -3,7 +3,7 @@
 # ---------------------------------------------------------------------
 # sentrylog
 # ---------------------------------------------------------------------
-# Copyright (c) 2015-2016 Merchise Autrement and Contributors
+# Copyright (c) 2015-2017 Merchise Autrement [~º/~] and Contributors
 # All rights reserved.
 #
 # This is free software; you can redistribute it and/or modify it under the
@@ -41,7 +41,10 @@ from raven.utils.compat import _urlparse
 
 from xoutil.objects import setdefaultattr
 
-from openerp import models
+try:
+    from openerp import models
+except ImportError:
+    from odoo import models
 
 # A dictionary holding the Raven's client keyword arguments.  You should
 # modify this dictionary before patching the logging.
@@ -61,7 +64,10 @@ def get_client():
     if not _sentry_client and 'dsn' in conf:
         releasetag = conf.pop('sentrylog.release-tag', '')
         if 'release' not in conf:
-            from openerp.release import version
+            try:
+                from openerp.release import version
+            except ImportError:
+                from odoo.release import version
             conf['release'] = '%s/%s' % (version, releasetag)
         transport = conf.get('transport', None)
         if transport == 'sync':
@@ -110,13 +116,19 @@ def patch_logging(override=True, force=False):
 
     import logging
     from raven.handlers.logging import SentryHandler as Base
-    from openerp.netsvc import init_logger
+    try:
+        from openerp.netsvc import init_logger
+    except ImportError:
+        from odoo.netsvc import init_logger
     init_logger()
 
     def _require_httprequest(func):
         def inner(self, record):
             try:
-                from openerp.http import request
+                try:
+                    from openerp.http import request
+                except ImportError:
+                    from odoo.http import request
                 httprequest = getattr(request, 'httprequest', None)
                 if httprequest:
                     return func(self, record, httprequest)
@@ -217,8 +229,12 @@ def patch_logging(override=True, force=False):
                     record.fingerprint = fingerprint
 
         def _get_http_request_data(self, request):
-            from openerp.http import JsonRequest, HttpRequest
-            from openerp.http import request  # Let it raise
+            try:
+                from openerp.http import JsonRequest, HttpRequest
+                from openerp.http import request  # Let it raise
+            except ImportError:
+                from odoo.http import JsonRequest, HttpRequest
+                from odoo.http import request  # Let it raise
             # We can't simply use `isinstance` cause request is actual a
             # 'werkzeug.local.LocalProxy' instance.
             if request._request_type == JsonRequest._request_type:
@@ -235,23 +251,24 @@ def patch_logging(override=True, force=False):
             exc_info = record.exc_info
             if not exc_info:
                 return res
-            from openerp.exceptions import Warning
+            try:
+                from openerp.exceptions import Warning
+            except ImportError:
+                from odoo.exceptions import Warning
             ignored = (Warning, )
             try:
-                from openerp.exceptions import RedirectWarning
+                try:
+                    from openerp.exceptions import RedirectWarning
+                except ImportError:
+                    from odoo.exceptions import RedirectWarning
                 ignored += (RedirectWarning, )
             except ImportError:
                 pass
             try:
                 from openerp.exceptions import except_orm
             except ImportError:
-                from openerp.osv.orm import except_orm
+                from odoo.exceptions import except_orm
             ignored += (except_orm, )
-            try:
-                from openerp.osv.osv import except_osv
-                ignored += (except_osv, )
-            except ImportError:
-                pass
             _type, value, _tb = exc_info
             return not isinstance(value, ignored)
 
@@ -280,40 +297,3 @@ def patch_logging(override=True, force=False):
     for name in (None, 'openerp'):
         logger = logging.getLogger(name)
         sethandler(logger)
-
-
-class OdooRecordSerializer(Serializer):
-    """Expose Odoos local context variables from stacktraces.
-
-    """
-    types = (models.Model, )
-
-    def serialize(self, value, **kwargs):
-        from openerp.osv import fields
-        try:
-            if len(value) == 0:
-                return transform((None, 'record with 0 items'))
-            elif len(value) == 1:
-                return transform({
-                    attr: safe_getattr(value, attr)
-                    for attr, val in value._columns.items()
-                    # NOTE: Avoid function, they could be costly.
-                    if not isinstance(val, fields.function)
-                })
-            else:
-                return transform(
-                    [self.serialize(record) for record in value]
-                )
-        except:
-            return repr(value)
-
-
-def safe_getattr(which, attr):
-    from xoutil import Undefined
-    try:
-        return repr(getattr(which, attr, None))
-    except:
-        return Undefined
-
-# _manager.register(OdooRecordSerializer)
-del Serializer, _manager,

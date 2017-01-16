@@ -2,16 +2,12 @@
 # ---------------------------------------------------------------------
 # xoeuf.osv
 # ---------------------------------------------------------------------
-# Copyright (c) 2015-2016 Merchise and Contributors
-# Copyright (c) 2013, 2014 Merchise Autrement and Contributors
+# Copyright (c) 2013-2017 Merchise Autrement [~º/~] and Contributors
 # All rights reserved.
 #
 # This is free software; you can redistribute it and/or modify it under
 # the terms of the LICENCE attached in the distribution package.
 #
-# @author: Medardo Rodriguez
-#
-# @created: 20/04/2013
 
 '''Xœuf services for access Open Object (OpenERP) models.
 
@@ -70,7 +66,10 @@ def datetime_user_to_server_tz(cr, uid, userdate, tz_name=None):
     if userdate.tzinfo:
         return utc.normalize(userdate)
     if not tz_name:
-        from openerp.modules.registry import RegistryManager
+        try:
+            from openerp.modules.registry import RegistryManager
+        except ImportError:
+            from odoo.modules.registry import RegistryManager
         registry = RegistryManager.get(cr.dbname)
         user = registry['res.users'].browse(cr, uid, uid)
         dt = dt_as_timezone(userdate, user.tz) if user.tz else dt_as_timezone(userdate)
@@ -89,7 +88,10 @@ def datetime_server_to_user_tz(cr, uid, serverdate, tz_name=None):
 
     dt = dt_as_timezone(serverdate)  # datetime in UTC
     if not tz_name:
-        from openerp.modules.registry import RegistryManager
+        try:
+            from openerp.modules.registry import RegistryManager
+        except ImportError:
+            from odoo.modules.registry import RegistryManager
         registry = RegistryManager.get(cr.dbname)
         user = registry['res.users'].browse(cr, uid, uid)
         user_tz = pytz.timezone(user.tz) if user.tz else pytz.UTC

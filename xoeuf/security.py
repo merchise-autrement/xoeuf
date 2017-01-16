@@ -3,14 +3,12 @@
 # ---------------------------------------------------------------------
 # xoeuf.security
 # ---------------------------------------------------------------------
-# Copyright (c) 2015-2016,  Merchise and Contributors
-# Copyright (c) 2014 Merchise Autrement and Contributors
+# Copyright (c) 2014-2017 Merchise Autrement [~º/~] and Contributors
 # All rights reserved.
 #
 # This is free software; you can redistribute it and/or modify it under
 # the terms of the LICENCE attached in the distribution package.
 #
-# Created on 2014-04-24
 
 '''Some tools to improve `OpenERP` security.
 
@@ -144,7 +142,10 @@ def reset_invalid_passwords(db, security_level=_DEF_LEVEL):
 
     '''
     def check(self, cr, id, login):
-        from openerp.exceptions import AccessDenied
+        try:
+            from openerp.exceptions import AccessDenied
+        except ImportError:
+            from odoo.exceptions import AccessDenied
         try:
             self.check_credentials(cr, id, login)
             return True

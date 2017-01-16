@@ -3,14 +3,12 @@
 # ---------------------------------------------------------------------
 # xoeuf.tools.config
 # ---------------------------------------------------------------------
-# Copyright (c) 2015-2016 Merchise and Contributors
-# Copyright (c) 2013, 2014 Merchise Autrement and Contributors
+# Copyright (c) 2013-2017 Merchise Autrement [~º/~] and Contributors
 # All rights reserved.
 #
 # This is free software; you can redistribute it and/or modify it under
 # the terms of the LICENCE attached in the distribution package.
 #
-# Created on 20/04/2013
 
 '''Xœuf Configuration Service.
 
@@ -46,7 +44,10 @@ class MetaOptions(type):
 
     def __new__(cls, name, bases, attrs):
         if cls.__singleton__ is None:
-            from openerp.tools import config
+            try:
+                from openerp.tools import config
+            except ImportError:
+                from odoo.tools import config
             attrs['__new__'] = None     # can't be instantiated!
             attrs['wrapped'] = config
             self = super(MetaOptions, cls).__new__(cls, name, bases, attrs)

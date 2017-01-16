@@ -3,14 +3,12 @@
 # ---------------------------------------------------------------------
 # xoeuf.pool
 # ---------------------------------------------------------------------
-# Copyright (c) 2015-2016 Merchise and Contributors
-# Copyright (c) 2013, 2014 Merchise Autrement and Contributors
+# Copyright (c) 2013-2017 Merchise Autrement [~º/~] and Contributors
 # All rights reserved.
 #
 # This is free software; you can redistribute it and/or modify it under
 # the terms of the LICENCE attached in the distribution package.
 #
-# Created on 30 avr. 2013
 
 '''A smart pool of OpenERP database connections managed by Xœuf.
 
@@ -114,9 +112,7 @@ class ModuleManager(object):
                 res = self._load_module(test_db=self.db_name)
                 if not res:
                     raise
-            # TODO (med): sys.modules[fullname] = res ?? To be consistent with
-            # the test above.
-            sys.modules[str('.'.join((__name__, self.db_name)))] = res
+            sys.modules[fullname] = res
         else:
             assert res is self.registry
         return res

@@ -2,15 +2,13 @@
 # ---------------------------------------------------------------------
 # xoeuf.osv.writers
 # ---------------------------------------------------------------------
-# Copyright (c) 2015-2016 Merchise and Contributors
-# Copyright (c) 2014 Merchise Autrement and Contributors
+# Copyright (c) 2014-2017 Merchise Autrement [~º/~] and Contributors
 # All rights reserved.
 #
 # This is free software; you can redistribute it and/or modify it under the
 # terms of the LICENCE attached (see LICENCE file) in the distribution
 # package.
 #
-# Created on 2014-03-18
 
 '''Helpers to generate ``BaseModel.write`` commands.
 
@@ -39,13 +37,29 @@ class _BaseWriter(object):
     __getitem__ = _get_field
 
     def _is_many2many(self, attrname):
-        from openerp.fields import Many2many
-        from openerp.osv.fields import many2many
+        try:
+            from openerp.fields import Many2many
+        except ImportError:
+            from odoo.fields import Many2many
+        try:
+            from openerp.osv.fields import many2many
+        except ImportError:
+            class many2many(object):
+                # I have no instances
+                pass
         return isinstance(self[attrname], (many2many, Many2many))
 
     def _is_one2many(self, attrname):
-        from openerp.fields import One2many
-        from openerp.osv.fields import one2many
+        try:
+            from openerp.fields import One2many
+        except ImportError:
+            from odoo.fields import One2many
+        try:
+            from openerp.osv.fields import one2many
+        except ImportError:
+            class one2many(object):
+                # I have no instances
+                pass
         return isinstance(self[attrname], (one2many, One2many))
 
     @property

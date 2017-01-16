@@ -3,21 +3,22 @@
 # ---------------------------------------------------------------------
 # xoeuf.tools.logger
 # ---------------------------------------------------------------------
-# Copyright (c) 2015-2016 Merchise and Contributors
-# Copyright (c) 2013, 2014 Merchise Autrement and Contributors
+# Copyright (c) 2013-2017 Merchise Autrement [~º/~] and Contributors
 # All rights reserved.
 #
 # This is free software; you can redistribute it and/or modify it under
 # the terms of the LICENCE attached in the distribution package.
 #
-# Created on 21 avr. 2013
 
 '''Initialize the OpenERP logger, and provides a function to smartly get a
 logger.
 
 '''
 
-from openerp.netsvc import init_logger
+try:
+    from openerp.netsvc import init_logger
+except ImportError:
+    from odoo.netsvc import init_logger
 
 
 DEFAULT_LOGGER_NAME = str('xoeuf')

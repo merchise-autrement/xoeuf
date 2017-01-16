@@ -2,14 +2,12 @@
 # ---------------------------------------------------------------------
 # xoeuf.tools
 # ---------------------------------------------------------------------
-# Copyright (c) 2015-2016 Merchise and Contributors
-# Copyright (c) 2013, 2014 Merchise Autrement and Contributors
+# Copyright (c) 2013-2017 Merchise Autrement [~º/~] and Contributors
 # All rights reserved.
 #
 # This is free software; you can redistribute it and/or modify it under
 # the terms of the LICENCE attached in the distribution package.
 #
-# @created: 2013-04-20
 
 '''Xœuf tools for Open Object (OpenERP) models.
 
@@ -62,7 +60,10 @@ def localize_datetime(self, datetime_value=None, from_tz='UTC', to_tz='UTC'):
     If from_tz is equal to_tz datetime_value is returned.
 
     """
-    from openerp import fields
+    try:
+        from openerp import fields
+    except ImportError:
+        from odoo import fields
     if not from_tz:
         from_tz = self.env.user.tz or 'UTC'
     if not to_tz:
