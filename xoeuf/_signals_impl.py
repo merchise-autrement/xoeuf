@@ -399,7 +399,6 @@ super_write = models.BaseModel.write
 super_unlink = models.BaseModel.unlink
 
 
-# TODO: change to new api.
 @api.model
 def fields_view_get(self, view_id=None, view_type='form',
                     toolbar=False, submenu=False):
