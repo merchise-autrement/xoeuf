@@ -629,6 +629,10 @@ class Registry(ModuleType):
             from odoo.tools import config
         return bool(config['init'] or config['update'])
 
+    def __dir__(self):
+        return list({name for name in self.__dict__.keys() + dir(type(self))
+                     if not name.startswith('_')})
+
 
 # Discarding not neeeded globals
 del Context
