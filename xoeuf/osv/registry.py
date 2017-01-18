@@ -32,13 +32,18 @@ from xoutil.names import strlist as slist
 from xoutil.context import Context
 from xoutil.collections import SmartDictMixin
 from xoutil.decorator import aliases, memoized_property
+
+
 try:
+    from odoo import SUPERUSER_ID
+    from odoo.modules.registry import Registry as manager
+    manager_get = manager
+    manager_lock = lambda: manager._lock  # noqa
+except ImportError:
     from openerp import SUPERUSER_ID
     from openerp.modules.registry import RegistryManager as manager
-except ImportError:
-    from odoo import SUPERUSER_ID
-    from odoo.modules.registry import RegistryManager as manager
-
+    manager_get = manager.get
+    manager_lock = manager.lock
 
 def _valid_model_base(model):
     '''Check if a model has a right base class.'''
@@ -52,13 +57,6 @@ def _valid_model_base(model):
         msg = 'Inappropriate type "%s" for model value!\tMRO=%s'
         t = typeof(model)
         raise TypeError(msg % (t.__name__, getmro(t)))
-
-
-# The manager of Odoo is now classmethod lock().  This allows both Odoo 8.0
-# and OpenERP 7.0 to be used.
-manager_lock = getattr(manager, 'lock', None)
-if not manager_lock:
-    manager_lock = lambda: manager.registries_lock
 
 
 # TODO: Allow to change "openerp.tools.config" per context level
@@ -379,7 +377,7 @@ class Registry(ModuleType):
             db_name = str(db_name)
             self = cls.instances.get(db_name)    # Only one per database
             if not self:
-                wrapped = manager.get(db_name)
+                wrapped = manager_get(db_name)
                 self = super(Registry, cls).__new__(cls, db_name)
                 self.db_name = db_name
                 self.wrapped = wrapped
