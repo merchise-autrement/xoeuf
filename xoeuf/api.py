@@ -73,7 +73,9 @@ def take_one(func, index=0, warn=True):
 
     '''
     from functools import wraps
-    from xoutil import logger
+    import logging
+    logger = logging.getLogger(__name__)
+    del logging
 
     @_odoo_api.multi
     @wraps(func)
