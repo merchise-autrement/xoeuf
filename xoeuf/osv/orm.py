@@ -66,21 +66,6 @@ def get_modelname(model):
     :param model: Either an object (i.e an instance bound to some database) or
                   the any of the it's class definitions.
 
-    Examples::
-
-        from xoeuf.pool import database
-
-        # Lets assume that you have installed the accounting module in this
-        # database.
-
-        get_modelname(database.models.account_account)
-        'account.account'
-
-        # But in your add-on you'd probably want to access some other module
-
-        from openerp.addons.account.account import account_fiscalyear
-        get_modelname(account_fiscalyear)
-        'account.fiscalyear'
 
     '''
     from xoutil.eight import string_types
