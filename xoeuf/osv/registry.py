@@ -155,7 +155,8 @@ class ModelsManager(MutableMapping, SmartDictMixin):
      * An open dictionary allowing access to keys as attributes.
 
     '''
-    from xoutil.collections import opendict as __search_result_type__  # noqa
+    from xoutil.collections import opendict as __search_result_type__  # noqa:
+    # see the the SmartDictMixin.search method
 
     def __new__(cls, registry):
         '''Create, or return if already exists, a instance of a models manager.
@@ -458,8 +459,7 @@ class Registry(ModuleType):
             from openerp.api import Environment
         except ImportError:
             from odoo.api import Environment
-        from xoeuf.osv.improve import (fix_documentations,
-                                       integrate_extensions)
+        from xoeuf.osv.improve import fix_documentations, integrate_extensions
         CURSOR_NAME = str('cr')
         ROOT_USER_NAME = str('uid')
         MODELS_NAME = str('models')
@@ -520,7 +520,6 @@ class Registry(ModuleType):
     @aliases('db')
     @property
     def connection(self):
-        '''In OpenERP is named "db".'''
         res = getattr(self.wrapped, 'db', None)
         if not res:
             res = getattr(self.wrapped, '_db')
