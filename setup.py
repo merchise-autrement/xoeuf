@@ -61,6 +61,7 @@ setup(name=project_name,
       zip_safe=False,
       install_requires=[
           # -*- Extra requirements: -*-
+          'odoo>=8.0,<11.0',
           'xoutil>=1.7.1.dev20151028,<1.8',
           'ipython',
           'raven>=5.8.0',
