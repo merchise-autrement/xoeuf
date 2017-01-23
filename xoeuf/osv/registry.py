@@ -592,6 +592,10 @@ class Registry(ModuleType):
         return self._check_context(res)
 
     def _check_context(self, ctx):
+        try:
+            from odoo import api
+        except ImportError:
+            from openerp import api
         # TODO: catch these values
         if 'lang' not in ctx:
             import os
@@ -599,15 +603,14 @@ class Registry(ModuleType):
             lang = os.environ.get('LANG', DEFAULT).split('.')[0]
             # Environment language could not be installed.
             # So, check and obtain 'lang' from DB
-            langs = self.models.res_lang
             with self() as cr:
-                uid = self.uid
-                ok = langs.search(cr, uid, [('code', '=', lang)])
+                Lang = api.Environment(cr, self.uid, {})['res.lang']
+                ok = Lang.search([('code', '=', lang)])
                 if not ok:
                     predicate = [('code', 'like', '%s%%' % lang[:2])]
-                    ids = langs.search(cr, uid, predicate, limit=1)
-                    if ids:
-                        lang = langs.browse(cr, uid, ids[0]).code
+                    langs = Lang.search(predicate, limit=1)
+                    if langs:
+                        lang = langs.code
                     else:
                         lang = DEFAULT
                 ctx['lang'] = lang
