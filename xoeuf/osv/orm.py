@@ -26,7 +26,10 @@ def guess_id(which, attr='id'):
     TypeError.
 
     '''
-    from openerp.osv.orm import browse_record
+    try:
+        from openerp.osv.orm import browse_record
+    except ImportError:
+        from odoo.osv.orm import browse_record
     from xoutil.collections import Mapping
     from xoutil.eight import integer_types
     if isinstance(which, integer_types):
@@ -36,7 +39,7 @@ def guess_id(which, attr='id'):
         get = smart_getter(which, strict=True)
         return get(attr)
     else:
-        raise TypeError
+        raise TypeError('Object %r of invalid type' % which)
 
 
 def store_identity(self, cr, uid, ids, context=None):
