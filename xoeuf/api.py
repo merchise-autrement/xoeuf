@@ -39,11 +39,8 @@ def contextual(func):
     '''Decorate a function to run within a proper Odoo environment.
 
     You should decorate every function that represents an "entry point" for
-    working with the ORM.  If Odoo is not installed, the original function is
-    returned unchanged.  However, if Odoo is present a proper
-    `Environment`:class: is entered upon calling the function.
-
-    Every command in the `xoeuf.cli`:mod: is automatically decorated.
+    working with the ORM.  A proper `Environment`:class: is entered upon
+    calling the function.
 
     '''
     def inner(*args, **kwargs):
