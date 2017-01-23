@@ -616,19 +616,6 @@ class Registry(ModuleType):
             ctx['tz'] = read('/etc/timezone').strip() or 'America/Havana'
         return ctx
 
-    @staticmethod
-    def _update_module():
-        '''Use the same mechanism as "openerp.cli.server.preload_registry" for
-        determining when to argument "update_module" must be True or False.
-
-        '''
-        # TODO: Find out if is it needed
-        try:
-            from openerp.tools import config
-        except ImportError:
-            from odoo.tools import config
-        return bool(config['init'] or config['update'])
-
     def __dir__(self):
         return list({name for name in self.__dict__.keys() + dir(type(self))
                      if not name.startswith('_')})
