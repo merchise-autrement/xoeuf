@@ -48,10 +48,16 @@ except ImportError:
 def _valid_model_base(model):
     '''Check if a model has a right base class.'''
     try:
-        from openerp.models import BaseModel
-    except ImportError:
         from odoo.models import BaseModel
-    if not isinstance(model, BaseModel):
+        from odoo.models import MetaModel
+    except ImportError:
+        from openerp.models import BaseModel
+
+        class MetaModel(type):
+            # impossible metaclass to avoid Odoo 8 meta-objects from being
+            # leaked.
+            pass
+    if not isinstance(model, (BaseModel, MetaModel)):
         from inspect import getmro
         from xoutil.eight import typeof
         msg = 'Inappropriate type "%s" for model value!\tMRO=%s'
