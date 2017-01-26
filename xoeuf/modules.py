@@ -146,8 +146,7 @@ def _get_registry(db_name):
     from xoutil.eight import string_types
     from xoeuf.osv.registry import Registry
     if isinstance(db_name, string_types):
-        from importlib import import_module
-        db = import_module('xoeuf.pool.%s' % db_name)
+        db = Registry(db_name)
     elif isinstance(db_name, Registry):
         db = db_name
     else:
