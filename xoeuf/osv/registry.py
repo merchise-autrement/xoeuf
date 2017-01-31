@@ -155,7 +155,8 @@ class ModelsManager(MutableMapping, SmartDictMixin):
      * An open dictionary allowing access to keys as attributes.
 
     '''
-    from xoutil.collections import opendict as __search_result_type__  # noqa
+    from xoutil.collections import opendict as __search_result_type__  # noqa:
+    # see the the SmartDictMixin.search method
 
     def __new__(cls, registry):
         '''Create, or return if already exists, a instance of a models manager.
@@ -458,8 +459,7 @@ class Registry(ModuleType):
             from openerp.api import Environment
         except ImportError:
             from odoo.api import Environment
-        from xoeuf.osv.improve import (fix_documentations,
-                                       integrate_extensions)
+        from xoeuf.osv.improve import fix_documentations, integrate_extensions
         CURSOR_NAME = str('cr')
         ROOT_USER_NAME = str('uid')
         MODELS_NAME = str('models')
@@ -520,7 +520,6 @@ class Registry(ModuleType):
     @aliases('db')
     @property
     def connection(self):
-        '''In OpenERP is named "db".'''
         res = getattr(self.wrapped, 'db', None)
         if not res:
             res = getattr(self.wrapped, '_db')
@@ -592,6 +591,10 @@ class Registry(ModuleType):
         return self._check_context(res)
 
     def _check_context(self, ctx):
+        try:
+            from odoo import api
+        except ImportError:
+            from openerp import api
         # TODO: catch these values
         if 'lang' not in ctx:
             import os
@@ -599,15 +602,14 @@ class Registry(ModuleType):
             lang = os.environ.get('LANG', DEFAULT).split('.')[0]
             # Environment language could not be installed.
             # So, check and obtain 'lang' from DB
-            langs = self.models.res_lang
             with self() as cr:
-                uid = self.uid
-                ok = langs.search(cr, uid, [('code', '=', lang)])
+                Lang = api.Environment(cr, self.uid, {})['res.lang']
+                ok = Lang.search([('code', '=', lang)])
                 if not ok:
                     predicate = [('code', 'like', '%s%%' % lang[:2])]
-                    ids = langs.search(cr, uid, predicate, limit=1)
-                    if ids:
-                        lang = langs.browse(cr, uid, ids[0]).code
+                    langs = Lang.search(predicate, limit=1)
+                    if langs:
+                        lang = langs.code
                     else:
                         lang = DEFAULT
                 ctx['lang'] = lang
@@ -616,18 +618,9 @@ class Registry(ModuleType):
             ctx['tz'] = read('/etc/timezone').strip() or 'America/Havana'
         return ctx
 
-    @staticmethod
-    def _update_module():
-        '''Use the same mechanism as "openerp.cli.server.preload_registry" for
-        determining when to argument "update_module" must be True or False.
-
-        '''
-        # TODO: Find out if is it needed
-        try:
-            from openerp.tools import config
-        except ImportError:
-            from odoo.tools import config
-        return bool(config['init'] or config['update'])
+    def __dir__(self):
+        return list({name for name in self.__dict__.keys() + dir(type(self))
+                     if not name.startswith('_')})
 
 
 # Discarding not neeeded globals

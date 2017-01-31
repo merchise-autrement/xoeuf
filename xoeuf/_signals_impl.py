@@ -19,7 +19,10 @@ from __future__ import (division as _py3_division,
                         print_function as _py3_print,
                         absolute_import as _py3_abs_import)
 
-from xoutil import logger
+import logging
+logger = logging.getLogger(__name__)
+del logging
+
 try:
     from openerp import api, models
 except ImportError:  # Odoo 10+
@@ -399,7 +402,6 @@ super_write = models.BaseModel.write
 super_unlink = models.BaseModel.unlink
 
 
-# TODO: change to new api.
 @api.model
 def fields_view_get(self, view_id=None, view_type='form',
                     toolbar=False, submenu=False):

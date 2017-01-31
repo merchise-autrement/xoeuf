@@ -192,8 +192,13 @@ class Mailgate(Command):
 
     @classmethod
     def database_factory(cls, database):
-        from xoeuf.osv.registry import Registry
-        return Registry(database)
+        try:
+            from odoo.modules.registry import Registry
+            get = Registry
+        except ImportError:
+            from openerp.modules.registry import RegistryManager
+            get = RegistryManager.get
+        return get(database)
 
     @staticmethod
     def get_raw_message(timeout=0, raises=True):
@@ -255,7 +260,7 @@ class Mailgate(Command):
             from odoo import SUPERUSER_ID
         default_model = options.default_model
         db = self.database_factory(options.database)
-        with db(transactional=True) as cr:
+        with db.cursor() as cr:
             obj = db.models.mail_thread
             obj.message_process(
                 cr, SUPERUSER_ID, default_model,

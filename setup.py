@@ -2,8 +2,9 @@
 # -*- encoding: utf-8 -*-
 # ---------------------------------------------------------------------
 # setup
-#----------------------------------------------------------------------
-# Copyright (c) 2013-2017 Merchise Autrement [~º/~] and Contributors
+# ---------------------------------------------------------------------
+# Copyright (c) 2015-2017 Merchise and Contributors
+# Copyright (c) 2013, 2014 Merchise Autrement [~º/~] and Contributors
 # All rights reserved.
 #
 # This is free software; you can redistribute it and/or modify it under the
@@ -51,7 +52,7 @@ setup(name=project_name,
           'Development Status :: 4 - Beta',
       ],
       keywords='openerp open-object server library',
-      author='Merchise Autrement',
+      author='Merchise Autrement [~º/~]',
       author_email='',
       url='http://www.merchise.org/',
       license='GPL',
@@ -60,6 +61,7 @@ setup(name=project_name,
       zip_safe=False,
       install_requires=[
           # -*- Extra requirements: -*-
+          'odoo>=8.0,<11.0',
           'xoutil>=1.7.1.dev20151028,<1.8',
           'ipython',
           'raven>=5.8.0',

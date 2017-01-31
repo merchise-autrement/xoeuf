@@ -3,7 +3,7 @@
 # ---------------------------------------------------------------------
 # xoeuf.api
 # ---------------------------------------------------------------------
-# Copyright (c) 2015-2016 Merchise and Contributors
+# Copyright (c) 2015-2017 Merchise and Contributors
 # All rights reserved.
 #
 # This is free software; you can redistribute it and/or modify it under the
@@ -26,45 +26,27 @@ from __future__ import (division as _py3_division,
 from xoutil.decorator.meta import decorator
 
 try:
-    from openerp.api import guess
+    from openerp import api as _odoo_api
 except ImportError:
-    # Try Odoo 10+
-    from odoo.api import guess
+    from odoo import api as _odoo_api
 
-try:
-    from openerp.api import Environment
-except ImportError:
-    # Try Odoo 10+
-    from odoo.api import Environment
+from xoutil.modules import copy_members as _copy_python_module_members
+this = _copy_python_module_members(_odoo_api)
+del _copy_python_module_members
 
 
 def contextual(func):
     '''Decorate a function to run within a proper Odoo environment.
 
     You should decorate every function that represents an "entry point" for
-    working with the ORM.  If Odoo is not installed, the original function is
-    returned unchanged.  However, if Odoo is present a proper
-    `Environment`:class: is entered upon calling the function.
-
-    Every command in the `xoeuf.cli`:mod: is automatically decorated.
+    working with the ORM.  A proper `Environment`:class: is entered upon
+    calling the function.
 
     '''
     def inner(*args, **kwargs):
-        with Environment.manage():
+        with _odoo_api.Environment.manage():
             return func(*args, **kwargs)
     return inner
-
-
-try:
-    from openerp.api import v8, v7  # noqa
-except ImportError:
-    from odoo.api import v8, v7  # noqa
-
-try:
-    from openerp import api as _odoo_api
-except ImportError:  # Odoo 10+
-    from odoo import api as _odoo_api
-multi = _odoo_api.multi
 
 
 @decorator
@@ -88,9 +70,11 @@ def take_one(func, index=0, warn=True):
 
     '''
     from functools import wraps
-    from xoutil import logger
+    import logging
+    logger = logging.getLogger(__name__)
+    del logging
 
-    @multi
+    @_odoo_api.multi
     @wraps(func)
     def inner(self):
         if self[index] != self:
