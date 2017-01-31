@@ -255,17 +255,18 @@ class Mailgate(Command):
 
     def send_immediate(self, options, message):
         try:
-            from openerp import SUPERUSER_ID
+            from openerp import SUPERUSER_ID, api
         except ImportError:
-            from odoo import SUPERUSER_ID
+            from odoo import SUPERUSER_ID, api
         default_model = options.default_model
         db = self.database_factory(options.database)
         with db.cursor() as cr:
-            obj = db.models.mail_thread
-            obj.message_process(
-                cr, SUPERUSER_ID, default_model,
-                message, save_original=options.save_original,
-                strip_attachments=options.strip_attachments)
+            env = api.Environment(cr, SUPERUSER_ID, {})
+            obj = env['mail.thread']
+            obj.message_process(default_model,
+                                message,
+                                save_original=options.save_original,
+                                strip_attachments=options.strip_attachments)
 
     def send_deferred(self, options, message):
         try:

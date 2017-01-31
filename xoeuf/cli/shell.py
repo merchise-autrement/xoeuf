@@ -38,4 +38,4 @@ class Base(object):
 for alias in ('shell', 'ishell', 'python', 'ipython'):
     class aliased(object):
         command_cli_name = alias
-    new_class(alias, (aliased, Base, Command))
+    globals()[alias] = new_class(alias, (aliased, Base, Command))
