@@ -192,8 +192,13 @@ class Mailgate(Command):
 
     @classmethod
     def database_factory(cls, database):
-        from xoeuf.osv.registry import Registry
-        return Registry(database)
+        try:
+            from odoo.modules.registry import Registry
+            get = Registry
+        except ImportError:
+            from openerp.modules.registry import RegistryManager
+            get = RegistryManager.get
+        return get(database)
 
     @staticmethod
     def get_raw_message(timeout=0, raises=True):
@@ -250,17 +255,18 @@ class Mailgate(Command):
 
     def send_immediate(self, options, message):
         try:
-            from openerp import SUPERUSER_ID
+            from openerp import SUPERUSER_ID, api
         except ImportError:
-            from odoo import SUPERUSER_ID
+            from odoo import SUPERUSER_ID, api
         default_model = options.default_model
         db = self.database_factory(options.database)
-        with db(transactional=True) as cr:
-            obj = db.models.mail_thread
-            obj.message_process(
-                cr, SUPERUSER_ID, default_model,
-                message, save_original=options.save_original,
-                strip_attachments=options.strip_attachments)
+        with db.cursor() as cr:
+            env = api.Environment(cr, SUPERUSER_ID, {})
+            obj = env['mail.thread']
+            obj.message_process(default_model,
+                                message,
+                                save_original=options.save_original,
+                                strip_attachments=options.strip_attachments)
 
     def send_deferred(self, options, message):
         try:
