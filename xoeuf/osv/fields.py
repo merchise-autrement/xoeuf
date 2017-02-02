@@ -28,7 +28,6 @@ from openerp.release import version_info as ODOO_VERSION_INFO
 if ODOO_VERSION_INFO < (10, 0):
     from openerp import fields
 
-
     class LocalizedDatetime(fields.Datetime):
         '''A field for localized datetimes.
 
@@ -123,7 +122,6 @@ if ODOO_VERSION_INFO < (10, 0):
 
 else:
     from odoo import fields
-
 
     class LocalizedDatetime(fields.Datetime):
         '''A field for localized datetimes.
