@@ -1,37 +1,33 @@
 #!/usr/bin/env python
-# -*- encoding: utf-8 -*-
+# -*- coding: utf-8 -*-
 # ---------------------------------------------------------------------
-# xouef.osv.fields
+# _dt10
 # ---------------------------------------------------------------------
-# Copyright (c) 2015-2017 Merchise Autrement [~º/~] and Contributors
+# Copyright (c) 2017 Merchise Autrement [~º/~] and Contributors
 # All rights reserved.
 #
 # This is free software; you can redistribute it and/or modify it under the
 # terms of the LICENCE attached (see LICENCE file) in the distribution
 # package.
 #
-# Created on 2015-07-14
-
-'''(Old fashioned) extensions to fields in the ORM.
-
-'''
+# Created on 2017-02-02
 
 from __future__ import (division as _py3_division,
                         print_function as _py3_print,
                         absolute_import as _py3_abs_import)
 
 
-from xoutil.deprecation import deprecated
-
-from openerp.osv import fields as _v7_fields
+from odoo.release import version_info as ODOO_VERSION_INFO
+assert ODOO_VERSION_INFO >= (10, 0)
+del ODOO_VERSION_INFO
 
 import pytz
+from odoo import fields
+
 from xoeuf.tools import localtime_as_remotetime
-import xoeuf.fields as _future
 
 
-@deprecated(_future.LocalizedDatetime)
-class localized_datetime(_v7_fields.function):
+class LocalizedDatetime(fields.Datetime):
     '''A field for localized datetimes.
 
     Localized datetimes are actually a functional field that takes two
@@ -54,52 +50,67 @@ class localized_datetime(_v7_fields.function):
 
     '''
 
-    def _ldt_write(self, obj, cr, uid, ids, field, val, args, context=None):
-        tzone_field = self.__tzone_field
-        dt_field = self.__dt_field
-        tz = context.get('tz', None)
+    _slots = {
+        'dt_field': '',
+        'tzone_field': '',
+    }
+
+    def __init__(self, dt_field=None, tzone_field=None, **kwargs):
+        # Include store=False if is not include in kwargs
+        self.dt_field = dt_field
+        self.tzone_field = tzone_field
+        kwargs = dict(dict(store=False), **kwargs)
+        super(LocalizedDatetime, self).__init__(**kwargs)
+        pass
+
+    def setup_full(self, env):
+        super(LocalizedDatetime, self).setup_full(env)
+        self.depends = tuple(
+            [f for f in (self.dt_field, self.tzone_field) if f]
+        )
+        self.compute = self._compute
+        if not self.readonly:
+            self.inverse = self._inverse
+        self.search = self._search
+
+    def _compute(self, records):
+        tzone_field = self.tzone_field
+        dt_field = self.dt_field
+        tz = records._context.get('tz', None)
         if not tz:
-            user = obj.pool['res.users'].browse(cr, uid, uid, context=context)
+            user = self.env.user
             tz = pytz.timezone(user.tz) if user.tz else pytz.UTC
         else:
             tz = pytz.timezone(tz)
-        if isinstance(ids, (int, long)):
-            ids = [ids]
-        for row in obj.browse(cr, uid, ids, context=context):
-            tzone = getattr(row, tzone_field)
+        for item in records:
+            tzone = getattr(item, tzone_field)
             if not tzone:
                 tzone = pytz.UTC
             else:
                 tzone = pytz.timezone(tzone)
+            dt = getattr(item, dt_field)
             # Compute the datetime in users timezone, then force to it the
             # desired TZ and back to UTC.
-            if val:
-                val = localtime_as_remotetime(val, tz, tzone)
-            obj.write(
-                cr, uid, [row.id],
-                {dt_field: val},
-                context=context
-            )
+            if dt:
+                dt = localtime_as_remotetime(dt, tz, tzone)
+            setattr(item, self.name, dt)
 
-    def _ldt_read(self, obj, cr, uid, ids, field, arg, context=None):
-        tzone_field = self.__tzone_field
-        dt_field = self.__dt_field
-        tz = context.get('tz', None)
+    def _inverse(self, records):
+        tzone_field = self.tzone_field
+        dt_field = self.dt_field
+        tz = records._context.get('tz', None)
         if not tz:
-            user = obj.pool['res.users'].browse(cr, uid, uid, context=context)
+            user = self.env.user
             tz = pytz.timezone(user.tz) if user.tz else pytz.UTC
         else:
             tz = pytz.timezone(tz)
-        if isinstance(ids, (int, long)):
-            ids = [ids]
-        res = {}
-        for row in obj.browse(cr, uid, ids, context=context):
-            tzone = getattr(row, tzone_field)
+        for item in records:
+            tzone = getattr(item, tzone_field)
             if not tzone:
                 tzone = pytz.UTC
             else:
                 tzone = pytz.timezone(tzone)
-            dt = getattr(row, dt_field)
+            dt = getattr(item, self.name)
             # Compute the datetime in the desired timezone, then extract
             # all datetime components but the TZ and localize it to the
             # users TZ and convert it back to UTC... This makes the UI to
@@ -107,16 +118,8 @@ class localized_datetime(_v7_fields.function):
             # timezone.
             if dt:
                 dt = localtime_as_remotetime(dt, tzone, tz)
-            res[row.id] = dt
-        return res
+            setattr(item, dt_field, dt)
 
-    def __init__(self, dt_field, tzone_field, **kwargs):
-        self.__dt_field = dt_field
-        self.__tzone_field = tzone_field
-        super(localized_datetime, self).__init__(
-            self._ldt_read, None, fnct_inv=self._ldt_write, store=False,
-            **kwargs
-        )
-
-
-del _future, deprecated
+    def _search(self, records, operator, value):
+        # TODO: localize value.
+        return [(self.dt_field, operator, value)]
