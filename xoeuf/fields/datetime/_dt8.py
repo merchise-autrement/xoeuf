@@ -50,8 +50,8 @@ class LocalizedDatetime(fields.Datetime):
     '''
 
     _slots = {
-        'dt_field': '',
-        'tzone_field': '',
+        '__dt_field': '',
+        '__tzone_field': '',
     }
 
     def compute(self, records):
@@ -107,7 +107,7 @@ class LocalizedDatetime(fields.Datetime):
 
     def setup(self, env):
         if not self.setup_done:
-            self.depends = (self.qty_field, self.uom_field)
+            self.depends = (self.__dt_field, self.__tznone_field)
         super(LocalizedDatetime, self).setup(env)
 
     def __init__(self, dt_field, tzone_field, **kwargs):
