@@ -78,7 +78,7 @@ class LocalizedDatetime(fields.Datetime):
         dt_field = self.dt_field
         tz = records._context.get('tz', None)
         if not tz:
-            user = self.env.user
+            user = records.env.user
             tz = pytz.timezone(user.tz) if user.tz else pytz.UTC
         else:
             tz = pytz.timezone(tz)
@@ -100,7 +100,7 @@ class LocalizedDatetime(fields.Datetime):
         dt_field = self.dt_field
         tz = records._context.get('tz', None)
         if not tz:
-            user = self.env.user
+            user = records.env.user
             tz = pytz.timezone(user.tz) if user.tz else pytz.UTC
         else:
             tz = pytz.timezone(tz)
