@@ -144,10 +144,14 @@ def patch_modules():
 def _get_registry(db_name):
     '''Helper method to get the registry for a `db_name`.'''
     from xoutil.eight import string_types
-    from xoeuf.osv.registry import Registry
+    try:
+        from odoo.modules.registry import Registry
+        get_registry = Registry
+    except ImportError:
+        from openerp.modules.registry import Registry, RegistryManager
+        get_registry = RegistryManager.get
     if isinstance(db_name, string_types):
-        from importlib import import_module
-        db = import_module('xoeuf.pool.%s' % db_name)
+        db = get_registry(db_name)
     elif isinstance(db_name, Registry):
         db = db_name
     else:
@@ -178,7 +182,7 @@ def get_dangling_modules(db):
         from odoo.modules.module import get_modules
     from xoeuf.osv.model_extensions import search_read
     registry = _get_registry(db)
-    with registry() as cr:
+    with registry.cursor() as cr:
         ir_modules = registry['ir.module.module']
         available = get_modules()
         dangling = search_read(ir_modules, cr, SUPERUSER_ID,
@@ -200,7 +204,7 @@ def mark_dangling_modules(db):
         from odoo import SUPERUSER_ID
     from xoeuf.osv.model_extensions import get_writer
     registry = _get_registry(db)
-    with registry() as cr:
+    with registry.cursor() as cr:
         ir_mods = registry['ir.module.module']
         dangling = get_dangling_modules(registry)  # reuse the registry
         dangling_ids = [module['id'] for module in dangling]

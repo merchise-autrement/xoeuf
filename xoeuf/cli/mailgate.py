@@ -339,6 +339,9 @@ class Mailgate(Command):
             self.send_error_notification(
                 safe_decode(message) if message else 'No message provided'
             )
+            if sys.stdout.isatty():
+                import traceback
+                traceback.print_exc()
             sys.exit(1)
 
     def read_conffile(self, filename):

@@ -16,8 +16,8 @@
 
 Example usage (in xoeuf' shell)::
 
-    >>> from xoeuf.pool import mercurio as db
-    >>> from xoeuf.models import AccountAccount
+    $ xoeuf shell
+    >>> from xoeuf.models.proxy import AccountAccount
 
     # We need a 'self' (and possible cr, uid) in the context of any method
     # call to model.
@@ -26,10 +26,12 @@ Example usage (in xoeuf' shell)::
     ...
     AttributeError: search
 
-    >>> db.salt_shell(_='mail.mail')  # inject a 'self'
 
-    >>> AccountAccount.search([], limit=1)  # doctest: +ELLIPSIS
-    account.account(...)
+    $ xoeuf shell -d somedb
+    >>> from xoeuf.models.proxy import ResUsers as User
+
+    >>> User.search([], limit=1)  # doctest: +ELLIPSIS
+    res.users(...)
 
 
 '''
