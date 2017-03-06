@@ -30,14 +30,27 @@ except ImportError:
 # TODO: Allow to change "openerp.tools.config" per context level
 #       Implement for this "push" and "pop" methods in "xoeuf.tools.config"
 class TransactionManager(Context):
-    '''Xœuf Execution Context that manage an OpenERP connection: when enter the
-    context a database cursor is obtained, when exit the context the
-    transaction is managed.
+    '''Manages an Odoo environment.
 
-    First level contexts are always transactional.
+    There's some overlap between `odoo.api.Environment`:class: and this class.
+
+    Usage::
+
+       >>> with TransactionManager(registry) as tm:
+       ...    tm['res.users'].search([])
+
+    Notes:
+
+    - You may pass the keyword 'managed' to False to avoid entering a
+      transaction.
+
+      First level contexts are always managed (regardless of the value of
+      `managed`).
+
+    - The transaction manager yields itself (``tm`` in the example above).
+      The underlying Odoo environment is automatically proxied.
 
     '''
-
     __slots__ = slist('_registry', '_wrapped')
 
     default_context = {}    # TODO: check its value
@@ -57,25 +70,27 @@ class TransactionManager(Context):
         super(TransactionManager, self).__init__(registry.context_name,
                                                  **kwargs)
 
+    def __getitem__(self, key):
+        return self._wrapped[key]
+
+    def __getattr__(self, attr):
+        return getattr(self._wrapped, attr)
+
     def __enter__(self):
         ctx = super(TransactionManager, self).__enter__()
         assert ctx is self
         if not self._wrapped:
             assert self.count == 1
-            self._wrapped = self._registry.cursor
+            self._wrapped = self._registry.env
             self._wrapped._wrapper = self
-        return self._wrapped
+            self._wrapped.cr.__enter__()
+        return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         if self._wrapped:
-            # FIXME:  [med]{?} Documentation says reg(transactional=True), but
-            #                  this checks for `managed`...
             managed = self.get('managed', True)
             if managed and self.count == 1:
-                if exc_type or exc_val:
-                    self._wrapped.rollback()
-                else:
-                    self._wrapped.commit()
-                self._wrapped.close()
+                self._wrapped.cr.__exit__(exc_type, exc_val, exc_tb)
+                self._wrapped = None
         return super(TransactionManager, self).__exit__(exc_type, exc_val,
                                                         exc_tb)

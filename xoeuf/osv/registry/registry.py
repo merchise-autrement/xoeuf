@@ -249,7 +249,7 @@ class Registry(ModuleType):
             lang = os.environ.get('LANG', DEFAULT).split('.')[0]
             # Environment language could not be installed.
             # So, check and obtain 'lang' from DB
-            with self() as cr:
+            with self.cr as cr:
                 Lang = api.Environment(cr, self.uid, {})['res.lang']
                 ok = Lang.search([('code', '=', lang)])
                 if not ok:
