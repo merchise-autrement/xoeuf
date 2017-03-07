@@ -67,9 +67,11 @@ class LocalizedDatetime(fields.Datetime):
             **kwargs
         )
         super(LocalizedDatetime, self).__init__(**kwargs)
-        pass
 
     def _setup_regular_full(self, env):
+        # This is to support the case where ModelB `_inherits` from a ModelA
+        # with a localized datetime.  In such a case, we don't override the
+        # compute method.
         super(LocalizedDatetime, self)._setup_regular_full(env)
         self.depends = tuple(
             [f for f in (self.dt_field, self.tzone_field) if f]
