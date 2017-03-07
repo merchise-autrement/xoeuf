@@ -46,7 +46,10 @@ def integrate_extensions():
 
     '''
     from types import FunctionType
-    from openerp.models import BaseModel
+    try:
+        from odoo.models import BaseModel
+    except ImportError:
+        from openerp.models import BaseModel
     from xoeuf.osv import model_extensions
     from xoeuf.api import guess as adapt
 

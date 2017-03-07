@@ -85,8 +85,17 @@ class Secure(Command):
 
     @classmethod
     def database_factory(cls, database):
-        from xoeuf.osv.registry import Registry
-        return Registry(database)
+        try:
+            from odoo.modules.registry import Registry
+            from odoo import api, SUPERUSER_ID
+            get = Registry.get
+        except ImportError:
+            from openerp.modules.registry import RegistryManager
+            from openerp import api, SUPERUSER_ID
+            get = RegistryManager.get
+        db = get(database)
+        env = api.Environment(db.cursor(), SUPERUSER_ID, {})
+        return env['res.users']
 
     def run(self, args=None):
         from xoeuf.security import reset_all_passwords
@@ -96,8 +105,8 @@ class Secure(Command):
         level = options.security_level
         if conffile:
             self.read_conffile(conffile)
-        db = options.database
-        reset_all_passwords(db, security_level=level)
+        self = options.database
+        reset_all_passwords(self, security_level=level)
 
     def read_conffile(self, filename):
         import os

@@ -25,6 +25,9 @@ import pytz
 from odoo import fields
 
 from xoeuf.tools import localtime_as_remotetime
+import logging
+logger = logging.getLogger(__name__)
+del logging
 
 
 class LocalizedDatetime(fields.Datetime):
@@ -59,12 +62,15 @@ class LocalizedDatetime(fields.Datetime):
         # Include store=False if is not include in kwargs
         self.dt_field = dt_field
         self.tzone_field = tzone_field
-        kwargs = dict(dict(store=False), **kwargs)
+        kwargs = dict(
+            dict(store=False, dt_field=dt_field, tzone_field=tzone_field),
+            **kwargs
+        )
         super(LocalizedDatetime, self).__init__(**kwargs)
         pass
 
-    def setup_full(self, env):
-        super(LocalizedDatetime, self).setup_full(env)
+    def _setup_regular_full(self, env):
+        super(LocalizedDatetime, self)._setup_regular_full(env)
         self.depends = tuple(
             [f for f in (self.dt_field, self.tzone_field) if f]
         )
@@ -74,51 +80,70 @@ class LocalizedDatetime(fields.Datetime):
         self.search = self._search
 
     def _compute(self, records):
-        tzone_field = self.tzone_field
-        dt_field = self.dt_field
-        tz = records._context.get('tz', None)
-        if not tz:
-            user = self.env.user
-            tz = pytz.timezone(user.tz) if user.tz else pytz.UTC
-        else:
-            tz = pytz.timezone(tz)
-        for item in records:
-            tzone = getattr(item, tzone_field)
-            if not tzone:
-                tzone = pytz.UTC
+        if records:
+            tzone_field = self.tzone_field
+            dt_field = self.dt_field
+            tz = records._context.get('tz', None)
+            if dt_field and tzone_field:
+                if not tz:
+                    user = records.env.user
+                    tz = pytz.timezone(user.tz) if user.tz else pytz.UTC
+                else:
+                    tz = pytz.timezone(tz)
+                for item in records:
+                    tzone = getattr(item, tzone_field)
+                    if not tzone:
+                        tzone = pytz.UTC
+                    else:
+                        tzone = pytz.timezone(tzone)
+                    dt = getattr(item, dt_field)
+                    # Compute the datetime in users timezone,
+                    # then force to it the desired TZ and back to UTC.
+                    if dt:
+                        dt = localtime_as_remotetime(dt, tz, tzone)
+                    setattr(item, self.name, dt)
             else:
-                tzone = pytz.timezone(tzone)
-            dt = getattr(item, dt_field)
-            # Compute the datetime in users timezone, then force to it the
-            # desired TZ and back to UTC.
-            if dt:
-                dt = localtime_as_remotetime(dt, tz, tzone)
-            setattr(item, self.name, dt)
+                # In some cases. Eg. model that inherit (in prototype mode)
+                # from other model where are LocalizedDateTime field defined.
+                logger.error(
+                    "Getting value from a non configured localized "
+                    "datetime field %s on records %r",
+                    self.name, records
+                )
 
     def _inverse(self, records):
-        tzone_field = self.tzone_field
-        dt_field = self.dt_field
-        tz = records._context.get('tz', None)
-        if not tz:
-            user = self.env.user
-            tz = pytz.timezone(user.tz) if user.tz else pytz.UTC
-        else:
-            tz = pytz.timezone(tz)
-        for item in records:
-            tzone = getattr(item, tzone_field)
-            if not tzone:
-                tzone = pytz.UTC
+        if records:
+            tzone_field = self.tzone_field
+            dt_field = self.dt_field
+            if dt_field and tzone_field:
+                tz = records._context.get('tz', None)
+                if not tz:
+                    user = records.env.user
+                    tz = pytz.timezone(user.tz) if user.tz else pytz.UTC
+                else:
+                    tz = pytz.timezone(tz)
+                for item in records:
+                    tzone = getattr(item, tzone_field)
+                    if not tzone:
+                        tzone = pytz.UTC
+                    else:
+                        tzone = pytz.timezone(tzone)
+                    dt = getattr(item, self.name)
+                    # Compute the datetime in the desired timezone, then
+                    # extract all datetime components but the TZ and localize
+                    # it to the users TZ and convert it back to UTC...
+                    # This makes the UI to reverse the process and show the
+                    # datetime in the desired timezone.
+                    if dt:
+                        dt = localtime_as_remotetime(dt, tzone, tz)
+                    setattr(item, dt_field, dt)
             else:
-                tzone = pytz.timezone(tzone)
-            dt = getattr(item, self.name)
-            # Compute the datetime in the desired timezone, then extract
-            # all datetime components but the TZ and localize it to the
-            # users TZ and convert it back to UTC... This makes the UI to
-            # reverse the process and show the datetime in the desired
-            # timezone.
-            if dt:
-                dt = localtime_as_remotetime(dt, tzone, tz)
-            setattr(item, dt_field, dt)
+                # see comment in _compute method.
+                logger.error(
+                    "Setting value from a non configured localized "
+                    "datetime field %s on records %r",
+                    self.name, records
+                )
 
     def _search(self, records, operator, value):
         # TODO: localize value.
