@@ -50,16 +50,16 @@ class LocalizedDatetime(fields.Datetime):
     '''
 
     _slots = {
-        '__dt_field': '',
-        '__tzone_field': '',
+        'dt_field': None,
+        'tzone_field': None,
     }
 
     def compute(self, records):
-        tzone_field = self.__tzone_field
-        dt_field = self.__dt_field
-        tz = self._context.get('tz', None)
+        tzone_field = self.tzone_field
+        dt_field = self.dt_field
+        tz = records._context.get('tz', None)
         if not tz:
-            user = self.env.user
+            user = records.env.user
             tz = pytz.timezone(user.tz) if user.tz else pytz.UTC
         else:
             tz = pytz.timezone(tz)
@@ -77,11 +77,11 @@ class LocalizedDatetime(fields.Datetime):
             setattr(item, self.name, dt)
 
     def inverse(self, records):
-        tzone_field = self.__tzone_field
-        dt_field = self.__dt_field
-        tz = self._context.get('tz', None)
+        tzone_field = self.tzone_field
+        dt_field = self.dt_field
+        tz = records._context.get('tz', None)
         if not tz:
-            user = self.env.user
+            user = records.env.user
             tz = pytz.timezone(user.tz) if user.tz else pytz.UTC
         else:
             tz = pytz.timezone(tz)
@@ -103,16 +103,20 @@ class LocalizedDatetime(fields.Datetime):
 
     def search(self, records, operator, value):
         # TODO: localize value.
-        return [(self.__dt_field, operator, value)]
+        return [(self.dt_field, operator, value)]
 
     def setup(self, env):
         if not self.setup_done:
-            self.depends = (self.__dt_field, self.__tznone_field)
+            self.depends = tuple(
+                f for f in (self.dt_field, self.tzone_field) if f
+            )
         super(LocalizedDatetime, self).setup(env)
 
-    def __init__(self, dt_field, tzone_field, **kwargs):
-        self.__dt_field = dt_field
-        self.__tzone_field = tzone_field
+    def __init__(self, dt_field=None, tzone_field=None, **kwargs):
+        self.dt_field = dt_field
+        self.tzone_field = tzone_field
         # Include store=False if is not include in kwargs
         kwargs = dict(dict(store=False), **kwargs)
-        super(LocalizedDatetime, self).__init__(**kwargs)
+        super(LocalizedDatetime, self).__init__(
+            dt_field=dt_field, tzone_field=tzone_field, **kwargs
+        )
