@@ -140,4 +140,9 @@ class Base(object):
 for alias in ('shell', 'ishell', 'python', 'ipython'):
     class aliased(object):
         command_cli_name = alias
-    globals()[alias] = new_class(alias, (aliased, Base, Command))
+
+    def exec_body(d):
+        d['__doc__'] = 'A shell for Odoo'
+        return d
+
+    globals()[alias] = new_class(alias, (aliased, Base, Command), exec_body=exec_body)
