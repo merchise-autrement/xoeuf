@@ -77,7 +77,7 @@ class LocalizedDatetime(fields.Datetime):
         # compute method.
         super(LocalizedDatetime, self)._setup_regular_full(env)
         self.depends = tuple(
-            [f for f in (self.dt_field, self.tzone_field) if f]
+            f for f in (self.dt_field, self.tzone_field) if f
         )
         self.compute = self._compute
         if not self.readonly:
