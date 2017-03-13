@@ -105,12 +105,9 @@ class LocalizedDatetime(fields.Datetime):
         # TODO: localize value.
         return [(self.dt_field, operator, value)]
 
-    def setup(self, env):
-        if not self.setup_done:
-            self.depends = tuple(
-                f for f in (self.dt_field, self.tzone_field) if f
-            )
-        super(LocalizedDatetime, self).setup(env)
+    def _setup_regular(self, env):
+        super(LocalizedDatetime, self)._setup_regular(env)
+        self.depends = (self.dt_field, self.tzone_field)
 
     def __init__(self, dt_field=None, tzone_field=None, **kwargs):
         self.dt_field = dt_field
