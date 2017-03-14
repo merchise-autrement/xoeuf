@@ -103,7 +103,7 @@ class LocalizedDatetime(fields.Datetime):
             # Compute the datetime in users timezone,
             # then force to it the desired TZ and back to UTC.
             if dt:
-                dt = localtime_as_remotetime(dt, tz, tzone)
+                dt = localtime_as_remotetime(dt, tzone, tz)
             setattr(item, self.name, dt)
 
     def _inverse(self, records):
@@ -128,7 +128,7 @@ class LocalizedDatetime(fields.Datetime):
             # This makes the UI to reverse the process and show the
             # datetime in the desired timezone.
             if dt:
-                dt = localtime_as_remotetime(dt, tzone, tz)
+                dt = localtime_as_remotetime(dt, tz, tzone)
             setattr(item, dt_field, dt)
 
     def _search(self, records, operator, value):
