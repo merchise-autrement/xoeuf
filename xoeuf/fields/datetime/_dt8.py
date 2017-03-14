@@ -72,7 +72,7 @@ class LocalizedDatetime(fields.Datetime):
             dt = getattr(item, dt_field)
             # Compute the datetime in users timezone, then force to it the
             # desired TZ and back to UTC.
-            if dt:
+            if dt and tz != tzone:
                 dt = localtime_as_remotetime(dt, tzone, tz)
             setattr(item, self.name, dt)
 
@@ -97,7 +97,7 @@ class LocalizedDatetime(fields.Datetime):
             # users TZ and convert it back to UTC... This makes the UI to
             # reverse the process and show the datetime in the desired
             # timezone.
-            if dt:
+            if dt and tz != tzone:
                 dt = localtime_as_remotetime(dt, tz, tzone)
             setattr(item, dt_field, dt)
 
