@@ -85,3 +85,27 @@ def take_one(func, index=0, warn=True):
             self = self[index]
         return func(self)
     return inner
+
+
+def mimic(original):
+    '''Apply the API guess of `original` to the decorated function.
+
+    Usage::
+
+       def f1(self, cr, uid, ids, context=None):
+           # Actually any valid signature
+
+       @api.mimic(f1)
+       def f2(*args, **kwargs):
+           pass
+
+    '''
+    import types
+    method = _odoo_api.guess(original)
+    # Odoo stores the decorator in the _api attribute.  But Odoo 10 only
+    # stores the name of the API method.
+    decorator = method._api
+    if isinstance(decorator, types.FunctionType):
+        return decorator
+    else:
+        return getattr(_odoo_api, decorator)
