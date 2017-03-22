@@ -50,16 +50,16 @@ class LocalizedDatetime(fields.Datetime):
     '''
 
     _slots = {
-        'dt_field': '',
-        'tzone_field': '',
+        'dt_field': None,
+        'tzone_field': None,
     }
 
     def compute(self, records):
-        tzone_field = self.__tzone_field
-        dt_field = self.__dt_field
-        tz = self._context.get('tz', None)
+        tzone_field = self.tzone_field
+        dt_field = self.dt_field
+        tz = records._context.get('tz', None)
         if not tz:
-            user = self.env.user
+            user = records.env.user
             tz = pytz.timezone(user.tz) if user.tz else pytz.UTC
         else:
             tz = pytz.timezone(tz)
@@ -72,16 +72,16 @@ class LocalizedDatetime(fields.Datetime):
             dt = getattr(item, dt_field)
             # Compute the datetime in users timezone, then force to it the
             # desired TZ and back to UTC.
-            if dt:
-                dt = localtime_as_remotetime(dt, tz, tzone)
+            if dt and tz != tzone:
+                dt = localtime_as_remotetime(dt, tzone, tz)
             setattr(item, self.name, dt)
 
     def inverse(self, records):
-        tzone_field = self.__tzone_field
-        dt_field = self.__dt_field
-        tz = self._context.get('tz', None)
+        tzone_field = self.tzone_field
+        dt_field = self.dt_field
+        tz = records._context.get('tz', None)
         if not tz:
-            user = self.env.user
+            user = records.env.user
             tz = pytz.timezone(user.tz) if user.tz else pytz.UTC
         else:
             tz = pytz.timezone(tz)
@@ -97,22 +97,23 @@ class LocalizedDatetime(fields.Datetime):
             # users TZ and convert it back to UTC... This makes the UI to
             # reverse the process and show the datetime in the desired
             # timezone.
-            if dt:
-                dt = localtime_as_remotetime(dt, tzone, tz)
+            if dt and tz != tzone:
+                dt = localtime_as_remotetime(dt, tz, tzone)
             setattr(item, dt_field, dt)
 
     def search(self, records, operator, value):
         # TODO: localize value.
-        return [(self.__dt_field, operator, value)]
+        return [(self.dt_field, operator, value)]
 
-    def setup(self, env):
-        if not self.setup_done:
-            self.depends = (self.qty_field, self.uom_field)
-        super(LocalizedDatetime, self).setup(env)
+    def _setup_regular(self, env):
+        super(LocalizedDatetime, self)._setup_regular(env)
+        self.depends = (self.dt_field, self.tzone_field)
 
-    def __init__(self, dt_field, tzone_field, **kwargs):
-        self.__dt_field = dt_field
-        self.__tzone_field = tzone_field
+    def __init__(self, dt_field=None, tzone_field=None, **kwargs):
+        self.dt_field = dt_field
+        self.tzone_field = tzone_field
         # Include store=False if is not include in kwargs
         kwargs = dict(dict(store=False), **kwargs)
-        super(LocalizedDatetime, self).__init__(**kwargs)
+        super(LocalizedDatetime, self).__init__(
+            dt_field=dt_field, tzone_field=tzone_field, **kwargs
+        )

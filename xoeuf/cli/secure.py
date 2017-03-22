@@ -106,7 +106,8 @@ class Secure(Command):
         if conffile:
             self.read_conffile(conffile)
         self = options.database
-        reset_all_passwords(self, security_level=level)
+        with self.env.cr:
+            reset_all_passwords(self, security_level=level)
 
     def read_conffile(self, filename):
         import os
