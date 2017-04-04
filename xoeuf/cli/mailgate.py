@@ -56,7 +56,10 @@ try:
 except NameError:
     pass
 
-from xoutil.string import safe_encode, safe_decode
+try:
+    from xoutil.future.string import safe_encode, safe_decode
+except ImportError:
+    from xoutil.string import safe_encode, safe_decode
 
 # TODO: This has grown into a monstrous pile of code that needs
 # refactorization.

@@ -22,7 +22,10 @@ from __future__ import (division as _py3_division,
 import logging
 import re
 
-from xoutil.functools import lru_cache
+try:
+    from xoutil.future.functools import lru_cache
+except ImportError:
+    from xoutil.functools import lru_cache
 from xoutil.modules import customize
 from xoutil.modules import modulemethod
 

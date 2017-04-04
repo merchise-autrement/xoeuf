@@ -26,7 +26,10 @@ class _BaseWriter(object):
 
     '''
     def __init__(self, model):
-        from xoutil.collections import StackedDict
+        try:
+            from xoutil.future.collections import StackedDict
+        except ImportError:
+            from xoutil.collections import StackedDict
         self.model = model
         self._commands = StackedDict()
         self.result = None
