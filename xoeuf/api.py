@@ -50,7 +50,7 @@ def contextual(func):
 
 
 @decorator
-def take_one(func, index=0, warn=True):
+def take_one(func, index=0, warn=True, strict=False):
     '''A weaker version of `api.one`.
 
     The decorated method will receive a recordset with a single record
@@ -66,6 +66,11 @@ def take_one(func, index=0, warn=True):
     If `warn` is True and more than one record is in the record set, a
     warning will be issued.
 
+    If `strict` is True and there's more than one record (or none), raise a
+    ValueError.
+
+    .. note:: Odoo's ``ensure_one()`` raises another kind of error.
+
     If the given recordset has no `index`, raise an IndexError.
 
     '''
@@ -79,7 +84,11 @@ def take_one(func, index=0, warn=True):
     def inner(self):
         if self[index] != self:
             # More than one item was in the recordset.
-            if warn:
+            if strict:
+                raise ValueError(
+                    'More than one record for function %s' % func.__name__
+                )
+            elif warn:
                 logger.warn('More than one record for function %s',
                             func, extra=self)
             self = self[index]
