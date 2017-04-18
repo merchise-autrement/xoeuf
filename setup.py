@@ -60,13 +60,14 @@ setup(name=project_name,
       include_package_data=True,
       zip_safe=False,
       install_requires=[
-          # -*- Extra requirements: -*-
-          'odoo>=8.0,<11.0',
           'xoutil>=1.7.1.dev20151028,<1.8',
           'ipython',
           'raven>=5.8.0',
           'raven-sanitize-openerp',
       ],
+      extra_requires={
+          'odoo': ['odoo==8.0,==10.0', ],
+      },
       entry_points="""
       [console_scripts]
       xoeuf = xoeuf.cli.server:server
