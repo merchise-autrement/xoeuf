@@ -100,8 +100,6 @@ class ModelProxy(ModuleType, _proxy.ModelProxy):
         _proxy.ModelProxy.__init__(self, name)
 
 
-UPPERS = re.compile('[A-Z]')
-
 __path__ = [splitext(__file__)[0]]
 
 

@@ -31,7 +31,11 @@ except ImportError:
     from openerp.tools import config
 
 from xoeuf.api import contextual
-from xoutil.eight.types import new_class
+try:
+    from xoutil.future.types import new_class
+except ImportError:
+    from xoutil.eight.types import new_class
+
 
 from . import Command
 

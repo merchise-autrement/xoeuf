@@ -36,7 +36,10 @@ try:
 except ImportError:
     from odoo import models
 from xoutil.eight.meta import metaclass
-from xoutil.eight.types import SimpleNamespace
+try:
+    from xoutil.future.types import SimpleNamespace
+except ImportError:
+    from xoutil.eight.types import SimpleNamespace
 
 from xoeuf.osv.orm import get_modelname
 from . import _proxy

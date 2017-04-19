@@ -27,10 +27,13 @@ def guess_id(which, attr='id'):
 
     '''
     try:
-        from openerp.osv.orm import browse_record
-    except ImportError:
         from odoo.osv.orm import browse_record
-    from xoutil.collections import Mapping
+    except ImportError:
+        from openerp.osv.orm import browse_record
+    try:
+        from xoutil.future.collections import Mapping
+    except ImportError:
+        from xoutil.collections import Mapping
     from xoutil.eight import integer_types
     if isinstance(which, integer_types):
         return which

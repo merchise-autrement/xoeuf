@@ -40,7 +40,7 @@ utc = pytz.UTC
 _SVR_DATETIME_FMT2 = _SVR_DATETIME_FMT + '.%f'
 
 try:
-    from xoutil.datetime import strip_tzinfo  # migrate
+    from xoutil.future.datetime import without_tzinfo as strip_tzinfo  # migrate
 except ImportError:
     def strip_tzinfo(dt):
         '''Return the given datetime value with tzinfo removed.

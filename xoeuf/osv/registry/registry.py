@@ -230,7 +230,10 @@ class Registry(ModuleType):
         checks the resulting context for common values (lang, tz).
 
         '''
-        from xoutil.collections import opendict
+        try:
+            from xoutil.future.collections import opendict
+        except ImportError:
+            from xoutil.collections import opendict
         res = opendict(**self._default_context)
         mngr = self.current_manager
         if mngr:

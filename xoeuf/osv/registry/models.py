@@ -38,7 +38,12 @@ class ModelsManager(MutableMapping, SmartDictMixin):
      * An open dictionary allowing access to keys as attributes.
 
     '''
-    from xoutil.collections import opendict as __search_result_type__  # noqa:
+    try:
+        from xoutil.future.collections \
+            import opendict as __search_result_type__  # noqa
+    except ImportError:
+        from xoutil.collections \
+            import opendict as __search_result_type__  # noqa
     # see the the SmartDictMixin.search method
 
     def __new__(cls, registry):
