@@ -233,4 +233,19 @@ def get_object_module(obj, typed=False):
         return None
 
 
+def is_object_installed(self, object):
+    '''Detects if `object` is installed in the DB.
+
+    `self` must be an Odoo model (recordset, but it may be empty).
+
+    '''
+    module = get_object_module(object)
+    if module:
+        mm = self.env['ir.module.module']
+        query = [('state', '=', 'installed'), ('name', '=', module)]
+        return bool(mm.search(query))
+    else:
+        return False
+
+
 del re, logging
