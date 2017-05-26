@@ -23,7 +23,7 @@ except ImportError:
 
 if (8, 0) <= ODOO_VERSION_INFO < (9, 0):
     from ._dt8 import LocalizedDatetime  # noqa: reexport
-elif ODOO_VERSION_INFO >= (10, 0):
+elif ODOO_VERSION_INFO >= (9, 0):
     from ._dt10 import LocalizedDatetime  # noqa: reexport
 else:
     assert False

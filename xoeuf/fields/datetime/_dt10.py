@@ -17,12 +17,16 @@ from __future__ import (division as _py3_division,
                         absolute_import as _py3_abs_import)
 
 
-from odoo.release import version_info as ODOO_VERSION_INFO
-assert ODOO_VERSION_INFO >= (10, 0)
+try:
+    from openerp.release import version_info as ODOO_VERSION_INFO
+    from openerp import fields
+except ImportError:
+    from odoo.release import version_info as ODOO_VERSION_INFO
+    from odoo import fields
+assert ODOO_VERSION_INFO >= (9, 0)
 del ODOO_VERSION_INFO
 
 import pytz
-from odoo import fields
 
 from xoeuf.tools import localtime_as_remotetime
 
