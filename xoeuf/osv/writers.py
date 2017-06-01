@@ -35,7 +35,7 @@ class _BaseWriter(object):
         self.result = None
 
     def _get_field(self, attrname):
-        return self.model._all_columns[attrname].column
+        return self.model._fields[attrname]
 
     __getitem__ = _get_field
 
