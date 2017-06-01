@@ -29,3 +29,8 @@ from __future__ import (division as _py3_division,
 
 
 from . import signals  # noqa
+
+try:
+    from odoo.release import version_info as ODOO_VERSION_INFO
+except ImportError:
+    from openerp.release import version_info as ODOO_VERSION_INFO  # noqa
