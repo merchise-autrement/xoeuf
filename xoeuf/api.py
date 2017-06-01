@@ -74,14 +74,16 @@ def take_one(func, index=0, warn=True, strict=False):
     If the given recordset has no `index`, raise an IndexError.
 
     '''
-    from functools import wraps
+    from decorator import decorate
     import logging
     logger = logging.getLogger(__name__)
     del logging
 
-    @_odoo_api.multi
-    @wraps(func)
-    def inner(self):
+    # It's a tricky business to make Odoo's multi (Odoo 8 and 9) to work with
+    # variables arguments.  And `wraps` returns a function with variables
+    # arguments...  So, we use the `decorator` package to provide the same
+    # signature as `func`.
+    def inner(f, self, *args, **kwargs):
         if self[index] != self:
             # More than one item was in the recordset.
             if strict:
@@ -92,8 +94,9 @@ def take_one(func, index=0, warn=True, strict=False):
                 logger.warn('More than one record for function %s',
                             func, extra=self)
             self = self[index]
-        return func(self)
-    return inner
+        return f(self, *args, **kwargs)
+
+    return _odoo_api.multi(decorate(func, inner))
 
 
 def mimic(original):
