@@ -69,7 +69,7 @@ except ImportError:
     profiler = None
 
     @decorator
-    def profiler(func, stream=None):
+    def profile(func, model=None, stream=None):
         '''Decorate `func` to activate the line profiler.
 
         '''
