@@ -30,6 +30,9 @@ try:
 except ImportError:
     from odoo import api as _odoo_api
 
+
+# TODO: `copy_members` will be deprecated in xoutil 1.8, use instead the same
+# mechanisms as `xoutil.future`.
 from xoutil.modules import copy_members as _copy_python_module_members
 this = _copy_python_module_members(_odoo_api)
 del _copy_python_module_members
