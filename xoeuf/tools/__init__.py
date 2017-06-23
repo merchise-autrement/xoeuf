@@ -25,10 +25,10 @@ try:
 except ImportError:
     # Odoo < 10.0
     try:
-        from openerp.tools import (
+        from openerp.tools import (  # noqa: reexport
             DEFAULT_SERVER_DATE_FORMAT as _SVR_DATE_FMT,
             DEFAULT_SERVER_DATETIME_FORMAT as _SVR_DATETIME_FMT,
-            safe_eval  # noqa: reexport
+            safe_eval
         )
         from openerp.tools.float_utils import float_round  # noqa: reexport
     except ImportError:
