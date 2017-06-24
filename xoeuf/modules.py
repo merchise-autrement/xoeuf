@@ -19,6 +19,7 @@ from __future__ import (division as _py3_division,
                         print_function as _py3_print,
                         absolute_import as _py3_abs_import)
 
+import sys
 import logging
 import re
 
@@ -38,6 +39,44 @@ except ImportError:  # Odoo 10+
 XOEUF_EXTERNAL_ADDON_GROUP = 'xoeuf.addons'
 
 
+# XXX: @manu, probably the prefix 'xoeuf.' could be avoided.
+class OdooHook(object):
+    ''''odoo' (or 'openerp') package is available as 'xoeuf.odoo'.'''
+    try:
+        import odoo as _mod
+    except ImportError:
+        import openerp as _mod
+    NAME = _mod.__name__
+    del _mod
+    REGEX = r'^xoeuf[.]o(?:penerp|doo)\b'
+
+    def find_module(self, name, path=None):
+        import re
+        if re.match(self.REGEX, name):
+            return self
+
+    def load_module(self, name):
+        import sys
+        import re
+        import importlib
+        assert name not in sys.modules
+        regex = self.REGEX + r'(.*)'
+        canonical = re.sub(regex, self.NAME + '\g<1>', name)
+        if canonical in sys.modules:
+            mod = sys.modules[canonical]
+        else:
+            # probable failure
+            mod = importlib.import_module(canonical)
+        # just set the original module at the new location. Don't proxy,
+        # it breaks *-import (unless you can find how `from a import *` lists
+        # what's supposed to be imported by `*`, and manage to override it)
+        sys.modules[name] = mod
+        return sys.modules[name]
+
+
+sys.meta_path.append(OdooHook())
+
+
 class _PatchesRegistry(object):
     _registry = {}
     _wrapped = {}
@@ -52,10 +91,7 @@ class _PatchesRegistry(object):
         return self._wrapped[name]
 
     def apply(self):
-        try:
-            from openerp.modules import module
-        except ImportError:
-            from odoo.modules import module
+        from xoeuf.odoo.modules import module
         patched = getattr(module, '__xoeuf_patched__', False)
         if patched:
             # This is an Odoo that's being patched by us.
@@ -68,6 +104,7 @@ class _PatchesRegistry(object):
             for name, func in self._registry.items():
                 setattr(module, name, func)
             self.bootstraped = True
+
 
 patch = _PatchesRegistry()
 
@@ -248,4 +285,4 @@ def is_object_installed(self, object):
         return False
 
 
-del re, logging
+del re, logging, sys, OdooHook
