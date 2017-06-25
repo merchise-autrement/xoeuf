@@ -30,13 +30,13 @@ from xoutil.decorator import aliases, memoized_property
 
 from .transaction import TransactionManager
 
+from xoeuf.odoo import SUPERUSER_ID
+# TODO: Homogenize 'manager_get' and 'manager_lock' in a compatibility module
 try:
-    from odoo import SUPERUSER_ID
     from odoo.modules.registry import Registry as manager
     manager_get = manager
     manager_lock = lambda: manager._lock  # noqa
 except ImportError:
-    from openerp import SUPERUSER_ID
     from openerp.modules.registry import RegistryManager as manager
     manager_get = manager.get
     manager_lock = manager.lock
@@ -168,10 +168,7 @@ class Registry(ModuleType):
     @staticmethod
     def get_all_db_names():
         '''Return all database names presents in the connected host.'''
-        try:
-            from openerp.service.db import exp_list
-        except ImportError:
-            from odoo.service.db import exp_list
+        from xoeuf.odoo.service.db import exp_list
         return exp_list()
 
     @aliases('db')
@@ -205,10 +202,7 @@ class Registry(ModuleType):
 
     @property
     def env(self):
-        try:
-            from openerp.api import Environment
-        except ImportError:
-            from odoo.api import Environment
+        from xoeuf.odoo.api import Environment
         return Environment(self.cr, self.uid, self.context)
 
     @property
@@ -241,10 +235,7 @@ class Registry(ModuleType):
         return self._check_context(res)
 
     def _check_context(self, ctx):
-        try:
-            from odoo import api
-        except ImportError:
-            from openerp import api
+        from xoeuf.odoo import api
         # TODO: catch these values
         if 'lang' not in ctx:
             import os

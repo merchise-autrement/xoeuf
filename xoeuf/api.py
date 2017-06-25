@@ -25,10 +25,7 @@ from __future__ import (division as _py3_division,
 
 from xoutil.decorator.meta import decorator
 
-try:
-    from openerp import api as _odoo_api
-except ImportError:
-    from odoo import api as _odoo_api
+from xoeuf.odoo import api as _odoo_api
 
 
 # TODO: `copy_members` will be deprecated in xoutil 1.8, use instead the same

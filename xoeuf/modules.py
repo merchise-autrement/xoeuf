@@ -31,6 +31,9 @@ from xoutil.modules import customize
 from xoutil.modules import modulemethod
 
 try:
+    # XXX: @manu, next import looks like a condition to determine if 'openerp'
+    # exists, maybe this logic must be inverted since from Odoo 10 'openerp'
+    # is an alias for 'odoo' module.
     import openerp as _o  # noqa
     _ADDONS_NAMESPACE = re.compile(r'^openerp\.addons\.(?P<module>[^\.]+)\.')
 except ImportError:  # Odoo 10+
@@ -157,10 +160,7 @@ def find_external_addons(self):
 @modulemethod
 def initialize_sys_path(self):
     from xoutil.objects import setdefaultattr
-    try:
-        from openerp.modules import module
-    except ImportError:
-        from odoo.modules import module
+    from xoeuf.odoo.modules import module
     _super = patch.get_super('initialize_sys_path')
     external_addons = setdefaultattr(self, '__addons', [])
     if not external_addons:
@@ -184,6 +184,7 @@ def patch_modules():
 def _get_registry(db_name):
     '''Helper method to get the registry for a `db_name`.'''
     from xoutil.eight import string_types
+    # TODO: Homogenize 'get_registry' in a compatibility module
     try:
         from odoo.modules.registry import Registry
         get_registry = Registry
@@ -214,12 +215,8 @@ def get_dangling_modules(db):
                <xoeuf.osv.registry.Registry>`:class:.
 
     '''
-    try:
-        from openerp import SUPERUSER_ID
-        from openerp.modules.module import get_modules
-    except ImportError:
-        from odoo import SUPERUSER_ID
-        from odoo.modules.module import get_modules
+    from xoeuf.odoo import SUPERUSER_ID
+    from xoeuf.odoo.modules.module import get_modules
     from xoeuf.osv.model_extensions import search_read
     registry = _get_registry(db)
     with registry.cursor() as cr:
@@ -238,10 +235,7 @@ def mark_dangling_modules(db):
     :func:`get_dangling_modules`.
 
     '''
-    try:
-        from openerp import SUPERUSER_ID
-    except ImportError:
-        from odoo import SUPERUSER_ID
+    from xoeuf.odoo import SUPERUSER_ID
     from xoeuf.osv.model_extensions import get_writer
     registry = _get_registry(db)
     with registry.cursor() as cr:

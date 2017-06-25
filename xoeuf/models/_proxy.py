@@ -23,6 +23,8 @@ from __future__ import (division as _py3_division,
 
 import re
 
+# XXX: @manu, next pattern is not comprehensive; also, why not::
+#   from odoo import models
 try:
     import odoo.models as models
 except ImportError:
