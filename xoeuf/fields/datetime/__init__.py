@@ -26,5 +26,4 @@ elif ODOO_VERSION_INFO[0] >= 9:
 else:
     assert False
 
-# TODO: Use the same pattern xoutil will have for xoutil's metaclass.
 LocalizedDatetime.__module__ = __name__
