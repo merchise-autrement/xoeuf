@@ -18,15 +18,19 @@ from datetime import datetime as _dt, date as _d
 try:
     from odoo.tools import (
         DEFAULT_SERVER_DATE_FORMAT as _SVR_DATE_FMT,
-        DEFAULT_SERVER_DATETIME_FORMAT as _SVR_DATETIME_FMT
+        DEFAULT_SERVER_DATETIME_FORMAT as _SVR_DATETIME_FMT,
+        safe_eval,    # noqa: reexport
+        float_round
     )
 except ImportError:
     # Odoo < 10.0
     try:
-        from openerp.tools import (
+        from openerp.tools import (  # noqa: reexport
             DEFAULT_SERVER_DATE_FORMAT as _SVR_DATE_FMT,
-            DEFAULT_SERVER_DATETIME_FORMAT as _SVR_DATETIME_FMT
+            DEFAULT_SERVER_DATETIME_FORMAT as _SVR_DATETIME_FMT,
+            safe_eval
         )
+        from openerp.tools.float_utils import float_round  # noqa: reexport
     except ImportError:
         # This allows to generate the documentation without actually
         # installing Odoo

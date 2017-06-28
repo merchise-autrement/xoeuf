@@ -34,3 +34,9 @@ try:
     from odoo.release import version_info as ODOO_VERSION_INFO
 except ImportError:
     from openerp.release import version_info as ODOO_VERSION_INFO  # noqa
+
+
+try:
+    from odoo import SUPERUSER_ID
+except ImportError:
+    from openerp import SUPERUSER_ID  # noqa
