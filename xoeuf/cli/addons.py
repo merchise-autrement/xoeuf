@@ -54,10 +54,7 @@ class Addons(Command):
             print(addon)
 
     def get_addons(self, filters):
-        try:
-            from openerp.modules import get_modules
-        except ImportError:
-            from odoo.modules import get_modules
+        from xoeuf.odoo.modules import get_modules
         return [
             addon
             for addon in get_modules()

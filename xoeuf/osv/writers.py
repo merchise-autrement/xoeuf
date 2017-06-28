@@ -40,23 +40,18 @@ class _BaseWriter(object):
     __getitem__ = _get_field
 
     def _is_many2many(self, attrname):
-        try:
-            from openerp.fields import Many2many
-        except ImportError:
-            from odoo.fields import Many2many
+        from xoeuf.odoo.fields import Many2many
+        rel_types = (Many2many, )
         try:
             from openerp.osv.fields import many2many
+            rel_types += (many2many, )
         except ImportError:
-            class many2many(object):
-                # I have no instances
-                pass
-        return isinstance(self[attrname], (many2many, Many2many))
+            pass
+        return isinstance(self[attrname], rel_types)
 
     def _is_one2many(self, attrname):
-        try:
-            from openerp.fields import One2many
-        except ImportError:
-            from odoo.fields import One2many
+        from xoeuf.odoo.fields import One2many
+        # XXX: Don't understand next
         try:
             from openerp.osv.fields import one2many
         except ImportError:

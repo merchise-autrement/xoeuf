@@ -31,10 +31,7 @@ from __future__ import (division as _py3_division,
                         print_function as _py3_print,
                         absolute_import as _py3_abs_import)
 
-try:
-    from openerp import models
-except ImportError:
-    from odoo import models
+from xoeuf.odoo import models
 from xoutil.eight.meta import metaclass
 try:
     from xoutil.future.types import SimpleNamespace

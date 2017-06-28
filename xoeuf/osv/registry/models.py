@@ -249,17 +249,14 @@ class ModelsManager(MutableMapping, SmartDictMixin):
 
 def _valid_model_base(model):
     '''Check if a model has a right base class.'''
+    from xoeuf.odoo.models import BaseModel
+    model_types = (BaseModel, )
     try:
-        from odoo.models import BaseModel
-        from odoo.models import MetaModel
+        from xoeuf.odoo.models import MetaModel
+        model_types += (MetaModel, )
     except ImportError:
-        from openerp.models import BaseModel
-
-        class MetaModel(type):
-            # impossible metaclass to avoid Odoo 8 meta-objects from being
-            # leaked.
-            pass
-    if not isinstance(model, (BaseModel, MetaModel)):
+        pass
+    if not isinstance(model, model_types):
         from inspect import getmro
         from xoutil.eight import typeof
         msg = 'Inappropriate type "%s" for model value!\tMRO=%s'

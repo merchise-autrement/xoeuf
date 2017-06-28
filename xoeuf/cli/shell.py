@@ -23,12 +23,8 @@ import os
 import signal
 import sys
 
-try:
-    import odoo
-    from odoo.tools import config
-except ImportError:
-    import openerp as odoo
-    from openerp.tools import config
+from xoeuf import odoo
+from xoeuf.odoo.tools import config
 
 from xoeuf.api import contextual
 try:

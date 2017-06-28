@@ -85,13 +85,13 @@ class Secure(Command):
 
     @classmethod
     def database_factory(cls, database):
+        from xoeuf.odoo import api, SUPERUSER_ID
+        # TODO: Homogenize 'get' in a compatibility module.
         try:
             from odoo.modules.registry import Registry
-            from odoo import api, SUPERUSER_ID
             get = Registry.get
         except ImportError:
             from openerp.modules.registry import RegistryManager
-            from openerp import api, SUPERUSER_ID
             get = RegistryManager.get
         db = get(database)
         env = api.Environment(db.cursor(), SUPERUSER_ID, {})
@@ -138,9 +138,6 @@ class Secure(Command):
 
     @staticmethod
     def load_config_from_inifile(filename):
-        try:
-            from openerp.tools import config
-        except ImportError:
-            from odoo.tools import config
+        from xoeuf.odoo.tools import config
         config.rcfile = filename
         config.load()

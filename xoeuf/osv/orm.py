@@ -26,10 +26,7 @@ def guess_id(which, attr='id'):
     TypeError.
 
     '''
-    try:
-        from odoo.osv.orm import browse_record
-    except ImportError:
-        from openerp.osv.orm import browse_record
+    from xoeuf.odoo.osv.orm import browse_record
     try:
         from xoutil.future.collections import Mapping
     except ImportError:
@@ -72,10 +69,7 @@ def get_modelname(model):
 
     '''
     from xoutil.eight import string_types
-    try:
-        from openerp.models import BaseModel
-    except ImportError:
-        from odoo.models import BaseModel
+    from xoeuf.odoo.models import BaseModel
     from xoeuf.models._proxy import ModelProxy
     if isinstance(model, ModelProxy):
         # Minor hack to support models imported using 'xoeuf.models' stuff

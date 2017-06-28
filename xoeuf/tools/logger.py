@@ -15,10 +15,7 @@ logger.
 
 '''
 
-try:
-    from openerp.netsvc import init_logger
-except ImportError:
-    from odoo.netsvc import init_logger
+from xoeuf.odoo.netsvc import init_logger
 
 
 DEFAULT_LOGGER_NAME = str('xoeuf')
