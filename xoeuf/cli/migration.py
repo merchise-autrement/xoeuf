@@ -22,15 +22,9 @@ import os
 import pprint
 import textwrap
 
-try:
-    from openerp import SUPERUSER_ID
-    from openerp.fields import date, Date
-    from openerp.modules.module import get_module_path
-except ImportError:
-    from odoo import SUPERUSER_ID
-    from odoo.fields import date, Date
-    from odoo.modules.module import get_module_path
-
+from xoeuf.odoo import SUPERUSER_ID
+from xoeuf.odoo.fields import date, Date
+from xoeuf.odoo.modules.module import get_module_path
 
 from . import Command
 

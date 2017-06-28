@@ -16,17 +16,14 @@ from __future__ import (division as _py3_division,
                         print_function as _py3_print,
                         absolute_import as _py3_abs_import)
 
-try:
-    from odoo.release import version_info as ODOO_VERSION_INFO
-except ImportError:
-    from openerp.release import version_info as ODOO_VERSION_INFO
+from xoeuf.odoo.release import version_info as ODOO_VERSION_INFO
 
-if (8, 0) <= ODOO_VERSION_INFO < (9, 0):
+# XXX: Next pattern is not consistent with v9
+if ODOO_VERSION_INFO[0] == 8:
     from ._dt8 import LocalizedDatetime  # noqa: reexport
-elif ODOO_VERSION_INFO >= (9, 0):
+elif ODOO_VERSION_INFO[0] >= 9:
     from ._dt10 import LocalizedDatetime  # noqa: reexport
 else:
     assert False
 
-# TODO: Use the same pattern xoutil will have for xoutil's metaclass.
 LocalizedDatetime.__module__ = __name__

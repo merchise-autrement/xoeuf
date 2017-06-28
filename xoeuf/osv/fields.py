@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- encoding: utf-8 -*-
 # ---------------------------------------------------------------------
-# xouef.osv.fields
+# xoeuf.osv.fields
 # ---------------------------------------------------------------------
 # Copyright (c) 2015-2017 Merchise Autrement [~º/~] and Contributors
 # All rights reserved.
@@ -23,6 +23,7 @@ from __future__ import (division as _py3_division,
 
 from xoutil.deprecation import deprecated
 
+# FIX: Next doesn't work any more in version 10
 from openerp.osv import fields as _v7_fields
 
 import pytz

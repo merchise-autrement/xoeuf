@@ -17,9 +17,6 @@ from __future__ import (division as _py3_division,
                         absolute_import as _py3_abs_import)
 
 
-try:
-    from odoo.fields import *  # noqa: reexport
-except ImportError:
-    from openerp.fields import *  # noqa: reexport
+from xoeuf.odoo.fields import *  # noqa: reexport
 
 from .datetime import LocalizedDatetime  # noqa: reexport

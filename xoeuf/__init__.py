@@ -20,23 +20,13 @@ The name is composed by:
 
 '''
 
-# TODO: I was thinking in "œil", "cœur", "nœud", of course starting with "X"
-
 from __future__ import (division as _py3_division,
                         print_function as _py3_print,
-                        unicode_literals as _py3_unicode,
                         absolute_import as _py3_abs_import)
 
 
+from . import modules  # noqa; bootstrap 'xoeuf.odoo'
 from . import signals  # noqa
 
-try:
-    from odoo.release import version_info as ODOO_VERSION_INFO
-except ImportError:
-    from openerp.release import version_info as ODOO_VERSION_INFO  # noqa
-
-
-try:
-    from odoo import SUPERUSER_ID
-except ImportError:
-    from openerp import SUPERUSER_ID  # noqa
+from xoeuf.odoo import SUPERUSER_ID
+from xoeuf.odoo.release import version_info as ODOO_VERSION_INFO  # noqa

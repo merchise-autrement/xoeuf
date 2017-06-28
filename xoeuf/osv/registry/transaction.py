@@ -19,6 +19,7 @@ from __future__ import (division as _py3_division,
 from xoutil.context import Context
 from xoutil.names import strlist as slist
 
+# TODO: Homogenize 'manager_lock' in a compatibility module
 try:
     from odoo.modules.registry import Registry as manager
     manager_lock = lambda: manager._lock  # noqa

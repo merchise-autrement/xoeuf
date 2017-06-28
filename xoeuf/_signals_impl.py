@@ -23,6 +23,8 @@ import logging
 logger = logging.getLogger(__name__)
 del logging
 
+# TODO: @manu, "Odoo 10+" comment implies that next pattern doesn't include
+# all versions.
 try:
     from openerp import api, models
 except ImportError:  # Odoo 10+

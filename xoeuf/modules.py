@@ -19,6 +19,7 @@ from __future__ import (division as _py3_division,
                         print_function as _py3_print,
                         absolute_import as _py3_abs_import)
 
+import sys
 import logging
 import re
 
@@ -30,12 +31,56 @@ from xoutil.modules import customize
 from xoutil.modules import modulemethod
 
 try:
+    # XXX: @manu, next import looks like a condition to determine if 'openerp'
+    # exists, maybe this logic must be inverted since from Odoo 10 'openerp'
+    # is an alias for 'odoo' module.
     import openerp as _o  # noqa
     _ADDONS_NAMESPACE = re.compile(r'^openerp\.addons\.(?P<module>[^\.]+)\.')
 except ImportError:  # Odoo 10+
     _ADDONS_NAMESPACE = re.compile(r'^odoo\.addons\.(?P<module>[^\.]+)\.')
 
 XOEUF_EXTERNAL_ADDON_GROUP = 'xoeuf.addons'
+
+
+# XXX: @manu, probably the prefix 'xoeuf.' could be avoided.
+class OdooHook(object):
+    ''''odoo' (or 'openerp') package is available as 'xoeuf.odoo'.'''
+    try:
+        import openerp as _mod
+    except ImportError:
+        # In Odoo 9 they have an 'odoo.py' that is importable when developing
+        # (buildout, etc), so we have to try to import 'openerp' before trying
+        # 'odoo.
+        import odoo as _mod
+    NAME = _mod.__name__
+    del _mod
+    REGEX = r'^xoeuf[.](?:openerp|odoo)\b'
+
+    def find_module(self, name, path=None):
+        import re
+        if re.match(self.REGEX, name):
+            return self
+
+    def load_module(self, name):
+        import sys
+        import re
+        import importlib
+        assert name not in sys.modules
+        regex = self.REGEX + r'(.*)'
+        canonical = re.sub(regex, self.NAME + '\g<1>', name)
+        if canonical in sys.modules:
+            mod = sys.modules[canonical]
+        else:
+            # probable failure
+            mod = importlib.import_module(canonical)
+        # just set the original module at the new location. Don't proxy,
+        # it breaks *-import (unless you can find how `from a import *` lists
+        # what's supposed to be imported by `*`, and manage to override it)
+        sys.modules[name] = mod
+        return sys.modules[name]
+
+
+sys.meta_path.append(OdooHook())
 
 
 class _PatchesRegistry(object):
@@ -52,10 +97,7 @@ class _PatchesRegistry(object):
         return self._wrapped[name]
 
     def apply(self):
-        try:
-            from openerp.modules import module
-        except ImportError:
-            from odoo.modules import module
+        from xoeuf.odoo.modules import module
         patched = getattr(module, '__xoeuf_patched__', False)
         if patched:
             # This is an Odoo that's being patched by us.
@@ -68,6 +110,7 @@ class _PatchesRegistry(object):
             for name, func in self._registry.items():
                 setattr(module, name, func)
             self.bootstraped = True
+
 
 patch = _PatchesRegistry()
 
@@ -120,10 +163,7 @@ def find_external_addons(self):
 @modulemethod
 def initialize_sys_path(self):
     from xoutil.objects import setdefaultattr
-    try:
-        from openerp.modules import module
-    except ImportError:
-        from odoo.modules import module
+    from xoeuf.odoo.modules import module
     _super = patch.get_super('initialize_sys_path')
     external_addons = setdefaultattr(self, '__addons', [])
     if not external_addons:
@@ -147,6 +187,7 @@ def patch_modules():
 def _get_registry(db_name):
     '''Helper method to get the registry for a `db_name`.'''
     from xoutil.eight import string_types
+    # TODO: Homogenize 'get_registry' in a compatibility module
     try:
         from odoo.modules.registry import Registry
         get_registry = Registry
@@ -177,12 +218,8 @@ def get_dangling_modules(db):
                <xoeuf.osv.registry.Registry>`:class:.
 
     '''
-    try:
-        from openerp import SUPERUSER_ID
-        from openerp.modules.module import get_modules
-    except ImportError:
-        from odoo import SUPERUSER_ID
-        from odoo.modules.module import get_modules
+    from xoeuf.odoo import SUPERUSER_ID
+    from xoeuf.odoo.modules.module import get_modules
     from xoeuf.osv.model_extensions import search_read
     registry = _get_registry(db)
     with registry.cursor() as cr:
@@ -201,10 +238,7 @@ def mark_dangling_modules(db):
     :func:`get_dangling_modules`.
 
     '''
-    try:
-        from openerp import SUPERUSER_ID
-    except ImportError:
-        from odoo import SUPERUSER_ID
+    from xoeuf.odoo import SUPERUSER_ID
     from xoeuf.osv.model_extensions import get_writer
     registry = _get_registry(db)
     with registry.cursor() as cr:
@@ -248,4 +282,4 @@ def is_object_installed(self, object):
         return False
 
 
-del re, logging
+del re, logging, sys, OdooHook

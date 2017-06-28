@@ -16,26 +16,23 @@
 from datetime import datetime as _dt, date as _d
 
 try:
-    from odoo.tools import (
+    from xoeuf.odoo.tools import safe_eval, float_round  # noqa: reexport
+except ImportError:
+    # This allows to generate the documentation without actually installing
+    # Odoo
+    pass
+
+
+try:
+    from xoeuf.odoo.tools import (
         DEFAULT_SERVER_DATE_FORMAT as _SVR_DATE_FMT,
         DEFAULT_SERVER_DATETIME_FORMAT as _SVR_DATETIME_FMT,
-        safe_eval,    # noqa: reexport
-        float_round
     )
 except ImportError:
-    # Odoo < 10.0
-    try:
-        from openerp.tools import (  # noqa: reexport
-            DEFAULT_SERVER_DATE_FORMAT as _SVR_DATE_FMT,
-            DEFAULT_SERVER_DATETIME_FORMAT as _SVR_DATETIME_FMT,
-            safe_eval
-        )
-        from openerp.tools.float_utils import float_round  # noqa: reexport
-    except ImportError:
-        # This allows to generate the documentation without actually
-        # installing Odoo
-        _SVR_DATE_FMT = '%Y-%m-%d'
-        _SVR_DATETIME_FMT = '%Y-%m-%d %H:%M:%S'
+    # This allows to generate the documentation without actually installing
+    # Odoo
+    _SVR_DATE_FMT = '%Y-%m-%d'
+    _SVR_DATETIME_FMT = '%Y-%m-%d %H:%M:%S'
 
 import pytz
 
@@ -64,10 +61,7 @@ def localize_datetime(self, datetime_value=None, from_tz='UTC', to_tz='UTC'):
     If from_tz is equal to_tz datetime_value is returned.
 
     """
-    try:
-        from openerp import fields
-    except ImportError:
-        from odoo import fields
+    from xoeuf.odoo import fields
     if not from_tz:
         from_tz = self.env.user.tz or 'UTC'
     if not to_tz:
