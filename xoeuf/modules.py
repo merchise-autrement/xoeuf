@@ -46,12 +46,15 @@ XOEUF_EXTERNAL_ADDON_GROUP = 'xoeuf.addons'
 class OdooHook(object):
     ''''odoo' (or 'openerp') package is available as 'xoeuf.odoo'.'''
     try:
-        import odoo as _mod
-    except ImportError:
         import openerp as _mod
+    except ImportError:
+        # In Odoo 9 they have an 'odoo.py' that is importable when developing
+        # (buildout, etc), so we have to try to import 'openerp' before trying
+        # 'odoo.
+        import odoo as _mod
     NAME = _mod.__name__
     del _mod
-    REGEX = r'^xoeuf[.]o(?:penerp|doo)\b'
+    REGEX = r'^xoeuf[.](?:openerp|odoo)\b'
 
     def find_module(self, name, path=None):
         import re
