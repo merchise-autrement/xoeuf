@@ -20,8 +20,6 @@ The name is composed by:
 
 '''
 
-# TODO: I was thinking in "œil", "cœur", "nœud", of course starting with "X"
-
 from __future__ import (division as _py3_division,
                         print_function as _py3_print,
                         unicode_literals as _py3_unicode,
