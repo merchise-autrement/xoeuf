@@ -23,17 +23,11 @@ from __future__ import (division as _py3_division,
 
 import re
 
-# XXX: @manu, next pattern is not comprehensive; also, why not::
-#   from odoo import models
 try:
-    import odoo.models as models
+    from xoeuf.odoo import models, api
 except ImportError:
-    # Odoo < 10.0
-    try:
-        import openerp.models as models
-    except ImportError:
-        # So that we can generate the docs easily
-        pass
+    # So that we can generate the docs easily
+    pass
 
 
 class ModelProxy(object):
