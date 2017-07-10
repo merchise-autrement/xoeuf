@@ -66,6 +66,11 @@ class Base(object):
     supported_shells = ['ipython', 'ptpython', 'bpython', 'python']
 
     def init(self, args):
+        try:
+            pos = args.index('--')
+            args, self.shell_args = args[:pos], args[pos+1:]
+        except IndexError:
+            self.shell_args = []
         config.parse_config(args)
         odoo.cli.server.report_configuration()
         odoo.service.server.start(preload=[], stop=True)
@@ -100,7 +105,7 @@ class Base(object):
 
     def ipython(self, local_vars):
         from IPython import start_ipython
-        start_ipython(argv=[], user_ns=local_vars)
+        start_ipython(argv=self.shell_args, user_ns=local_vars)
 
     def ptpython(self, local_vars):
         from ptpython.repl import embed
