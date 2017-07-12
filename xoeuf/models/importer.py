@@ -46,6 +46,12 @@ __all__ = ['ImportNamespace']
 
 class _ImportNamespaceType(type):
     def __new__(cls, name, bases, attrs):
+        import warnings
+        warnings.warn(
+            'The entire xoeuf.models.importer is now deprecated. '
+            'Please use xoeuf.models.proxy directly.',
+            DeprecationWarning
+        )
         definitions = SimpleNamespace()
         proxies = {}
         for attr, val in attrs.items():

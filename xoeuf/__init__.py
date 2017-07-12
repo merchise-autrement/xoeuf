@@ -31,3 +31,6 @@ from . import signals  # noqa
 from xoeuf.odoo import SUPERUSER_ID  # noqa
 from xoeuf.odoo.release import version_info as ODOO_VERSION_INFO  # noqa
 from xoeuf.odoo import addons  # noqa
+
+
+MAJOR_ODOO_VERSION_INFO = ODOO_VERSION_INFO[0]  # noqa
