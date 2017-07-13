@@ -69,7 +69,7 @@ class Base(object):
         try:
             pos = args.index('--')
             args, self.shell_args = args[:pos], args[pos+1:]
-        except IndexError:
+        except ValueError:
             self.shell_args = []
         config.parse_config(args)
         odoo.cli.server.report_configuration()
