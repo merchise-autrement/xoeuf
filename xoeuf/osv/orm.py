@@ -16,6 +16,12 @@ from __future__ import (division as _py3_division,
                         print_function as _py3_print,
                         absolute_import)
 
+from xoeuf.models import get_modelname as _get_modelname
+from xoutil.deprecation import deprecated
+
+get_modelname = deprecated(_get_modelname)(_get_modelname)
+del _get_modelname, deprecated
+
 
 def guess_id(which, attr='id'):
     '''Guess the id of an object.
@@ -54,37 +60,6 @@ def store_identity(self, cr, uid, ids, context=None):
 
     '''
     return ids
-
-
-def get_modelname(model):
-    '''Gets the ORM object's name for a model class/object.
-
-    Main usage::
-
-        self.pool[get_modelname(some_model_class)]
-
-    :param model: Either an object (i.e an instance bound to some database) or
-                  the any of the it's class definitions.
-
-
-    '''
-    from xoutil.eight import string_types
-    from xoeuf.odoo.models import BaseModel
-    from xoeuf.models._proxy import ModelProxy
-    if isinstance(model, ModelProxy):
-        # Minor hack to support models imported using 'xoeuf.models' stuff
-        return model._ModelProxy__model
-    if not isinstance(model, BaseModel) and not issubclass(model, BaseModel):
-        msg = "Invalid argument '%s' for param 'model'" % model
-        raise TypeError(msg)
-    result = model._name
-    if not result:
-        # This is the case of a model class having no _name defined, but then
-        # it must have the _inherit and _name is regarded the same by OpenERP.
-        result = model._inherit
-    assert isinstance(result, string_types), ('Got an invalid name for %r' %
-                                              model)
-    return result
 
 
 # Making this a subclass of int allows to be reliably tested for equality in

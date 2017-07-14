@@ -22,9 +22,6 @@ from __future__ import (division as _py3_division,
                         absolute_import as _py3_abs_import)
 
 from . import proxy  # noqa: ensure the hook is registered.
+from .base import *  # noqa: reexport
 
 from xoeuf.odoo.models import *   # noqa: reexport
-
-from xoeuf.osv.orm import get_modelname  # noqa: re-export
-
-# TODO: are both 're-export' vs 'reexport' patterns OK?
