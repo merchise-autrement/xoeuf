@@ -23,7 +23,7 @@ from __future__ import (division as _py3_division,
                         print_function as _py3_print,
                         absolute_import as _py3_abs_import)
 
-from xoutil.decorator.meta import decorator
+from xoutil.decorator.meta import decorator as _xdecorator
 
 from xoeuf.odoo import api as _odoo_api
 
@@ -49,7 +49,7 @@ def contextual(func):
     return inner
 
 
-@decorator
+@_xdecorator
 def take_one(func, index=0, warn=True, strict=False):
     '''A weaker version of `api.one`.
 
@@ -80,9 +80,9 @@ def take_one(func, index=0, warn=True, strict=False):
     del logging
 
     # It's a tricky business to make Odoo's multi (Odoo 8 and 9) to work with
-    # variables arguments.  And `wraps` returns a function with variables
-    # arguments...  So, we use the `decorator` package to provide the same
-    # signature as `func`.
+    # variables arguments.  And `functools.wraps` returns a function with
+    # variables arguments...  So, we use the `decorator` package to provide
+    # the same signature as `func`.
     def inner(f, self, *args, **kwargs):
         if self[index] != self:
             # More than one item was in the recordset.
