@@ -60,7 +60,7 @@ setup(name=project_name,
       include_package_data=True,
       zip_safe=False,
       install_requires=[
-          'decorator>=3.4.0',
+          'decorator>=3.4.0,<4.2',
           'xoutil>=1.7.1.dev20151028,<1.9',
           'ipython<6',
           'raven>=5.8.0',

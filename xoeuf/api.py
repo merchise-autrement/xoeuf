@@ -74,7 +74,13 @@ def take_one(func, index=0, warn=True, strict=False):
     If the given recordset has no `index`, raise an IndexError.
 
     '''
-    from decorator import decorate
+    try:
+        from decorator import decorate
+    except ImportError:
+        # decorator < 4, but we need to support it because Odoo states that it
+        # requires 3.4.0.  See
+        # http://decorator.readthedocs.io/en/latest/tests.documentation.html#what-s-new-in-version-4
+        from decorator import decorator as decorate
     import logging
     logger = logging.getLogger(__name__)
     del logging
