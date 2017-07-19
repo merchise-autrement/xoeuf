@@ -31,12 +31,12 @@ from xoutil.modules import customize
 from xoutil.modules import modulemethod
 
 try:
-    # XXX: @manu, next import looks like a condition to determine if 'openerp'
-    # exists, maybe this logic must be inverted since from Odoo 10 'openerp'
-    # is an alias for 'odoo' module.
     import openerp as _o  # noqa
     _ADDONS_NAMESPACE = re.compile(r'^openerp\.addons\.(?P<module>[^\.]+)\.')
 except ImportError:  # Odoo 10+
+    # In Odoo 9 they have an 'odoo.py' that is importable when developing
+    # (buildout, etc), so we have to try to import 'openerp' before trying
+    # 'odoo'.
     _ADDONS_NAMESPACE = re.compile(r'^odoo\.addons\.(?P<module>[^\.]+)\.')
 
 XOEUF_EXTERNAL_ADDON_GROUP = 'xoeuf.addons'
@@ -50,7 +50,7 @@ class OdooHook(object):
     except ImportError:
         # In Odoo 9 they have an 'odoo.py' that is importable when developing
         # (buildout, etc), so we have to try to import 'openerp' before trying
-        # 'odoo.
+        # 'odoo'.
         import odoo as _mod
     NAME = _mod.__name__
     del _mod

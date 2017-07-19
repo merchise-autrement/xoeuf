@@ -23,7 +23,8 @@ from __future__ import (division as _py3_division,
                         print_function as _py3_print,
                         absolute_import as _py3_abs_import)
 
-from xoutil.decorator.meta import decorator
+from xoutil.deprecation import deprecated
+from xoutil.decorator.meta import decorator as _xdecorator
 
 from xoeuf.odoo import api as _odoo_api
 
@@ -49,7 +50,7 @@ def contextual(func):
     return inner
 
 
-@decorator
+@_xdecorator
 def take_one(func, index=0, warn=True, strict=False):
     '''A weaker version of `api.one`.
 
@@ -74,15 +75,21 @@ def take_one(func, index=0, warn=True, strict=False):
     If the given recordset has no `index`, raise an IndexError.
 
     '''
-    from decorator import decorate
+    try:
+        from decorator import decorate
+    except ImportError:
+        # decorator < 4, but we need to support it because Odoo states that it
+        # requires 3.4.0.  See
+        # http://decorator.readthedocs.io/en/latest/tests.documentation.html#what-s-new-in-version-4
+        from decorator import decorator as decorate
     import logging
     logger = logging.getLogger(__name__)
     del logging
 
     # It's a tricky business to make Odoo's multi (Odoo 8 and 9) to work with
-    # variables arguments.  And `wraps` returns a function with variables
-    # arguments...  So, we use the `decorator` package to provide the same
-    # signature as `func`.
+    # variables arguments.  And `functools.wraps` returns a function with
+    # variables arguments...  So, we use the `decorator` package to provide
+    # the same signature as `func`.
     def inner(f, self, *args, **kwargs):
         if self[index] != self:
             # More than one item was in the recordset.
@@ -97,6 +104,27 @@ def take_one(func, index=0, warn=True, strict=False):
         return f(self, *args, **kwargs)
 
     return _odoo_api.multi(decorate(func, inner))
+
+
+_MSG = ("{funcname} is now deprecated and it will be removed. "
+        "Use `{replacement}` directly and let the method raise "
+        "`expected singleton` exception.")
+take_one = deprecated('`api.multi()`', msg=_MSG)(take_one)
+del _MSG, deprecated
+
+
+def requires_singleton(f):
+    '''An idiomatic alias for `api.multi()`.
+
+    This is exactly the same as `api.multi()`, however it's expected to be
+    used when the code you're decorating requires a singleton recordset.
+
+    Notice we don't fail at the method call, but only if the actual code
+    executes a command that requires such a condition to be met (for instance,
+    accessing a field in ``self``.)
+
+    '''
+    return _odoo_api.multi(f)
 
 
 def mimic(original):

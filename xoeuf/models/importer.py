@@ -38,7 +38,7 @@ try:
 except ImportError:
     from xoutil.eight.types import SimpleNamespace
 
-from xoeuf.osv.orm import get_modelname
+from . import get_modelname
 from . import _proxy
 
 __all__ = ['ImportNamespace']
