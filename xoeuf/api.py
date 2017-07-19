@@ -113,6 +113,20 @@ take_one = deprecated('`api.multi()`', msg=_MSG)(take_one)
 del _MSG, deprecated
 
 
+def requires_singleton(f):
+    '''An idiomatic alias for `api.multi()`.
+
+    This is exactly the same as `api.multi()`, however it's expected to be
+    used when the code you're decorating requires a singleton recordset.
+
+    Notice we don't fail at the method call, but only if the actual code
+    executes a command that requires such a condition to be met (for instance,
+    accessing a field in ``self``.)
+
+    '''
+    return _odoo_api.multi(f)
+
+
 def mimic(original):
     '''Apply the API guess of `original` to the decorated function.
 
