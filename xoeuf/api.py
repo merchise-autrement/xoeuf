@@ -23,6 +23,7 @@ from __future__ import (division as _py3_division,
                         print_function as _py3_print,
                         absolute_import as _py3_abs_import)
 
+from xoutil.deprecation import deprecated
 from xoutil.decorator.meta import decorator as _xdecorator
 
 from xoeuf.odoo import api as _odoo_api
@@ -103,6 +104,13 @@ def take_one(func, index=0, warn=True, strict=False):
         return f(self, *args, **kwargs)
 
     return _odoo_api.multi(decorate(func, inner))
+
+
+_MSG = ("{funcname} is now deprecated and it will be removed. "
+        "Use `{replacement}` directly and let the method raise "
+        "`expected singleton` exception.")
+take_one = deprecated('`api.multi()`', msg=_MSG)(take_one)
+del _MSG, deprecated
 
 
 def mimic(original):
