@@ -44,7 +44,9 @@ XOEUF_EXTERNAL_ADDON_GROUP = 'xoeuf.addons'
 
 # XXX: @manu, probably the prefix 'xoeuf.' could be avoided.
 class OdooHook(object):
-    ''''odoo' (or 'openerp') package is available as 'xoeuf.odoo'.'''
+    '''Hook for 'odoo' (or 'openerp') package to be available as 'xoeuf.odoo'.
+
+    '''
     try:
         import openerp as _mod
     except ImportError:
@@ -80,7 +82,7 @@ class OdooHook(object):
         return sys.modules[name]
 
 
-sys.meta_path.append(OdooHook())
+sys.meta_path.insert(0, OdooHook())
 
 
 class _PatchesRegistry(object):
