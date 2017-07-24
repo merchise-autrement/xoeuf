@@ -90,7 +90,7 @@ class AddonNameHook(object):
 
     '''
     import re
-    REGEX = re.compile(r'^(xoeuf\.)?(?:openerp|odoo)\.addons\.(?P<addon>[^\.]+)\b')
+    REGEX = re.compile(r'^(?:openerp|odoo)\.addons\.(?P<addon>[^\.]+)\b')
     del re
 
     def __init__(self):
