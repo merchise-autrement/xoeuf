@@ -82,55 +82,7 @@ class OdooHook(object):
         return sys.modules[name]
 
 
-class AddonNameHook(object):
-    '''Implements ``from xoeuf import __addon__``.
-
-    The __addon__ would be the name of the addon where the import is made
-    from.  It's an ImportError to try to import this from a non-addon module.
-
-    '''
-    import re
-    REGEX = re.compile(r'^(?:openerp|odoo)\.addons\.(?P<addon>[^\.]+)\b')
-    del re
-
-    def __init__(self):
-        # A map from module's file name to the addon name.
-        self.modulesmap = {}
-
-    def find_module(self, name, path=None):
-        if name == 'xoeuf.__addon__':
-            return self
-
-    def load_module(self, name):
-        import sys
-        found = False
-        tries, max_depth = 3, 4
-        f = sys._getframe(max_depth - tries)
-        try:
-            # Since the import mechanism it's the one calling this method, we
-            # should not assume the caller is just the next to the last frame
-            # in the call stack.
-            while f and not found and tries:
-                modname = f.f_globals.get('__name__', None)
-                if modname in self.modulesmap:
-                    return self.modulesmap[modname]
-                else:
-                    match = self.REGEX.match(modname)
-                    if match:
-                        found = match.groupdict()['addon']
-                    else:
-                        tries -= 1
-                        f = f.f_back
-            if found:
-                self.modulesmap[modname] = found
-                return found
-            else:
-                raise ImportError(name)
-        finally:
-            f = None
-
-
-sys.meta_path[0:0] = [OdooHook(), AddonNameHook()]
+sys.meta_path.insert(0, OdooHook())
 
 
 class _PatchesRegistry(object):
