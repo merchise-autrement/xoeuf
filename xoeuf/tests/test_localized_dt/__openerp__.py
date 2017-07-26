@@ -15,7 +15,7 @@
 dict(
     name='test_localized_dt',
     version='1.0',
-    depends=['base',],
-    auto_install=True,
-    installable=ODOO_VERSION_INFO[0] in (8, 10)   # noqa
+    depends=['base', ],
+    auto_install=False,
+    installable=ODOO_VERSION_INFO[0] in (8, 9, 10)   # noqa
 )
