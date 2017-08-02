@@ -20,8 +20,8 @@ from __future__ import (division as _py3_division,
 
 from xoeuf.odoo.release import version_info as ODOO_VERSION_INFO
 
-if ODOO_VERSION_INFO[0] in (8, ):
-    from ._property_v8 import Property  # noqa: reexport
+if ODOO_VERSION_INFO[0] in (8, 9, 10, ):
+    from ._property import Property  # noqa: reexport
 else:
     raise NotImplemented
 

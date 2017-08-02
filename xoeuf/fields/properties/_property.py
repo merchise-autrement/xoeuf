@@ -60,26 +60,51 @@ class Property(Base):
        del _set_result
 
     '''
+    # This is the best of the three major versions of Odoo we support.  This
+    # create a __slot__ and avoids that these values go to the
+    # __getattr__/__setattr__ mechanism in fields.Field.  But it also, means
+    # that we need to do some tricks in the `__init__`:meth: to make all
+    # versions happy.
+    _slots = {
+        'property_getter': None,
+        'property_setter': None,
+        'property_deleter': None,
+    }
     type = 'python-property'  # needed to satisfy ir.models.field
 
     def __init__(self, getter, setter=None, deleter=None):
         # Notice we don't abide to the expected fields signature.  Instead, we
         # require one that is compatible with `property`; but we ensure that
         # Odoo sees this Property as normal field with custom attributes.
+        from xoutil import Unset
         super(Property, self).__init__(
+            # Odoo ignores arguments which are None, therefore, let's force
+            # them with Unset.  Odoo 9 and 10, uses this args to call
+            # field.new(**args), and also to restore the values of the _slots
+            # to provided values instead of default ones.  This last thing is
+            # done when building the specific field for each Model Class (see
+            # our `registry.rst`); cf. Field._setup_attrs.
+            #
+            # WARNING: If you remove this thinking that put those values just
+            # a few lines below, you're fooling yourself.
+            property_getter=getter or Unset,
+            property_setter=setter or Unset,
+            property_deleter=deleter or Unset,
+
             compute=getter,
             store=False,
         )
-        # Nevertheless, Odoo ignores custom attributes which are None,
-        # therefore, let's force them:
-        self.property_getter = getter
-        self.property_setter = setter
-        self.property_deleter = deleter
+        # In any case, we need those values now to make `new()` below work.
+        self.property_getter = getter or Unset
+        self.property_setter = setter or Unset
+        self.property_deleter = deleter or Unset
 
     def new(self, **kwargs):
         # This method is called upon when setting up the models (in the
         # registry)... We ignore most of the arguments, since we may just
-        # return a copy of `self`.
+        # return a copy of `self`.  The arguments 'setter' and 'deleter' are
+        # only used in `setter`:meth: and `deleter`:meth: to support the
+        # feeling of property. Odoo won't pass them when calling `new`.
         setter = kwargs.get('setter', self.property_setter)
         deleter = kwargs.get('deleter', self.property_deleter)
         return Property(
