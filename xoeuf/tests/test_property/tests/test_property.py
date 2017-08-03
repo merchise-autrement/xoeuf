@@ -58,3 +58,20 @@ class TestProperty(TransactionCase):
 
     # Don't perform the test of `search()` because it does not raise an
     # exception, but log an error that may fool our test scripts.
+
+
+class TestInheritedValue(TransactionCase):
+    def setUp(self):
+        super(TestInheritedValue, self).setUp()
+        Value = self.Value = self.env['test.property.value']
+        Identifier = self.Identifier = self.env['test.property.inherits']
+        for i in range(10):
+            val = Value.create({'thing': repr({i: i})})
+            iden = Identifier.create({'name': 'v%d' % i, 'value_id': val.id})
+            self.assertEqual(val.thing, iden.thing)
+
+    def test_result_write(self):
+        i = self.Identifier.search([], limit=1)
+        v = {'a': [1, (1, 2), u'a']}
+        i.write({'result': v})
+        self.assertEqual(i.thing, repr(v))
