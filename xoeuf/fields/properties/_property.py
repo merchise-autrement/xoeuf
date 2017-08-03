@@ -38,6 +38,13 @@ class Property(Base):
 
        - You cannot `search()` for this type of fields.
 
+       - You cannot use Property fields in views.
+
+         The main difference to any other computed field is that Property is
+         untyped.  We don't enforce any type check on the value returned by
+         getters.  But, then, we cannot communicate which widget can manage
+         the value of a Property.
+
     The getter, setter and deleter functions receive (and thus we required it)
     a singleton recordset instance.
 
