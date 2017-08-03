@@ -10,12 +10,13 @@
 # terms of the LICENCE attached (see LICENCE file) in the distribution
 # package.
 #
-# Created on 2017-03-07
+# Created on 2017-08-01
 
-dict(
-    name='test_localized_dt',
-    version='1.0',
-    depends=['base',],
-    auto_install=True,
-    installable=ODOO_VERSION_INFO[0] in (8, 10)   # noqa
-)
+{
+    'name': 'test_property',
+    'author': 'Merchise Autrement [~º/~] and Contributors',
+    'description': 'Test for the field.Property extension',
+    'depends': ['base', ],
+    'installable': True,
+    'auto_install': False,
+}

@@ -31,4 +31,4 @@ class ModelA(models.TransientModel):
 
 class ModelB(models.TransientModel):
     _name = __name__ + '.' + 'b'
-    _inherits = {'a_id': models.get_modelname(ModelA)}
+    _inherits = {models.get_modelname(ModelA): 'a_id'}

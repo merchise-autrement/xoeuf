@@ -19,7 +19,7 @@ from __future__ import (division as _py3_division,
 from xoeuf.models import get_modelname as _get_modelname
 from xoutil.deprecation import deprecated
 
-get_modelname = deprecated(_get_modelname)(_get_modelname)
+get_modelname = deprecated('xoeuf.models.get_modelname')(_get_modelname)
 del _get_modelname, deprecated
 
 

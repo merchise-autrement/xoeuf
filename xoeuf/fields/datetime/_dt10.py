@@ -65,7 +65,8 @@ class LocalizedDatetime(fields.Datetime):
         self.dt_field = dt_field
         self.tzone_field = tzone_field
         kwargs = dict(
-            dict(store=False, dt_field=dt_field, tzone_field=tzone_field),
+            dict(store=False, copy=False, dt_field=dt_field,
+                 tzone_field=tzone_field),
             **kwargs
         )
         super(LocalizedDatetime, self).__init__(**kwargs)

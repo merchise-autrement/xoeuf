@@ -52,64 +52,18 @@ def contextual(func):
 
 @_xdecorator
 def take_one(func, index=0, warn=True, strict=False):
-    '''A weaker version of `api.one`.
+    '''Same as `requires_singleton()`.
 
-    The decorated method will receive a recordset with a single record
-    just like `api.one` does.
-
-    The single record will be the one in the `index` provided in the
-    decorator.
-
-    This means the decorated method *can* make the same assumptions about
-    its `self` it can make when decorated with `api.one`.  Nevertheless
-    its return value *will not* be enclosed in a list.
-
-    If `warn` is True and more than one record is in the record set, a
-    warning will be issued.
-
-    If `strict` is True and there's more than one record (or none), raise a
-    ValueError.
-
-    .. note:: Odoo's ``ensure_one()`` raises another kind of error.
-
-    If the given recordset has no `index`, raise an IndexError.
+    The arguments are now ignored.
 
     '''
-    try:
-        from decorator import decorate
-    except ImportError:
-        # decorator < 4, but we need to support it because Odoo states that it
-        # requires 3.4.0.  See
-        # http://decorator.readthedocs.io/en/latest/tests.documentation.html#what-s-new-in-version-4
-        from decorator import decorator as decorate
-    import logging
-    logger = logging.getLogger(__name__)
-    del logging
-
-    # It's a tricky business to make Odoo's multi (Odoo 8 and 9) to work with
-    # variables arguments.  And `functools.wraps` returns a function with
-    # variables arguments...  So, we use the `decorator` package to provide
-    # the same signature as `func`.
-    def inner(f, self, *args, **kwargs):
-        if self[index] != self:
-            # More than one item was in the recordset.
-            if strict:
-                raise ValueError(
-                    'More than one record for function %s' % func.__name__
-                )
-            elif warn:
-                logger.warn('More than one record for function %s',
-                            func, extra=self)
-            self = self[index]
-        return f(self, *args, **kwargs)
-
-    return _odoo_api.multi(decorate(func, inner))
+    return requires_singleton(func)
 
 
 _MSG = ("{funcname} is now deprecated and it will be removed. "
         "Use `{replacement}` directly and let the method raise "
         "`expected singleton` exception.")
-take_one = deprecated('`api.multi()`', msg=_MSG)(take_one)
+take_one = deprecated('`api.requires_singleton()`', msg=_MSG)(take_one)
 del _MSG, deprecated
 
 
