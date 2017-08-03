@@ -112,8 +112,8 @@ class LocalizedDatetime(fields.Datetime):
     def __init__(self, dt_field=None, tzone_field=None, **kwargs):
         self.dt_field = dt_field
         self.tzone_field = tzone_field
-        # Include store=False if is not include in kwargs
-        kwargs = dict(dict(store=False), **kwargs)
+        # Include store=False and copy=False if not already included.
+        kwargs = dict(dict(store=False, copy=False), **kwargs)
         super(LocalizedDatetime, self).__init__(
             dt_field=dt_field, tzone_field=tzone_field, **kwargs
         )
