@@ -72,11 +72,19 @@ class Property(Base):
     }
     type = 'python-property'  # needed to satisfy ir.models.field
 
-    def __init__(self, getter, setter=None, deleter=None):
-        # Notice we don't abide to the expected fields signature.  Instead, we
+    def __init__(self, getter, setter=None, deleter=None, **kwargs):
+        # Notice we don't abide by the expected fields signature.  Instead, we
         # require one that is compatible with `property`; but we ensure that
-        # Odoo sees this Property as normal field with custom attributes.
+        # Odoo sees this Property as normal field with custom attributes.  We
+        # allow for inheritance (_inherits) of this field.  Such inheritance
+        # is done via a related field, but otherwise custom `write/create`
+        # that treat properties could be ignored.
         from xoutil import Unset
+        kw = {
+            'inherited': kwargs.get('inherited', None),
+            'related': kwargs.get('related', None),
+            'related_sudo': kwargs.get('related_sudo', False),
+        }
         super(Property, self).__init__(
             # Odoo ignores arguments which are None, therefore, let's force
             # them with Unset.  Odoo 9 and 10, uses this args to call
@@ -93,6 +101,8 @@ class Property(Base):
 
             compute=getter,
             store=False,
+            copy=False,
+            **kw
         )
         # In any case, we need those values now to make `new()` below work.
         self.property_getter = getter or Unset
@@ -100,17 +110,15 @@ class Property(Base):
         self.property_deleter = deleter or Unset
 
     def new(self, **kwargs):
-        # This method is called upon when setting up the models (in the
-        # registry)... We ignore most of the arguments, since we may just
-        # return a copy of `self`.  The arguments 'setter' and 'deleter' are
-        # only used in `setter`:meth: and `deleter`:meth: to support the
-        # feeling of property. Odoo won't pass them when calling `new`.
-        setter = kwargs.get('setter', self.property_setter)
-        deleter = kwargs.get('deleter', self.property_deleter)
+        # Ensure the property getter, setter and deleter are provided.  This
+        # is used in `setter`:meth: and `deleter`:meth:.
+        setter = kwargs.pop('setter', self.property_setter)
+        deleter = kwargs.pop('deleter', self.property_deleter)
         return Property(
             self.property_getter,
             setter=setter,
             deleter=deleter,
+            **kwargs
         )
 
     def setter(self, f):
