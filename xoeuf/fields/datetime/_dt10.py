@@ -17,17 +17,13 @@ from __future__ import (division as _py3_division,
                         absolute_import as _py3_abs_import)
 
 
-try:
-    from openerp.release import version_info as ODOO_VERSION_INFO
-    from openerp import fields
-except ImportError:
-    from odoo.release import version_info as ODOO_VERSION_INFO
-    from odoo import fields
+from xoeuf.odoo.release import version_info as ODOO_VERSION_INFO
 assert ODOO_VERSION_INFO >= (9, 0)
 del ODOO_VERSION_INFO
 
 import pytz
 
+from xoeuf.odoo import fields
 from xoeuf.tools import localtime_as_remotetime
 
 
@@ -62,6 +58,8 @@ class LocalizedDatetime(fields.Datetime):
 
     def __init__(self, dt_field=None, tzone_field=None, **kwargs):
         # Include store=False if is not include in kwargs
+        if not dt_field or tzone_field:
+            raise TypeError('LocalizedDatetime requires the surrogates fields')
         self.dt_field = dt_field
         self.tzone_field = tzone_field
         kwargs = dict(
@@ -72,7 +70,10 @@ class LocalizedDatetime(fields.Datetime):
         super(LocalizedDatetime, self).__init__(**kwargs)
 
     def new(self, **kwargs):
-        # pass origin field args to the new one.
+        # Pass original args to the new one.  This ensures that the
+        # tzone_field and dt_field are present.  In odoo/models.py, Odoo calls
+        # this `new()` without arguments to duplicate the fields from parent
+        # classes.
         kwargs = dict(self.args, **kwargs)
         return super(LocalizedDatetime, self).new(**kwargs)
 
