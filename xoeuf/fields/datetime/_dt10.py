@@ -58,7 +58,7 @@ class LocalizedDatetime(fields.Datetime):
 
     def __init__(self, dt_field=None, tzone_field=None, **kwargs):
         # Include store=False if is not include in kwargs
-        if not dt_field or tzone_field:
+        if not dt_field or not tzone_field:
             raise TypeError('LocalizedDatetime requires the surrogates fields')
         self.dt_field = dt_field
         self.tzone_field = tzone_field
