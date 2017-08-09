@@ -16,7 +16,7 @@ from __future__ import (division as _py3_division,
                         print_function as _py3_print,
                         absolute_import as _py3_abs_import)
 
-from openerp.release import version_info as ODOO_VERSION_INFO
+from xoeuf.odoo.release import version_info as ODOO_VERSION_INFO
 assert (8, 0) <= ODOO_VERSION_INFO < (9, 0)
 del ODOO_VERSION_INFO
 
@@ -110,6 +110,8 @@ class LocalizedDatetime(fields.Datetime):
         self.depends = (self.dt_field, self.tzone_field)
 
     def __init__(self, dt_field=None, tzone_field=None, **kwargs):
+        if not dt_field or tzone_field:
+            raise TypeError('LocalizedDatetime requires the surrogates fields')
         self.dt_field = dt_field
         self.tzone_field = tzone_field
         # Include store=False and copy=False if not already included.
@@ -117,3 +119,11 @@ class LocalizedDatetime(fields.Datetime):
         super(LocalizedDatetime, self).__init__(
             dt_field=dt_field, tzone_field=tzone_field, **kwargs
         )
+
+    def new(self, **kwargs):
+        # Ensures that the tzone_field and dt_field are present.  In
+        # openerp/models.py, Odoo calls this `new()` without arguments to
+        # duplicate the fields from parent classes.
+        kwargs = dict(dict(tzone_field=self.tzone_field,
+                           dt_field=self.dt_field), **kwargs)
+        return super(LocalizedDatetime, self).new(**kwargs)
