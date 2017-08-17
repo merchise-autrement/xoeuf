@@ -68,6 +68,7 @@ setup(name=project_name,
       ],
       extra_requires={
           'odoo': ['odoo==8.0,==10.0', ],
+          'test': ['hypothesis>=3.7.0,<4', ],
       },
       entry_points="""
       [console_scripts]
