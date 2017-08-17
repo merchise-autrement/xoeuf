@@ -32,5 +32,5 @@ def dev_tag_installed():
         return None
 
 
-VERSION = '0.9.1'
+VERSION = '0.10.0'
 RELEASE_TAG = dev_tag_installed() or ''
