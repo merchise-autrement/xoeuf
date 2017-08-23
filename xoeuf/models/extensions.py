@@ -392,7 +392,36 @@ def cascade_search(self, cr, uid, *queries, **options):
     return result
 
 
-def get_treeview_action(self, cr, uid, ids, context=None):
+def get_treeview_action(self, *args, **kwargs):
+    '''Return the tree view action for `self`.
+
+    There are two possible signatures:
+
+    - ``get_treeview_action(recordset, **options)``
+
+    - ``get_treeview_action(model, cr, uid, ids, context=context, **options)``
+
+       .. warning:: ``context`` must be a keyword argument.
+
+    It's an error to pass an empty recordset.  If the recordset is a
+    singleton, return the view type 'form' so that it's easier to see the full
+    object.
+
+    :rtype: An action `dict` you can return to the web client.
+
+    `options` is used to override **almost any** key in the returned dict.  An
+    interesting option is `target`.
+
+    '''
+    if args:
+        cr, uid, ids = args[:3], args[3:]
+        if args:
+            raise TypeError('Too many positional arguments')
+        context = kwargs.pop('context', None)
+    else:
+        cr, uid, context = self.env.args
+        ids = self.ids
+    options = kwargs
     if len(ids) > 1:
         vtype = 'list'
         active_id = None
@@ -413,6 +442,7 @@ def get_treeview_action(self, cr, uid, ids, context=None):
     }
     if active_id:
         result['active_id'] = active_id
+    result.update(options)
     return result
 
 
