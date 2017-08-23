@@ -403,9 +403,8 @@ def get_treeview_action(self, *args, **kwargs):
 
        .. warning:: ``context`` must be a keyword argument.
 
-    It's an error to pass an empty recordset.  If the recordset is a
-    singleton, return the view type 'form' so that it's easier to see the full
-    object.
+    If the recordset is a singleton, return the view type 'form' so that it's
+    easier to see the full object.
 
     :rtype: An action `dict` you can return to the web client.
 
@@ -422,7 +421,7 @@ def get_treeview_action(self, *args, **kwargs):
         cr, uid, context = self.env.args
         ids = self.ids
     options = kwargs
-    if len(ids) > 1:
+    if not ids or len(ids) > 1:
         vtype = 'list'
         active_id = None
     else:
