@@ -47,7 +47,7 @@ def integrate_extensions():
     '''
     from types import FunctionType
     from xoeuf.odoo.models import BaseModel
-    from xoeuf.osv import model_extensions
+    from xoeuf.models import extensions as model_extensions
     from xoeuf.api import guess as adapt
 
     def fixname(name):
