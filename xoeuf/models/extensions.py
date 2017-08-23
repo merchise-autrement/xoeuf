@@ -436,9 +436,10 @@ def get_treeview_action(self, *args, **kwargs):
         'view_mode': 'list,form',
         'views': [(False, 'list'), (False, 'form')],
         'target': 'current',
-        'domain': [('id', 'in', tuple(ids))],
         'context': context,
     }
+    if ids:
+        result['domain'] = [('id', 'in', tuple(ids))]
     if active_id:
         result['active_id'] = active_id
     result.update(options)
