@@ -414,7 +414,7 @@ def get_treeview_action(self, *args, **kwargs):
 
     '''
     if args:
-        cr, uid, ids = args[:3], args[3:]
+        (cr, uid, ids), args = args[:3], args[3:]
         if args:
             raise TypeError('Too many positional arguments')
         context = kwargs.pop('context', None)
