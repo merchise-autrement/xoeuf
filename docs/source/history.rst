@@ -5,6 +5,13 @@
 Beta releases (series 0.X)
 ==========================
 
+2017-08-25. Release 0.11.0
+--------------------------
+
+- `xoeuf.models.extensions.get_treeview_action`:func: is ported to the new
+  API.
+
+
 2017-08-17.  Summary of changes up to release 0.10.0
 ----------------------------------------------------
 
