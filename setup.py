@@ -61,7 +61,7 @@ setup(name=project_name,
       zip_safe=False,
       install_requires=[
           'decorator>=4.0,<4.2',
-          'xoutil>=1.7.1.dev20151028,<1.9',
+          'xoutil>=1.7.5,<1.9',
           'ipython<6',
           'raven>=5.8.0',
           'raven-sanitize-openerp',
