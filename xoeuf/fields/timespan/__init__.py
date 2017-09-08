@@ -24,6 +24,22 @@ def TimeSpan(start_date_field, end_date_field):
     It's never actually stored in the DB a single value.  You cannot search
     for this property.
 
+    :param start_date_field: The name of the field which holds the start date
+                             of the time span.
+
+    :param end_date_field: The name of the field which holds the end date.
+
+    .. note:: None of those fields are created automatically.  You must create
+              them.
+
+
+    Example::
+
+       class SomeModel(Model):
+            some_start_date = fields.Date()
+            some_end_date = fields.Date()
+            some = fields.TimeSpan('some_start_date', 'some_end_date')
+
     '''
     from xoeuf.fields import Property
     try:
