@@ -5,10 +5,15 @@
 Beta releases (series 0.X)
 ==========================
 
-2017-09-05.  Release 0.12.0
+2017-09-05.  Release 0.13.0
 ---------------------------
 
 - Added `xoeuf.fields.TimeSpan`:func:.  Requires xoutil 1.7.6.
+
+
+.. note:: I created the release 0.13.0 out of 0.12.0.
+
+
 
 2017-08-25. Release 0.11.0
 --------------------------
