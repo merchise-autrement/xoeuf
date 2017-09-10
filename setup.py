@@ -61,10 +61,11 @@ setup(name=project_name,
       zip_safe=False,
       install_requires=[
           'decorator>=4.0,<4.2',
-          'xoutil>=1.7.6,<1.9',
+          'xoutil>=1.7.7,<1.9',
           'ipython<6',
           'raven>=5.8.0',
           'raven-sanitize-openerp',
+          'enum34; python_version < "3.4"',
       ],
       extra_requires={
           'odoo': ['odoo==8.0,==10.0', ],
