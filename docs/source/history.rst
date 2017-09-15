@@ -5,6 +5,13 @@
 Beta releases (series 0.X)
 ==========================
 
+2017-09-14.  Release 0.14.0
+---------------------------
+
+- Added `xoeuf.fields.Enumeration`:func:.
+
+
+
 2017-09-05.  Release 0.13.0
 ---------------------------
 
