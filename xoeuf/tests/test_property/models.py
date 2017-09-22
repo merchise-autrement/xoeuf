@@ -95,7 +95,7 @@ class IdentifiedValue(models.Model):
     name = fields.Char(required=True)
     value_id = fields.Many2one(
         'test.property.value',
-        require=True,
+        required=True,
         ondelete='cascade'
     )
 
@@ -110,7 +110,7 @@ class DelegatedValue(models.Model):
     name = fields.Char(required=True)
     value_id = fields.Many2one(
         'test.property.value',
-        require=True,
+        required=True,
         ondelete='cascade',
         delegate=True,
     )
