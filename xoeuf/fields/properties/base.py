@@ -46,7 +46,8 @@ class Property(Base):
          the value of a Property.
 
     The getter, setter and deleter functions receive (and thus we required it)
-    a singleton recordset instance.
+    a singleton recordset instance.  The onsetup functions receive the field
+    instance, and the model on which the field is being setup.
 
     Usage::
 
@@ -76,10 +77,11 @@ class Property(Base):
         'property_getter': None,
         'property_setter': None,
         'property_deleter': None,
+        'property_onsetup': None,
     }
     type = 'python-property'  # needed to satisfy ir.models.field
 
-    def __init__(self, getter, setter=None, deleter=None, **kwargs):
+    def __init__(self, getter, setter=None, deleter=None, onsetup=None, **kwargs):
         # Notice we don't abide by the expected fields signature.  Instead, we
         # require one that is compatible with `property`; but we ensure that
         # Odoo sees this Property as normal field with custom attributes.  We
@@ -105,6 +107,7 @@ class Property(Base):
             property_getter=getter or Unset,
             property_setter=setter or Unset,
             property_deleter=deleter or Unset,
+            property_onsetup=onsetup or Unset,
 
             compute=getter,
             store=False,
@@ -115,16 +118,19 @@ class Property(Base):
         self.property_getter = getter or Unset
         self.property_setter = setter or Unset
         self.property_deleter = deleter or Unset
+        self.property_onsetup = onsetup or Unset
 
     def new(self, **kwargs):
         # Ensure the property getter, setter and deleter are provided.  This
         # is used in `setter`:meth: and `deleter`:meth:.
         setter = kwargs.pop('setter', self.property_setter)
         deleter = kwargs.pop('deleter', self.property_deleter)
-        return Property(
+        onsetup = kwargs.pop('onsetup', self.property_onsetup)
+        return type(self)(
             self.property_getter,
             setter=setter,
             deleter=deleter,
+            onsetup=onsetup,
             **kwargs
         )
 
@@ -133,6 +139,9 @@ class Property(Base):
 
     def deleter(self, f):
         return self.new(deleter=f)
+
+    def onsetup(self, f):
+        return self.new(onsetup=f)
 
     def __get__(self, instance, owner):
         if instance is None:
