@@ -28,6 +28,9 @@ class TestProperty(TransactionCase):
         for val in 'abcdefg':
             Value.create({'value': val})
 
+    def test_setup(self):
+        self.assertTrue(getattr(type(self.Value), 'inverted_setup', False))
+
     def test_getter(self):
         obj = self.obj
         self.assertEqual(obj.inverted, '9876543210')
