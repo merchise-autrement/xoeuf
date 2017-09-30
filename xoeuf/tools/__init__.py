@@ -11,7 +11,7 @@
 
 '''
 
-from datetime import datetime as _dt, date as _d
+from datetime import datetime as _dt, date as _d, time as _t
 
 try:
     from xoeuf.odoo.tools import safe_eval, float_round  # noqa: reexport
@@ -269,3 +269,99 @@ def localtime_as_remotetime(dt_UTC, from_tz=utc, as_tz=utc):
     local = from_tz.normalize(dt_UTC)
     faked = as_tz.localize(strip_tzinfo(local))
     return strip_tzinfo(pytz.UTC.normalize(faked))
+
+
+def get_time_from_float(value):
+    """Get time tuple from a float value.
+
+    :param value: float value to convert to time tuple
+    :return: time value)
+
+    """
+    hours, minutes = divmod(value * 60, 60)
+    minutes, seconds = divmod(minutes * 60, 60)
+    return _t(hour=int(hours), minute=int(minutes), second=int(seconds))
+
+
+def get_time_string(time_value, up_24=True, include_seconds=False):
+    """ Get a human friendly representation of time
+
+    :param time_value: time value
+    :param up_24: True for military time format
+    :param include_seconds: True to include seconds value in result
+    :return string time formatted like `13:01 PM`
+
+    For instance, having ``now`` value like::
+
+       >>> import datetime
+       >>> now = datetime.time(hour=13, minute=24, second=14)
+
+    Then
+
+       >>> get_time_string(now)
+       '13:24'
+
+       >>> get_time_string(now, include_seconds=True)
+       '13:24:14'
+
+       >>> get_time_string(now, up_24=False)
+       '01:24 PM'
+
+       >>> get_time_string(now, up_24=False, include_seconds=True)
+       '01:24:14 PM'
+
+    """
+    if up_24:
+        result = time_value.strftime('%T' if include_seconds else '%R')
+    else:
+        result = time_value.strftime('%r' if include_seconds else '%I:%M %p')
+    return result
+
+
+def get_time_string_from_float(value, up_24=True, include_seconds=False):
+    """ Get a human friendly representation of time from a float value.
+
+    :param value: float value that represent a time value.
+    :param up_24: True for military time format
+    :param include_seconds: True to include seconds value in result
+    :return string time formatted like `13:01 PM`
+
+    For instance, having ``now`` value like::
+
+       >>> value = 13.404
+
+    Then
+
+       >>> get_time_string_from_float(value)
+       '13:24'
+
+       >>> get_time_string_from_float(value, include_seconds=True)
+       '13:24:14'
+
+       >>> get_time_string_from_float(value, up_24=False)
+       '01:24 PM'
+
+       >>> get_time_string_from_float(value, False, True)
+       '01:24:14 PM'
+    """
+    return get_time_string(
+        get_time_from_float(value),
+        up_24=up_24,
+        include_seconds=include_seconds
+    )
+
+
+def get_tz_list():
+    """Get the alphabetic sorted list of time zones in odoo selection
+    like format.
+
+    """
+    # put POSIX 'Etc/*' entries at the end to avoid confusing users - see bug
+    # 1086728
+    return [
+        (tz, "(" + tz + ")")
+        for tz in sorted(
+            pytz.all_timezones,
+            key=lambda tz: tz if not tz.startswith('Etc/') else "_"
+        )
+    ]
