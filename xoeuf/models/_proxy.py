@@ -24,7 +24,7 @@ from __future__ import (division as _py3_division,
 import re
 
 try:
-    from xoeuf.odoo import models, api
+    from xoeuf.odoo import models
 except ImportError:
     # So that we can generate the docs easily
     pass
