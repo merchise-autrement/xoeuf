@@ -38,7 +38,7 @@ Example::
   >>> Partner.search([])  # doctest: +ELLIPSIS
   Traceback (...)
   ...
-  AttributeError: search
+  RuntimeError: ...
 
 
   >>> from xoeuf.pool import mercurio as db

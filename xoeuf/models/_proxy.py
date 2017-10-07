@@ -69,7 +69,10 @@ class ModelProxy(object):
         if this is not None:
             return getattr(this.env[self.__model], attr)
         else:
-            raise AttributeError(attr)
+            raise RuntimeError(
+                'Cannot find attribute %r in proxy model. This is most '
+                'likely due to an invalid call site.' % attr
+            )
 
 
 def _get_model(name):

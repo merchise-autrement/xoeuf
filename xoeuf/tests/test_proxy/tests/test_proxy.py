@@ -17,7 +17,7 @@ from xoeuf.odoo.tests.common import TransactionCase
 
 class TestModelProxy(TransactionCase):
     def test_must_the_right_self(self):
-        with self.assertRaises(AttributeError):
+        with self.assertRaises(RuntimeError):
             Users.search([])
 
     def test_finds_self(this):
