@@ -58,11 +58,7 @@ class ModelProxy(object):
             f = None
 
     def __dir__(self):
-        this = self._this
-        if this is not None:
-            return dir(this)
-        else:
-            return dir(models.BaseModel)
+        return dir(models.BaseModel)
 
     def __getattr__(self, attr):
         this = self._this
