@@ -5,7 +5,7 @@
 Beta releases (series 0.X)
 ==========================
 
-Unreleased.  Release 0.15.0
+2017-10-07.  Release 0.15.0
 ---------------------------
 
 - Allow `xoeuf.fields.Property`:class: to setup.  When the ORM setups the
