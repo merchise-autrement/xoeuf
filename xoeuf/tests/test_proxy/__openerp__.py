@@ -16,7 +16,7 @@ dict(
     name='test_proxy',
     author='Merchise Autrement [~º/~] and Contributors',
     description='Test for the xoeuf.models.proxy',
-    depends=['base', ],
+    depends=['base', 'web', ],
     installable=True,
     auto_install= False,
 )

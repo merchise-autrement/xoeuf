@@ -36,7 +36,19 @@ class ModelProxy(object):
         self.__env = None
 
     @property
+    def _proxy_request(self):
+        try:
+            from xoeuf.odoo.http import request
+            if request.env:  # An HTTP request may not be bound to a single DB.
+                return request
+        except RuntimeError:
+            pass
+        return None
+
+    @property
     def _this(self):
+        if self._proxy_request:
+            return self._proxy_request.env
         import sys
         f = sys._getframe(1)
         try:
@@ -53,7 +65,7 @@ class ModelProxy(object):
                     this = this.browse(cr, uid, context=context)
                 f = f.f_back
                 tries -= 1
-            return this
+            return this.env
         finally:
             f = None
 
@@ -63,7 +75,7 @@ class ModelProxy(object):
     def __getattr__(self, attr):
         this = self._this
         if this is not None:
-            return getattr(this.env[self.__model], attr)
+            return getattr(this[self.__model], attr)
         else:
             raise RuntimeError(
                 'Cannot find attribute %r in proxy model. This is most '
