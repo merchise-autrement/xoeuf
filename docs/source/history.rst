@@ -5,6 +5,16 @@
 Beta releases (series 0.X)
 ==========================
 
+2017-10-07.  Release 0.15.0
+---------------------------
+
+- Allow `xoeuf.fields.Property`:class: to setup.  When the ORM setups the
+  models in the registry, the setup will be called.
+
+- Extend models proxies to support HTTP requests.  This allows model proxies
+  to be used in HTTP controllers.
+
+
 2017-09-14.  Release 0.14.0
 ---------------------------
 

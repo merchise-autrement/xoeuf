@@ -32,3 +32,7 @@ CLOSE_WINDOW = _const({'type': 'ir.actions.act_window_close'})
 
 # Return this to reload the interface
 RELOAD_UI = _const({'type': 'ir.actions.client', 'tag': 'reload'})
+
+
+# The do nothing action.
+DO_NOTHING = _const({})

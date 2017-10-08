@@ -17,8 +17,13 @@ from __future__ import (division as _py3_division,
                         print_function as _py3_print,
                         absolute_import as _py3_abs_import)
 
+import logging
+
 from xoeuf import models, fields, api
 from xoeuf.odoo.tools.safe_eval import safe_eval
+
+logger = logging.getLogger(__name__)
+del logging
 
 
 class ValueMixin(models.AbstractModel):
@@ -37,6 +42,10 @@ class ValueMixin(models.AbstractModel):
     @inverted.deleter
     def inverted(self):
         self.value = None
+
+    @inverted.onsetup
+    def inverted(field, model):
+        type(model).inverted_setup = True
 
 
 class ObjectMixin(models.AbstractModel):
@@ -95,7 +104,7 @@ class IdentifiedValue(models.Model):
     name = fields.Char(required=True)
     value_id = fields.Many2one(
         'test.property.value',
-        require=True,
+        required=True,
         ondelete='cascade'
     )
 
@@ -110,7 +119,7 @@ class DelegatedValue(models.Model):
     name = fields.Char(required=True)
     value_id = fields.Many2one(
         'test.property.value',
-        require=True,
+        required=True,
         ondelete='cascade',
         delegate=True,
     )
