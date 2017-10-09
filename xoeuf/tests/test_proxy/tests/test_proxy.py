@@ -27,18 +27,27 @@ class TestModelProxy(TransactionCase):
 
 
 class TestHTTPModelProxy(HttpCase):
+    @staticmethod
+    def getcode(response):
+        from xoeuf import MAJOR_ODOO_VERSION
+        if MAJOR_ODOO_VERSION < 11:
+            return response.getcode()
+        else:
+            # Odoo 11+ uses requests to load the URL.
+            return response.status_code
+
     def test_request_no_auth(self):
         # The controller won't be able to find a proper environment and fail
         # with an AttributeError, we'll see as an error 500
         self.authenticate('admin', 'admin')
         response = self.url_open('/test_proxy_none')
-        code = response.getcode()
+        code = self.getcode(response)
         assert code == HTTP_SERVER_ERROR, \
             'We expected a server error, got %r.' % code
 
     def test_request_with_auth(self):
         response = self.url_open('/test_proxy_pub')
-        code = response.getcode()
+        code = self.getcode(response)
         assert code == HTTP_OK, 'We expected an OK response, got %r.' % code
 
 
