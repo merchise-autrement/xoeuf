@@ -23,7 +23,7 @@ class TestModelProxy(TransactionCase):
     def test_finds_self(this):
         self = this.env['ir.model']  # noqa: make self a valid recordset
         Users.create({'name': 'John Doe', 'login': 'john.doe'})
-        Users.search([])
+        this.assertEqual(Users.search([]), self.env['res.users'].search([]))
 
 
 class TestHTTPModelProxy(HttpCase):
@@ -42,13 +42,12 @@ class TestHTTPModelProxy(HttpCase):
         self.authenticate('admin', 'admin')
         response = self.url_open('/test_proxy_none')
         code = self.getcode(response)
-        assert code == HTTP_SERVER_ERROR, \
-            'We expected a server error, got %r.' % code
+        self.assertEqual(code, HTTP_SERVER_ERROR)
 
     def test_request_with_auth(self):
         response = self.url_open('/test_proxy_pub')
         code = self.getcode(response)
-        assert code == HTTP_OK, 'We expected an OK response, got %r.' % code
+        self.assertEqual(code, HTTP_OK)
 
 
 HTTP_OK = 200
