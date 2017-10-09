@@ -82,6 +82,9 @@ class ModelProxy(object):
                 'likely due to an invalid call site.' % attr
             )
 
+    def __repr__(self):
+        return '<ModelProxy: %r>' % self.__model
+
 
 def _get_model(name):
     if '.' in name:

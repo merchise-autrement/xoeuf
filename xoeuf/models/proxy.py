@@ -71,6 +71,7 @@ class ModelImporter(object):
         res = sys.modules.get(fullname, None)
         if res is None:
             res = ModelProxy(fullname.rsplit(str('.'), 1)[-1])
+            res.__path__ = __path__
             sys.modules[fullname] = res
         return res
 
@@ -97,6 +98,7 @@ class ModelImporter(object):
 
 class ModelProxy(ModuleType, _proxy.ModelProxy):
     def __init__(self, name):
+        ModuleType.__init__(self, name)
         _proxy.ModelProxy.__init__(self, name)
 
 
