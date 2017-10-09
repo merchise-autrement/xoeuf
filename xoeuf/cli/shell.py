@@ -77,8 +77,9 @@ class Base(object):
         signal.signal(signal.SIGINT, raise_keyboard_interrupt)
 
     def console(self, local_vars):
+        from xoutil.eight import exec_
         if not os.isatty(sys.stdin.fileno()):
-            exec sys.stdin in local_vars
+            exec_(sys.stdin, local_vars)
         else:
             if 'env' not in local_vars:
                 print(
