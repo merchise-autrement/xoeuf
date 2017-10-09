@@ -65,7 +65,7 @@ class ModelProxy(object):
                     this = this.browse(cr, uid, context=context)
                 f = f.f_back
                 tries -= 1
-            return this.env
+            return this.env if this is not None else None
         finally:
             f = None
 
