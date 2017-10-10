@@ -16,6 +16,8 @@ from __future__ import (division as _py3_division,
                         print_function as _py3_print,
                         absolute_import as _py3_abs_import)
 
+import contextlib
+
 from hypothesis import strategies as s, given
 from xoeuf.odoo.tests.common import TransactionCase
 
@@ -54,20 +56,21 @@ class TestEnum(TransactionCase):
         assert isinstance(obj.color, COLORS)
 
     def test_cannot_set_invalid_integers(self):
-        # Unfortunately we can insert invalid values in the DB, but we get a
-        # ValueError upon 'reading'.
-        obj = self.EnumModel.create({'color': 10})
-        id = obj.id
-        self.EnumModel.invalidate_cache()
-        obj = self.EnumModel.browse(id)
-        with self.assertRaises(ValueError):
-            obj.color
+        # Sinces tests are run while the registry is being populated, i.e not
+        # ready, we need to trick it to allow receivers be executed.
+        with force_ready(self.env.registry), self.assertRaises(ValueError):
+            self.EnumModel.create({'color': 10})
 
-    def test_cannot_set_invalid_integers2(self):
-        # Unfortunately we can insert invalid values in the DB, but we get a
-        # ValueError upon 'reading'.
-        obj = self.EnumModel.create({'color': 10})
-        id = obj.id
-        self.EnumModel.invalidate_cache()
-        with self.assertRaises(ValueError):
-            self.EnumModel.browse(id).read(['color'])
+    def test_cannot_write_invalid_integers(self):
+        obj = self.EnumModel.create({'color': 1})
+        with force_ready(self.env.registry), self.assertRaises(ValueError):
+            obj.write({'color': 10})
+
+
+@contextlib.contextmanager
+def force_ready(registry):
+    registry.ready = True
+    try:
+        yield
+    finally:
+        registry.ready = False
