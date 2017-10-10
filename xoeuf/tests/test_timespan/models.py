@@ -11,8 +11,7 @@ from __future__ import (division as _py3_division,
                         print_function as _py3_print,
                         absolute_import as _py3_abs_import)
 
-from xoeuf import models, fields, api
-from xoeuf.odoo.tools.safe_eval import safe_eval
+from xoeuf import models, fields
 
 
 class TimeSpanValue(models.Model):
