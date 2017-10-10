@@ -267,8 +267,9 @@ class Domain(list):
 
     __or__ = __ror__ = OR
 
-    def __neg__(self):
+    def __invert__(self):
         return Domain(['!'] + self.normalized)
+    __neg__ = deprecated(__invert__, msg='Use `~` instead of `-`')(__invert__)
 
     def __eq__(self, other):
         """ Two domains are equivalent if both have similar DomainTree.

@@ -31,7 +31,7 @@ class TestDomain(unittest.TestCase):
         self.assertTrue(A == A)
 
         # -A == -A
-        self.assertTrue(-A == -A)
+        self.assertTrue(~A == ~A)
 
         # (x = 1)  == ! (x <> 1)
         A1 = Domain([
