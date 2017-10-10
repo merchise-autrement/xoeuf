@@ -11,6 +11,12 @@ from __future__ import (division as _py3_division,
                         print_function as _py3_print,
                         absolute_import as _py3_abs_import)
 
+try:
+    import unittest2 as unittest
+except ImportError:
+    import unittest
+
+from xoeuf import MAJOR_ODOO_VERSION
 from xoeuf.models.proxy import ResUsers as Users
 from xoeuf.odoo.tests.common import TransactionCase, HttpCase
 
@@ -29,13 +35,13 @@ class TestModelProxy(TransactionCase):
 class TestHTTPModelProxy(HttpCase):
     @staticmethod
     def getcode(response):
-        from xoeuf import MAJOR_ODOO_VERSION
         if MAJOR_ODOO_VERSION < 11:
             return response.getcode()
         else:
             # Odoo 11+ uses requests to load the URL.
             return response.status_code
 
+    @unittest.skipIf(MAJOR_ODOO_VERSION >= 11, 'Does not raises the error in Odoo 11')
     def test_request_no_auth(self):
         # The controller won't be able to find a proper environment and fail
         # with an AttributeError, we'll see as an error 500
