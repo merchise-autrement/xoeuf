@@ -61,7 +61,7 @@ class Domain(list):
     """
 
     def __init__(self, seq=None):
-        from odoo.tools.safe_eval import const_eval
+        from xoeuf.odoo.tools.safe_eval import const_eval
         seq = seq or ()
         # some times the domains are saved in db in char or text fields.
         if isinstance(seq, string_types):
