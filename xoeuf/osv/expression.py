@@ -24,6 +24,7 @@ import operator
 from itertools import chain
 from xoeuf.odoo.osv import expression as _odoo_expression
 from xoutil.eight import string_types
+from xoutil.deprecation import deprecated
 
 
 # TODO: `copy_members` will be deprecated in xoutil 1.8, use instead the same
@@ -68,7 +69,7 @@ class Domain(list):
             seq = const_eval(seq)
         super(Domain, self).__init__(seq)
 
-    def imply(self, other):
+    def implies(self, other):
         """ Check if a odoo filter domain imply an other.
 
         A => A
@@ -78,7 +79,8 @@ class Domain(list):
 
         """
         other = DomainTree(Domain(other).normalized)
-        return DomainTree(self.normalized).imply(other)
+        return DomainTree(self.normalized).implies(other)
+    imply = deprecated(implies, msg='`imply` is deprecated, use `implies`.')(implies)
 
     def normalize_domain(self):
         """Explicit all `and` operators.
@@ -334,7 +336,7 @@ class DomainTerm(object):
         'not ilike': lambda x, y: y.lower().find(x.lower()) >= 0,
     }
 
-    def imply(self, other):
+    def implies(self, other):
         other = DomainTerm(other)
         # equals terms are implied.
         if self == other:
@@ -353,7 +355,7 @@ class DomainTerm(object):
                 compare = self.operators_implication.get(other.operator)
                 return compare(self.right, other.right) if compare else False
             else:
-                # TODO: x = 1  imply x != 2; x = 2 1 imply x > 1
+                # TODO: x = 1  implies x != 2; x = 2 1 implies x > 1
                 return False
 
     def __hash__(self):
@@ -404,7 +406,7 @@ class DomainTree(object):
                 else:
                     child = DomainTree(domain)
                     # If new node is al ready implied by any other ignore it.
-                    if any(x.imply(child) for x in childs):
+                    if any(x.implies(child) for x in childs):
                         count -= 1
                     else:
                         childs.add(child)
@@ -453,28 +455,31 @@ class DomainTree(object):
                 )
         return False
 
-    def imply(self, other):
+    def implies(self, other):
         funct = all if other.term == this.AND_OPERATOR else any
         if self.is_leaf:
             # A => A
-            if self.term.imply(other.term):
+            if self.term.implies(other.term):
                 return True
             # A => A | B
-            if not other.is_leaf and funct(self.imply(child)
+            if not other.is_leaf and funct(self.implies(child)
                                            for child in other.sorted_childs):
                 return True
         elif not self.is_leaf:
             funct2 = any if self.term == this.AND_OPERATOR else all
             # A & B => A
-            if funct2(child.imply(other) for child in self.sorted_childs):
+            if funct2(child.implies(other) for child in self.sorted_childs):
                 return True
             # A & B => A | B
-            if funct(funct2(child.imply(other_child)
+            if funct(funct2(child.implies(other_child)
                             for child in self.sorted_childs)
                      for other_child in other.sorted_childs):
                 return True
         return False
+    imply = deprecated(implies, msg='`imply` is deprecated use `implies`.')(implies)
 
     def __hash__(self):
         return hash(tuple([self.term] + self.sorted_childs))
 
+
+del deprecated

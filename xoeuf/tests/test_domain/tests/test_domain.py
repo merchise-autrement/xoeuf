@@ -40,7 +40,7 @@ class TestDomain(unittest.TestCase):
         ])
         self.assertTrue(A == A1)
 
-    def test_imply(self):
+    def test_implies(self):
         # Basic implications.
         # -------------------
 
@@ -52,16 +52,16 @@ class TestDomain(unittest.TestCase):
         ])
 
         # A => A
-        self.assertTrue(A.imply(A))
+        self.assertTrue(A.implies(A))
 
         # A => A | B
-        self.assertTrue(A.imply(A | B))
+        self.assertTrue(A.implies(A | B))
 
         # A & B => A
-        self.assertTrue((A & B).imply(A))
+        self.assertTrue((A & B).implies(A))
 
         # A & B => A | B
-        self.assertTrue((A & B).imply(A | B))
+        self.assertTrue((A & B).implies(A | B))
 
         # Inter terms implications.
         # -------------------------
@@ -73,7 +73,7 @@ class TestDomain(unittest.TestCase):
         A1 = Domain([
             ('field_x', '=', 1)
         ])
-        self.assertTrue(A.imply(A1))
+        self.assertTrue(A.implies(A1))
 
         # (x != 1)  => (x <> 1)
         A = Domain([
@@ -82,7 +82,7 @@ class TestDomain(unittest.TestCase):
         A1 = Domain([
             ('field_x', '<>', 1)
         ])
-        self.assertTrue(A.imply(A1))
+        self.assertTrue(A.implies(A1))
 
         # (x > 1) => (x > 0)
         A = Domain([
@@ -91,7 +91,7 @@ class TestDomain(unittest.TestCase):
         A1 = Domain([
             ('field_x', '>', 1)
         ])
-        self.assertTrue(A.imply(A1))
+        self.assertTrue(A.implies(A1))
 
         # (x in (1,2,3)) => (x in (1,2,3,4))
         A = Domain([
@@ -100,7 +100,7 @@ class TestDomain(unittest.TestCase):
         A1 = Domain([
             ('field_x', 'in', (1, 2, 3, 4))
         ])
-        self.assertTrue(A.imply(A1))
+        self.assertTrue(A.implies(A1))
         #
 
         # Compound implications.
@@ -115,9 +115,9 @@ class TestDomain(unittest.TestCase):
         C = Domain([
             ('field_x', 'in', (1, 3, 4))
         ])
-        self.assertTrue(A.imply(B))
-        self.assertTrue(A.imply(C))
-        self.assertTrue(A.imply(B & C))
+        self.assertTrue(A.implies(B))
+        self.assertTrue(A.implies(C))
+        self.assertTrue(A.implies(B & C))
 
         # More complex implications
         # -------------------------
@@ -137,7 +137,7 @@ class TestDomain(unittest.TestCase):
             ('field_x', '=', 'value'),
             ('field_y', '!=', False)
         ])
-        assert x.imply(y)
+        assert x.implies(y)
 
         x = Domain([
             ('field_y', '!=', False),
@@ -153,4 +153,4 @@ class TestDomain(unittest.TestCase):
             ('field_y', '!=', False),
             ('field_z', 'in', (1, 2, 3))
         ])
-        assert x.imply(y)
+        assert x.implies(y)
