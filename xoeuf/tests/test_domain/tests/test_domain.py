@@ -11,11 +11,8 @@ from __future__ import (division as _py3_division,
                         print_function as _py3_print,
                         absolute_import as _py3_abs_import)
 
+import unittest
 from xoeuf.osv.expression import Domain
-try:
-    import unittest2 as unittest
-except ImportError:
-    import unittest
 
 
 class TestDomain(unittest.TestCase):
