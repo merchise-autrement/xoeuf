@@ -1,0 +1,481 @@
+#!/usr/bin/env python
+# -*- encoding: utf-8 -*-
+# ---------
+# xoeuf.api
+# ---------
+# Copyright (c) 2015-2017 Merchise and Contributors
+# All rights reserved.
+#
+# This is free software; you can redistribute it and/or modify it under the
+# terms of the LICENCE attached (see LICENCE file) in the distribution
+# package.
+#
+# Created on 2017-10-02
+
+'''Odoo expression extension.
+
+'''
+
+from __future__ import (division as _py3_division,
+                        print_function as _py3_print,
+                        absolute_import as _py3_abs_import)
+
+import operator
+from itertools import chain
+from xoeuf.odoo.osv import expression as _odoo_expression
+from xoutil.eight import string_types
+from xoutil.deprecation import deprecated
+
+
+# TODO: `copy_members` will be deprecated in xoutil 1.8, use instead the same
+# mechanisms as `xoutil.future`.
+from xoutil.modules import copy_members as _copy_python_module_members
+this = _copy_python_module_members(_odoo_expression)
+del _copy_python_module_members
+del _odoo_expression
+
+
+class Domain(list):
+    '''A predicate expressed as an Odoo domain.
+
+    .. note:: This is an *operational* wrapper around normal Odoo domains
+              (lists) with methods to do logical manipulation of such values.
+
+    It's a subtype of Odoo domains (i.e `list`:class:), which means that
+    wherever an Odoo domain is expected you can use a Domain.  See the `Liskov
+    substitution principle`__.
+
+    __ https://en.wikipedia.org/wiki/Liskov_substitution_principle
+
+    '''
+    def __init__(self, seq=None):
+        # TODO: Can you do some sanity check to avoid common mistakes?  For
+        # me, it's normal that I do ``Model.search(['field', '=', value])``
+        # and forget the tuple...
+        from xoeuf.odoo.tools.safe_eval import const_eval
+        seq = seq or ()
+        # some times the domains are saved in db in char or text fields.
+        if isinstance(seq, string_types):
+            seq = const_eval(seq)
+        super(Domain, self).__init__(seq)
+
+    def implies(self, other):
+        '''Check if a domain implies another.
+
+        For any two domains `A` and `B`, the following rules are always true:
+
+        - ``A.implies(A)``
+        - ``(A & B).implies(A)``
+        - ``A.implies(A | B)``.
+        - ``not B.implies(A) == (A | B).implies(A)``
+
+        '''
+        other = DomainTree(Domain(other).normalized)
+        return DomainTree(self.normalized).implies(other)
+    imply = deprecated(implies, msg='`imply` is deprecated, use `implies`.')(implies)
+
+    def normalize_domain(self):
+        '''Return a new domain with all `and` operators explicit.
+
+        For instance, having ``domain`` value like::
+
+            >>> domain = Domain(
+            ...     [('field_y', 'not in', False), ('field_x', '!=', 'value')]
+            ... )
+
+        Then::
+
+            >>> domain.normalize_domain()
+            ['&', ('field_y', 'not in', False), ('field_x', '!=', 'value')]
+
+        '''
+        return Domain(this.normalize_domain(self))
+
+    @property
+    def normalized(self):
+        """Normalize domain in 3 steps:
+        1. Explicit all `and` operators.
+        2. Change a term's operator to some canonical form.
+        3. Remove `not` operators negating the target term operator.
+
+        For instance, having ``domain1``, ``domain2`` and ``domain3`` value
+        like::
+
+            >>> domain1 = Domain([
+            ...     ('field_x', 'not in', False),
+            ...     '!',
+            ...     ('field_y', '>', 1)
+            ... ])
+            >>> domain2 = Domain([
+            ...     '|',
+            ...     ('field_x', 'not in', False),
+            ...     ('field_y', '<>', 'value'),
+            ...     ('field_z', '>', 1)
+            ... ])
+            >>> domain3 = Domain([
+            ...     '|',
+            ...     ('field_x', 'not in', False),
+            ...     '!',
+            ...     ('field_y', '<>', 'value'),
+            ...     ('field_z', '>', 1)
+            ... ])
+
+        Then::
+
+            >>> domain1.normalized
+            ['&', ('field_x', '!=', False), ('field_y', '<=', 1)]
+
+            >>> domain2.normalized
+            [
+                '&',
+                '|',
+                ('field_x', '!=', False),
+                ('field_y', '!=', 'value'),
+                ('field_z', '>', 1)
+            ]
+
+            >>> domain3.normalized
+            [
+                '&',
+                '|',
+                ('field_x', '!=', False),
+                ('field_y', '=', 'value'),
+                ('field_z', '>', 1)
+            ]
+
+        """
+        res = self.normalize_domain()
+        res = Domain((this.normalize_leaf(item) for item in res))
+        return res.distribute_not()
+
+    @property
+    def simplified(self):
+        """ Normalize the domain and exclude redundant terms.
+
+        For instance, having ``domain1``, ``domain2`` and ``domain3`` value
+        like::
+
+            >>> domain1 = Domain([
+            >>>     ('field_x', '!=', False),
+            >>>     ('field_y', '=', 'value'),
+            >>>     ('field_z', 'in', (1, 2, 3)),
+            >>>     ('field_y', '=', 'value'),
+            >>> ])
+            >>> domain2 = Domain([
+            >>>     '|',
+            >>>     ('field_x', '!=', False),
+            >>>     ('field_y', '=', 'value'),
+            >>>     ('field_z', 'in', (1, 2, 3)),
+            >>>     '|',
+            >>>     ('field_y', '=', 'value'),
+            >>>     ('field_x', '!=', False)
+            >>> ])
+            >>> domain3 = Domain([
+            >>>     ('field_y', '!=', False),
+            >>>     ('field_x', 'in', (1,)),
+            >>>     '|',
+            >>>     ('field_y', '!=', False),
+            >>>     '|',
+            >>>     ('field_x', 'in', (1,)),
+            >>>     ('field_x', 'in', (2,))
+            >>> ])
+
+        Then::
+
+            >>> domain1.simplified
+            [
+                '&',
+                '&',
+                ('field_x', '!=', False),
+                ('field_y', '=', 'value'),
+                ('field_z', 'in', (1, 2, 3))
+            ]
+
+            >>> domain2.simplified
+            [
+                '&',
+                '|',
+                ('field_x', '!=', False),
+                ('field_y', '=', 'value'),
+                ('field_z', 'in', (1, 2, 3))
+            ]
+
+            >>> domain3.simplified
+            ['&', ('field_x', 'in', (1,)), ('field_y', '!=', False)]
+
+        """
+        return DomainTree(self.normalized).get_simplified_domain()
+
+    def distribute_not(self):
+        '''Return a new domain without `not` operators.
+
+        For instance, having ``domain`` value like::
+
+            >>> domain = Domain([
+            >>>     '!', ('field_x', '!=', False),
+            >>>     '!', ('field_y', '=', 'value'),
+            >>>     '!', ('field_z', 'in', (1, 2, 3)),
+            >>>     '!', ('field_w', '>', 1),
+            >>> ])
+
+        Then::
+
+            >>> domain.distribute_not()
+            [
+                '&',
+                '&',
+                '&',
+                ('field_x', '=', False),
+                ('field_y', '!=', 'value'),
+                ('field_z', 'not in', (1, 2, 3)),
+                ('field_w', '<=', 1)
+            ]
+
+        '''
+        return Domain(this.distribute_not(self.normalize_domain()))
+
+    def AND(*domains):
+        '''Join given domains using `and` operator.
+
+        :return: normalized odoo filter domain.
+
+        '''
+        return Domain(this.AND(
+            [Domain(domain).normalized for domain in domains]
+        ))
+
+    __and__ = __rand__ = AND
+
+    def OR(*domains):
+        '''Join given domains using `or` operator.
+
+        :return: normalized odoo filter domain.
+
+        '''
+        return Domain(this.OR(
+            [Domain(domain).normalized for domain in domains]
+        ))
+
+    __or__ = __ror__ = OR
+
+    def __invert__(self):
+        return Domain(['!'] + self.normalized)
+    __neg__ = deprecated(__invert__, msg='Use `~` instead of `-`')(__invert__)
+
+    def __eq__(self, other):
+        '''Two domains are equivalent if both have similar DomainTree.
+
+        '''
+        # TODO: In logic, we can identify two predicates if: a implies
+        # b and b implies a, although this has nothing to do with them being
+        # the *same* predicate.  However, since this implementation only
+        # yields True when both domains have the same hash, we can find a, b
+        # such that a implies b and b implies a, but a != b.
+        other = Domain(other)
+        return hash(self) == hash(other)
+
+    def __hash__(self):
+        return hash(DomainTree(self.normalized))
+
+
+class DomainTerm(object):
+    def __init__(self, term):
+        if isinstance(term, DomainTerm):
+            term = term.original
+        self.original = term
+        term = this.normalize_leaf(term)
+        self.normalized = term
+        if this.is_operator(term):
+            self.is_operator = True
+            self.operator = term
+            self.is_leaf = self.left = self.right = False
+        elif this.is_leaf(term):
+            self.is_operator = False
+            self.is_leaf = True
+            self.left, self.operator, self.right = term
+        else:
+            # TODO: May be a # TypeError.
+            raise ValueError("Invalid domain term.")
+
+    def __getitem__(self, x):
+        if self.is_leaf:
+            return (self.left, self.operator, self.right)[x]
+        else:
+            return self.operator[x]
+
+    def __eq__(self, other):
+        if not isinstance(other, DomainTerm):
+            other = DomainTerm(other)
+        return self.normalized == other.normalized
+
+    def __repr__(self):
+        if self.original == self.normalized:
+            return repr(self.original)
+        else:
+            return '%r => %r' % (self.original, self.normalized)
+
+    operators_implication = {
+        '=?': lambda x, y: operator.eq(x, y) or y is False,
+        '>': operator.ge,
+        '>=': operator.ge,
+        '<': operator.le,
+        '<=': operator.le,
+        'in': lambda x, y: all(i in y for i in x),
+        'not in': lambda x, y: all(i in x for i in y),
+        'like': lambda x, y: x.find(y) >= 0,
+        # TODO: asd_g imply asdfg `_` == any character
+        '=like': lambda x, y: x.find(y) >= 0,
+        'not like': lambda x, y: y.find(x) >= 0,
+        'ilike': lambda x, y: x.lower().find(y.lower()) >= 0,
+        # TODO: asd_g imply asdfg `_` == any character
+        '=ilike': lambda x, y: x.lower().find(y.lower()) >= 0,
+        'not ilike': lambda x, y: y.lower().find(x.lower()) >= 0,
+    }
+
+    def implies(self, other):
+        other = DomainTerm(other)
+        # equals terms are implied.
+        if self == other:
+            return True
+        # terms which different left operand can't be compared.
+        elif self.left != other.left:
+            return False
+        elif self.is_operator:
+            # & => &
+            return self.operator == other.operator
+        else:
+            # (x = 1)  => (x = 1)
+            # (x > 1) => (x > 0)
+            # (x in (1,2,3)) => (x in (1,2,3,4))
+            if self.operator == other.operator:
+                compare = self.operators_implication.get(other.operator)
+                return compare(self.right, other.right) if compare else False
+            else:
+                # TODO: x = 1  implies x != 2; x = 2 1 implies x > 1
+                return False
+
+    def __hash__(self):
+        return hash(self.normalized)
+
+
+class DomainTree(object):
+    '''Tree structure to express odoo filter domains.
+
+    A domain like this::
+
+      [
+          ('field_y', '!=', False),
+          ('field_x', '=', 'value'),
+          '|',
+          ('field_z', 'in', (1, 2, 3))
+          ('field_w', '>', 1)
+      ]
+
+    Is represented like this::
+                                   +-----+
+                                   | '&' |
+                                   +--+--+
+                                      |
+                 +--------------------+------------------------+
+                 |                    |                        |
+    +------------+-----------+ +------+------------------+  +--+--+
+    |('field_y', '!=', False)| |('field_x', '=', 'value')|  | '|' |
+    +------------------------+ +-------------------------+  +--+--+
+                                                               |
+                                +------------------------------+--------+
+                                |                                       |
+                   +------------+---------------+       +---------------+---+
+                   |('field_z', 'in', (1, 2, 3))|       |('field_w', '>', 1)|
+                   +----------------------------+       +-------------------+
+
+    '''
+    def __init__(self, domain):
+        term = domain.pop(0)
+        self.term = DomainTerm(term)
+        if term in this.DOMAIN_OPERATORS:
+            count = 1
+            childs = set()
+            while len(childs) <= count:
+                if domain[0] == term:
+                    count += 1
+                    domain.pop(0)
+                else:
+                    child = DomainTree(domain)
+                    # If new node is al ready implied by any other ignore it.
+                    if any(x.implies(child) for x in childs):
+                        count -= 1
+                    else:
+                        childs.add(child)
+            # if a tree node have only one child it be come into it child.
+            if len(childs) == 1:
+                child = childs.pop()
+                self.term = child.term
+                self.childs = child.childs
+                self.is_leaf = child.is_leaf
+            else:
+                self.childs = childs
+                self.is_leaf = False
+        else:
+            self.childs = set()
+            self.is_leaf = True
+
+    @property
+    def sorted_childs(self):
+        return sorted(self.childs, key=lambda item: item.term.normalized)
+
+    def get_simplified_domain(self):
+        res = Domain(self.term for x in range(1, len(self.childs) or 2))
+        if not self.is_leaf:
+            res.extend(
+                chain(
+                    *(x.get_simplified_domain() for x in self.sorted_childs)
+                )
+            )
+        return res
+
+    def __repr__(self):
+        if self.is_leaf:
+            return repr(self.term)
+        else:
+            return '(%s)' % (' %r ' % self.term).join(
+                repr(child) for child in self.sorted_childs
+            )
+
+    def __eq__(self, other):
+        if self.is_leaf == other.is_leaf:
+            if self.is_leaf:
+                return self.term == other.term
+            else:
+                return (
+                    self.term == other.term and not self.childs ^ other.childs
+                )
+        return False
+
+    def implies(self, other):
+        funct = all if other.term == this.AND_OPERATOR else any
+        if self.is_leaf:
+            # A => A
+            if self.term.implies(other.term):
+                return True
+            # A => A | B
+            if not other.is_leaf and funct(self.implies(child)
+                                           for child in other.sorted_childs):
+                return True
+        elif not self.is_leaf:
+            funct2 = any if self.term == this.AND_OPERATOR else all
+            # A & B => A
+            if funct2(child.implies(other) for child in self.sorted_childs):
+                return True
+            # A & B => A | B
+            if funct(funct2(child.implies(other_child)
+                            for child in self.sorted_childs)
+                     for other_child in other.sorted_childs):
+                return True
+        return False
+    imply = deprecated(implies, msg='`imply` is deprecated use `implies`.')(implies)
+
+    def __hash__(self):
+        return hash(tuple([self.term] + self.sorted_childs))
+
+
+del deprecated
