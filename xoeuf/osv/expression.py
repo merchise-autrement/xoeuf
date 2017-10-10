@@ -36,32 +36,22 @@ del _odoo_expression
 
 
 class Domain(list):
-    """ Type for odoo filter domain handle.
+    '''A predicate expressed as an Odoo domain.
 
-    An odoo domain filter is an extended list to allow additional
-    operations like `&`, `|`, `-`, `imply`, `normalized`, `simplified` and
-    modify behaviour to allow compare two domains.
+    .. note:: This is an *operational* wrapper around normal Odoo domains
+              (lists) with methods to do logical manipulation of such values.
 
-    You can do:
+    It's a subtype of Odoo domains (i.e `list`:class:), which means that
+    wherever an Odoo domain is expected you can use a Domain.  See the `Liskov
+    substitution principle`__.
 
-    #. A & B
+    __ https://en.wikipedia.org/wiki/Liskov_substitution_principle
 
-    #. A | B
-
-    #. -A
-
-    #. A == B
-
-    #. A.imply(B)
-
-    #. A.normalized
-
-    #. A.simplified
-
-
-    """
-
+    '''
     def __init__(self, seq=None):
+        # TODO: Can you do some sanity check to avoid common mistakes?  For
+        # me, it's normal that I do ``Model.search(['field', '=', value])``
+        # and forget the tuple...
         from xoeuf.odoo.tools.safe_eval import const_eval
         seq = seq or ()
         # some times the domains are saved in db in char or text fields.
@@ -70,33 +60,35 @@ class Domain(list):
         super(Domain, self).__init__(seq)
 
     def implies(self, other):
-        """ Check if a odoo filter domain imply an other.
+        '''Check if a domain implies another.
 
-        A => A
-        A & b => A
-        A => A | B
-        A | B => A iff B => A
+        For any two domains `A` and `B`, the following rules are always true:
 
-        """
+        - ``A.implies(A)``
+        - ``(A & B).implies(A)``
+        - ``A.implies(A | B)``.
+        - ``not B.implies(A) == (A | B).implies(A)``
+
+        '''
         other = DomainTree(Domain(other).normalized)
         return DomainTree(self.normalized).implies(other)
     imply = deprecated(implies, msg='`imply` is deprecated, use `implies`.')(implies)
 
     def normalize_domain(self):
-        """Explicit all `and` operators.
+        '''Return a new domain with all `and` operators explicit.
 
         For instance, having ``domain`` value like::
 
             >>> domain = Domain(
-            >>>     [('field_y', 'not in', False), ('field_x', '!=', 'value')]
-            >>> )
+            ...     [('field_y', 'not in', False), ('field_x', '!=', 'value')]
+            ... )
 
         Then::
 
-            >>> domain.normalize_domain
+            >>> domain.normalize_domain()
             ['&', ('field_y', 'not in', False), ('field_x', '!=', 'value')]
 
-        """
+        '''
         return Domain(this.normalize_domain(self))
 
     @property
@@ -110,23 +102,23 @@ class Domain(list):
         like::
 
             >>> domain1 = Domain([
-            >>>     ('field_x', 'not in', False),
-            >>>     '!',
-            >>>     ('field_y', '>', 1)
-            >>> ])
+            ...     ('field_x', 'not in', False),
+            ...     '!',
+            ...     ('field_y', '>', 1)
+            ... ])
             >>> domain2 = Domain([
-            >>>     '|',
-            >>>     ('field_x', 'not in', False),
-            >>>     ('field_y', '<>', 'value'),
-            >>>     ('field_z', '>', 1)
-            >>> ])
+            ...     '|',
+            ...     ('field_x', 'not in', False),
+            ...     ('field_y', '<>', 'value'),
+            ...     ('field_z', '>', 1)
+            ... ])
             >>> domain3 = Domain([
-            >>>     '|',
-            >>>     ('field_x', 'not in', False),
-            >>>     '!',
-            >>>     ('field_y', '<>', 'value'),
-            >>>     ('field_z', '>', 1)
-            >>> ])
+            ...     '|',
+            ...     ('field_x', 'not in', False),
+            ...     '!',
+            ...     ('field_y', '<>', 'value'),
+            ...     ('field_z', '>', 1)
+            ... ])
 
         Then::
 
@@ -215,9 +207,7 @@ class Domain(list):
         return DomainTree(self.normalized).get_simplified_domain()
 
     def distribute_not(self):
-        """ Remove `not` operators negating the target term operator.
-
-        .. note:: Normalizes the domain is required.
+        '''Return a new domain without `not` operators.
 
         For instance, having ``domain`` value like::
 
@@ -240,15 +230,16 @@ class Domain(list):
                 ('field_z', 'not in', (1, 2, 3)),
                 ('field_w', '<=', 1)
             ]
-        """
+
+        '''
         return Domain(this.distribute_not(self.normalize_domain()))
 
     def AND(*domains):
-        """ Join given domains using `and` operator. To do this is needed
-        normalize the domains
+        '''Join given domains using `and` operator.
 
         :return: normalized odoo filter domain.
-        """
+
+        '''
         return Domain(this.AND(
             [Domain(domain).normalized for domain in domains]
         ))
@@ -256,11 +247,11 @@ class Domain(list):
     __and__ = __rand__ = AND
 
     def OR(*domains):
-        """ Join given domains using `or` operator. To do this is needed
-        normalize the domains
+        '''Join given domains using `or` operator.
 
         :return: normalized odoo filter domain.
-        """
+
+        '''
         return Domain(this.OR(
             [Domain(domain).normalized for domain in domains]
         ))
@@ -288,7 +279,6 @@ class Domain(list):
 
 
 class DomainTerm(object):
-
     def __init__(self, term):
         if isinstance(term, DomainTerm):
             term = term.original
@@ -369,18 +359,19 @@ class DomainTerm(object):
 
 
 class DomainTree(object):
-    """ Tree structure to express odoo filter domains.
+    '''Tree structure to express odoo filter domains.
 
-    A domain like this:
-    [
-        ('field_y', '!=', False),
-        ('field_x', '=', 'value'),
-        '|',
-        ('field_z', 'in', (1, 2, 3))
-        ('field_w', '>', 1)
-    ]
+    A domain like this::
 
-    Is represented like this:
+      [
+          ('field_y', '!=', False),
+          ('field_x', '=', 'value'),
+          '|',
+          ('field_z', 'in', (1, 2, 3))
+          ('field_w', '>', 1)
+      ]
+
+    Is represented like this::
                                    +-----+
                                    | '&' |
                                    +--+--+
@@ -397,8 +388,7 @@ class DomainTree(object):
                    |('field_z', 'in', (1, 2, 3))|       |('field_w', '>', 1)|
                    +----------------------------+       +-------------------+
 
-    """
-
+    '''
     def __init__(self, domain):
         term = domain.pop(0)
         self.term = DomainTerm(term)
