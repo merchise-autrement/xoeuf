@@ -272,11 +272,16 @@ class Domain(list):
     __neg__ = deprecated(__invert__, msg='Use `~` instead of `-`')(__invert__)
 
     def __eq__(self, other):
-        """ Two domains are equivalent if both have similar DomainTree.
+        '''Two domains are equivalent if both have similar DomainTree.
 
-        """
+        '''
+        # TODO: In logic, we can identify two predicates if: a implies
+        # b and b implies a, although this has nothing to do with them being
+        # the *same* predicate.  However, since this implementation only
+        # yields True when both domains have the same hash, we can find a, b
+        # such that a implies b and b implies a, but a != b.
         other = Domain(other)
-        return DomainTree(self.normalized) == DomainTree(other.normalized)
+        return hash(self) == hash(other)
 
     def __hash__(self):
         return hash(DomainTree(self.normalized))
