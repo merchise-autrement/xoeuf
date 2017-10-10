@@ -15,12 +15,14 @@ from __future__ import (division as _py3_division,
                         print_function as _py3_print,
                         absolute_import as _py3_abs_import)
 
-from odoo.tests.common import TransactionCase
 from xoeuf.osv.expression import Domain
+try:
+    import unittest2 as unittest
+except ImportError:
+    import unittest
 
 
-class TestDomain(TransactionCase):
-
+class TestDomain(unittest.TestCase):
     def test_eq(self):
         A = Domain([
             ('field_x', '=', 1)
@@ -39,7 +41,6 @@ class TestDomain(TransactionCase):
         self.assertTrue(A == A1)
 
     def test_imply(self):
-
         # Basic implications.
         # -------------------
 
