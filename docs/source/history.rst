@@ -19,6 +19,8 @@ Unreleased. Release 0.16.0
 - Fix bug introduced in 0.15.0 when updating `xoeuf.models.proxy`:mod: to
   support HTTP requests.
 
+- Add `xoeuf.osv.expression`:mod:.
+
 
 2017-10-07.  Release 0.15.0
 ---------------------------
