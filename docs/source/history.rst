@@ -8,7 +8,16 @@ Beta releases (series 0.X)
 Unreleased. Release 0.16.0
 --------------------------
 
-Nothing yet.
+- Allow to define `framework-level receivers <xoeuf.signals.receiver>`:func:.
+
+- Make `xoeuf.fields.Enumeration`:func: check values on creation/write.  So no
+  more invalid values can slip to the DB.
+
+- Start (yet unclaimed) support for Odoo 11.  `xoeuf.fields`:mod: and
+  `xoeuf.models.proxy`:mod: pass all tests.
+
+- Fix bug introduced in 0.15.0 when updating `xoeuf.models.proxy`:mod: to
+  support HTTP requests.
 
 
 2017-10-07.  Release 0.15.0
