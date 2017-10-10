@@ -440,8 +440,8 @@ super_unlink = models.BaseModel.unlink
 
 
 @api.model
-def fields_view_get(self, view_id=None, view_type='form',
-                    toolbar=False, submenu=False):
+def _api_model_fields_view_get(self, view_id=None, view_type='form',
+                               toolbar=False, submenu=False):
     kwargs = dict(
         view_id=view_id,
         view_type=view_type,
@@ -449,9 +449,27 @@ def fields_view_get(self, view_id=None, view_type='form',
         submenu=submenu
     )
     pre_fields_view_get.send(sender=self, **kwargs)
-    result = super(models.Model, self).fields_view_get(**kwargs)
+    result = super_fields_view_get(self, **kwargs)
     post_fields_view_get.safe_send(sender=self, result=result, **kwargs)
     return result
+
+
+if getattr(super_fields_view_get, '_api', None) is api.cr_uid_context:
+    @api.cr_uid_context
+    def fields_view_get(self, cr, uid, view_id=None, view_type='form',
+                        context=None, toolbar=False, submenu=False):
+        from xoeuf import api
+        env = api.Environment(cr, uid, context or {})
+        self = env[self._name]
+        return _api_model_fields_view_get(
+            self,
+            view_id=view_id,
+            view_type=view_type,
+            toolbar=toolbar,
+            submenu=submenu
+        )
+else:
+    fields_view_get = _api_model_fields_view_get
 
 
 @api.model

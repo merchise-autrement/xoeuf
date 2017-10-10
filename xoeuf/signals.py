@@ -11,13 +11,7 @@ from __future__ import (division as _py3_division,
                         print_function as _py3_print,
                         absolute_import as _py3_abs_import)
 
-
-# TODO: @manu, next pattern is pending using 'xoeuf.odoo'
 try:
-    from openerp.signals import *  # noqa
+    from xoeuf.odoo.signals import *  # noqa
 except ImportError:
-    try:
-        # Odoo 10+
-        from odoo.signals import *  # noqa
-    except ImportError:
-        from ._signals_impl import *  # noqa
+    from ._signals_impl import *  # noqa
