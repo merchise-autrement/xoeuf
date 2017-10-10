@@ -13,6 +13,9 @@ Unreleased. Release 0.16.0
 - Make `xoeuf.fields.Enumeration`:func: check values on creation/write.  So no
   more invalid values can slip to the DB.
 
+  .. note:: Requires the newest `signals` module if using a Merchise
+            distributed Odoo.
+
 - Start (yet unclaimed) support for Odoo 11.  `xoeuf.fields`:mod: and
   `xoeuf.models.proxy`:mod: pass all tests.
 
