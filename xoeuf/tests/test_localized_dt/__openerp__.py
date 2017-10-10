@@ -12,10 +12,10 @@
 #
 # Created on 2017-03-07
 
-dict(
-    name='test_localized_dt',
-    version='1.0',
-    depends=['base', ],
-    auto_install=False,
-    installable=ODOO_VERSION_INFO[0] in (8, 9, 10)   # noqa
-)
+{
+    'name': 'test_localized_dt',
+    'version': '1.0',
+    'depends': ['base', ],
+    'auto_install': False,
+    'installable': True
+}
