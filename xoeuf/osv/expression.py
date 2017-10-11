@@ -101,12 +101,16 @@ class Domain(list):
         - ``not B.implies(A) == (A | B).implies(A)``
 
         '''
-        other = DomainTree(Domain(other).normalized)
-        return DomainTree(self.normalized).implies(other)
+        other = DomainTree(Domain(other).second_normal_form)
+        return DomainTree(self.second_normal_form).implies(other)
     imply = deprecated(implies, msg='`imply` is deprecated, use `implies`.')(implies)
 
-    def normalize_domain(self):
-        '''Return a new domain with all `and` operators explicit.
+    @property
+    def first_normal_form(self):
+        '''The first normal form.
+
+        The first normal form is the same domain with all `and` operators
+        explicit.
 
         For instance, having ``domain`` value like::
 
@@ -116,21 +120,25 @@ class Domain(list):
 
         Then::
 
-            >>> domain.normalize_domain()
+            >>> domain.first_normal_form
             ['&', ('field_y', 'not in', False), ('field_x', '!=', 'value')]
 
         '''
         return Domain(this.normalize_domain(self))
 
     @property
-    def normalized(self):
-        """Normalize domain in 3 steps:
-        1. Explicit all `and` operators.
-        2. Change a term's operator to some canonical form.
-        3. Remove `not` operators negating the target term operator.
+    def second_normal_form(self):
+        '''The second normal form.
 
-        For instance, having ``domain1``, ``domain2`` and ``domain3`` value
-        like::
+        After obtaining the `first_normal_from`:attr:, change terms to its
+        canonical form, and distribute the `not` logical operator inside
+        terms.
+
+        .. seealso:: `normalize_leaf`:func: for the canonical form of terms.
+
+        .. seealso:: `distribute_not`:meth:
+
+        Example:
 
             >>> domain1 = Domain([
             ...     ('field_x', 'not in', False),
@@ -151,12 +159,10 @@ class Domain(list):
             ...     ('field_z', '>', 1)
             ... ])
 
-        Then::
-
-            >>> domain1.normalized
+            >>> domain1.first_normal_form
             ['&', ('field_x', '!=', False), ('field_y', '<=', 1)]
 
-            >>> domain2.normalized
+            >>> domain2.first_normal_form
             [
                 '&',
                 '|',
@@ -165,7 +171,7 @@ class Domain(list):
                 ('field_z', '>', 1)
             ]
 
-            >>> domain3.normalized
+            >>> domain3.first_normal_form
             [
                 '&',
                 '|',
@@ -174,17 +180,16 @@ class Domain(list):
                 ('field_z', '>', 1)
             ]
 
-        """
-        res = self.normalize_domain()
+        '''
+        res = self.first_normal_form
         res = Domain((this.normalize_leaf(item) for item in res))
         return res.distribute_not()
 
     @property
     def simplified(self):
-        """ Normalize the domain and exclude redundant terms.
+        '''A simplified second normal form of the domain.
 
-        For instance, having ``domain1``, ``domain2`` and ``domain3`` value
-        like::
+        Example:
 
             >>> domain1 = Domain([
             ...     ('field_x', '!=', False),
@@ -211,8 +216,6 @@ class Domain(list):
             ...     ('field_x', 'in', (2,))
             ... ])
 
-        Then::
-
             >>> domain1.simplified
             [
                 '&',
@@ -234,8 +237,8 @@ class Domain(list):
             >>> domain3.simplified
             ['&', ('field_x', 'in', (1,)), ('field_y', '!=', False)]
 
-        """
-        return DomainTree(self.normalized).get_simplified_domain()
+        '''
+        return DomainTree(self.second_normal_form).get_simplified_domain()
 
     def distribute_not(self):
         '''Return a new domain without `not` operators.
@@ -249,8 +252,6 @@ class Domain(list):
             ...     '!', ('field_w', '>', 1),
             ... ])
 
-        Then::
-
             >>> domain.distribute_not()
             [
                 '&',
@@ -263,17 +264,17 @@ class Domain(list):
             ]
 
         '''
-        return Domain(this.distribute_not(self.normalize_domain()))
+        return Domain(this.distribute_not(self.first_normal_form))
 
     @crossmethod
     def AND(*domains):
         '''Join given domains using `and` operator.
 
-        :return: normalized odoo filter domain.
+        :return: A domain if first normal form.
 
         '''
         return Domain(this.AND(
-            [Domain(domain).normalized for domain in domains]
+            [Domain(domain).second_normal_form for domain in domains]
         ))
 
     __and__ = __rand__ = AND
@@ -282,17 +283,17 @@ class Domain(list):
     def OR(*domains):
         '''Join given domains using `or` operator.
 
-        :return: normalized odoo filter domain.
+        :return: A domain if first normal form.
 
         '''
         return Domain(this.OR(
-            [Domain(domain).normalized for domain in domains]
+            [Domain(domain).second_normal_form for domain in domains]
         ))
 
     __or__ = __ror__ = OR
 
     def __invert__(self):
-        return Domain(['!'] + self.normalized)
+        return Domain(['!'] + self.second_normal_form)
     __neg__ = deprecated(__invert__, msg='Use `~` instead of `-`')(__invert__)
 
     def __eq__(self, other):
@@ -308,7 +309,7 @@ class Domain(list):
         return hash(self) == hash(other)
 
     def __hash__(self):
-        return hash(DomainTree(self.normalized))
+        return hash(DomainTree(self.second_normal_form))
 
 
 class DomainTerm(object):
@@ -342,10 +343,10 @@ class DomainTerm(object):
         return hash(self) == hash(other)
 
     def __repr__(self):
-        if self.original == self.normalized:
+        if self.original == self.second_normal_form:
             return repr(self.original)
         else:
-            return '%r => %r' % (self.original, self.normalized)
+            return '%r => %r' % (self.original, self.second_normal_form)
 
     operators_implication = {
         '=?': lambda x, y: operator.eq(x, y) or y is False,
@@ -388,6 +389,8 @@ class DomainTerm(object):
                 return False
 
     def __hash__(self):
+        # Notice that ``[('x', '=', 1), ('y', '=', 2)]`` won't hash the same
+        # as ``[('y', '=', 2), ('x', '=', 1)]``.
         return hash(self.normalized)
 
 
