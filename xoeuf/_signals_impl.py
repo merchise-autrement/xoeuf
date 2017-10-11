@@ -1,16 +1,11 @@
 #!/usr/bin/env python
-# -*- encoding: utf-8 -*-
+# -*- coding: utf-8 -*-
 # ---------------------------------------------------------------------
-# _signals_impl
-# ---------------------------------------------------------------------
-# Copyright (c) 2016-2017 Merchise Autrement [~º/~] and Contributors
+# Copyright (c) Merchise Autrement [~º/~] and Contributors
 # All rights reserved.
 #
-# This is free software; you can redistribute it and/or modify it under the
-# terms of the LICENCE attached (see LICENCE file) in the distribution
-# package.
+# This is free software; you can do what the LICENCE file allows you to.
 #
-# Created on 2016-02-18
 
 # This is the implementation of the signals.  The 'signals' module remains the
 # API but we're porting this to 'openerp.signals'.
@@ -70,7 +65,8 @@ class Signal(object):
         self.action = action
         self.__doc__ = doc
 
-    def connect(self, receiver, sender=None, require_registry=True):
+    def connect(self, receiver, sender=None, require_registry=True,
+                framework=False):
         """Connect receiver to sender for signal.
 
         :param receiver: A function or an instance method which is to receive
@@ -84,18 +80,22 @@ class Signal(object):
         :param require_registry: If True the receiver will only be called if a
                the actual `sender` of the signal has a ready DB registry.
 
+        :keyword framework: Set to True to make this a `framework-level
+                            receiver <FrameworkReceiver>`:class:.
+
         :return: None
 
         """
         if not isinstance(sender, (list, tuple)):
             sender = [sender]
+        ReceiverClass = Receiver if not framework else FrameworkReceiver
         for s in sender:
             lookup_key = (_make_id(receiver), _make_model_id(s))
             if not any(lookup_key == r_key for r_key, _ in self.receivers):
                 self.receivers.append(
                     (lookup_key,
-                     Receiver(receiver, sender=sender,
-                              require_registry=require_registry))
+                     ReceiverClass(receiver, sender=sender,
+                                   require_registry=require_registry))
                 )
 
     def disconnect(self, receiver=None, sender=None):
@@ -106,7 +106,7 @@ class Signal(object):
         :param sender: The registered sender to disconnect
 
         """
-        receiver_item = (_make_id(receiver), sender), receiver
+        receiver_item = (_make_id(receiver), _make_model_id(sender)), receiver
         if receiver_item in self.receivers:
             sender.receivers.remove(receiver_item)
 
@@ -156,6 +156,7 @@ class Signal(object):
         receiver.
 
         """
+        from celery.exceptions import SoftTimeLimitExceeded
         responses = []
         if thrown and not isinstance(thrown, (list, tuple)):
             thrown = (thrown, )
@@ -164,6 +165,8 @@ class Signal(object):
         for receiver in self._live_receivers(sender):
             try:
                 response = receiver(sender, signal=self, **kwargs)
+            except SoftTimeLimitExceeded:
+                raise
             except catched as err:
                 if thrown and isinstance(err, thrown):
                     # Don't log: I expect you'll log where you actually catch
@@ -180,7 +183,10 @@ class Signal(object):
         return responses
 
     def _live_receivers(self, sender):
-        """Filter sequence of receivers to get resolved, live receivers.
+        """Filter sequence of receivers to get resolved (live receivers).
+
+        Live receivers are defined are those that are installed in the DB and
+        apply to the given sender.
 
         """
         if isinstance(sender, models.Model):
@@ -190,8 +196,18 @@ class Signal(object):
         senderkey = _make_model_id(sender)
         receivers = []
         for (receiverkey, r_senderkey), receiver in self.receivers:
-            if self._installed(sender, receiver) and not r_senderkey or r_senderkey == senderkey:
+            if self._installed(sender, receiver) and (not r_senderkey or r_senderkey == senderkey):
                 if registry_ready or not receiver.require_registry:
+                    logger.debug(
+                        'Accepting receiver %s as live',
+                        receiver,
+                        extra=dict(
+                            registry_ready=registry_ready,
+                            registry_required=receiver.require_registry,
+                            r_senderkey=r_senderkey,
+                            senderkey=senderkey,
+                        )
+                    )
                     receivers.append(receiver)
         return receivers
 
@@ -208,10 +224,14 @@ class Signal(object):
 
         '''
         from xoeuf.modules import get_object_module
+        if isinstance(receiver, FrameworkReceiver):
+            return True
+        if isinstance(receiver, Receiver):
+            receiver = receiver.receiver
         module = get_object_module(receiver, typed=True)
         env = getattr(sender, 'env', None)
         if module and env:
-            mm = env['ir.module.module']
+            mm = env['ir.module.module'].sudo()
             query = [('state', '=', 'installed'), ('name', '=', module)]
             return bool(mm.search(query))
         else:
@@ -229,6 +249,9 @@ class Receiver(object):
             defaults={'require_registry': True, }
         )
 
+    def __repr__(self):
+        return '<Receiver for %r>' % self.receiver
+
     def __call__(self, *args, **kwargs):
         return self.receiver(*args, **kwargs)
 
@@ -240,6 +263,15 @@ class Receiver(object):
         return self.receiver == other
 
 
+class FrameworkReceiver(Receiver):
+    '''A receiver that is defined in a framework-level module.
+
+    Framework-level receivers are always considered installed in any DB.  So
+    you should be careful no requiring addon-level stuff.
+
+    '''
+
+
 def receiver(signal, **kwargs):
     """A decorator for connecting receivers to signals.
 
@@ -247,6 +279,9 @@ def receiver(signal, **kwargs):
 
     :keyword require_registry: If set to True the receiver will only be called
              if the Odoo DB registry is ready.
+
+    :keyword framework: Set to True to make this a `framework-level receiver
+                        <FrameworkReceiver>`:class:.
 
     Used by passing in the signal (or list of signals) and keyword arguments
     to connect::
@@ -405,8 +440,8 @@ super_unlink = models.BaseModel.unlink
 
 
 @api.model
-def fields_view_get(self, view_id=None, view_type='form',
-                    toolbar=False, submenu=False):
+def _api_model_fields_view_get(self, view_id=None, view_type='form',
+                               toolbar=False, submenu=False):
     kwargs = dict(
         view_id=view_id,
         view_type=view_type,
@@ -414,13 +449,31 @@ def fields_view_get(self, view_id=None, view_type='form',
         submenu=submenu
     )
     pre_fields_view_get.send(sender=self, **kwargs)
-    result = super(models.Model, self).fields_view_get(**kwargs)
+    result = super_fields_view_get(self, **kwargs)
     post_fields_view_get.safe_send(sender=self, result=result, **kwargs)
     return result
 
 
+if getattr(super_fields_view_get, '_api', None) is api.cr_uid_context:
+    @api.cr_uid_context
+    def fields_view_get(self, cr, uid, view_id=None, view_type='form',
+                        context=None, toolbar=False, submenu=False):
+        from xoeuf import api
+        env = api.Environment(cr, uid, context or {})
+        self = env[self._name]
+        return _api_model_fields_view_get(
+            self,
+            view_id=view_id,
+            view_type=view_type,
+            toolbar=toolbar,
+            submenu=submenu
+        )
+else:
+    fields_view_get = _api_model_fields_view_get
+
+
 @api.model
-@api.returns('self', lambda value: value.id)
+@api.returns('self', lambda value: value.id if value else value)
 def create(self, vals):
     pre_create.send(sender=self, values=vals)
     res = super_create(self, vals)

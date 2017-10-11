@@ -11,12 +11,4 @@ from __future__ import (division as _py3_division,
                         print_function as _py3_print,
                         absolute_import as _py3_abs_import)
 
-from xoeuf import models, fields
-
-
-class Line(models.Model):
-    _name = 'test.monetary.line'
-    value = fields.Monetary()
-    currency_id = fields.Many2one(
-        'res.currency',
-    )
+from . import test_domain  # noqa

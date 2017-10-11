@@ -1,16 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # ---------------------------------------------------------------------
-# _proxy
-# ---------------------------------------------------------------------
-# Copyright (c) 2016-2017 Merchise Autrement [~º/~] and Contributors
+# Copyright (c) Merchise Autrement [~º/~] and Contributors
 # All rights reserved.
 #
-# This is free software; you can redistribute it and/or modify it under the
-# terms of the LICENCE attached (see LICENCE file) in the distribution
-# package.
+# This is free software; you can do what the LICENCE file allows you to.
 #
-# Created on 2016-11-10
 
 '''Implementation for 'xoeuf.models.proxy'.
 
@@ -65,7 +60,7 @@ class ModelProxy(object):
                     this = this.browse(cr, uid, context=context)
                 f = f.f_back
                 tries -= 1
-            return this.env
+            return this.env if this is not None else None
         finally:
             f = None
 
@@ -81,6 +76,9 @@ class ModelProxy(object):
                 'Cannot find attribute %r in proxy model. This is most '
                 'likely due to an invalid call site.' % attr
             )
+
+    def __repr__(self):
+        return '<ModelProxy: %r>' % self.__model
 
 
 def _get_model(name):

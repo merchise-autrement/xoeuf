@@ -1,16 +1,11 @@
-# -*- encoding: utf-8 -*-
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 # ---------------------------------------------------------------------
-# xoeuf.cli.shell
-# ---------------------------------------------------------------------
-# Copyright (c) 2014-2017 Merchise Autrement [~º/~] and Contributors
+# Copyright (c) Merchise Autrement [~º/~] and Contributors
 # All rights reserved.
 #
-# This is free software; you can redistribute it and/or modify it under the
-# terms of the LICENCE attached (see LICENCE file) in the distribution
-# package.
+# This is free software; you can do what the LICENCE file allows you to.
 #
-# Created on 2014-05-02
-
 
 from __future__ import (division as _py3_division,
                         print_function as _py3_print,
@@ -77,8 +72,9 @@ class Base(object):
         signal.signal(signal.SIGINT, raise_keyboard_interrupt)
 
     def console(self, local_vars):
+        from xoutil.eight import exec_
         if not os.isatty(sys.stdin.fileno()):
-            exec sys.stdin in local_vars
+            exec_(sys.stdin, local_vars)
         else:
             if 'env' not in local_vars:
                 print(

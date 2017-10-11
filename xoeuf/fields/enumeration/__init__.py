@@ -1,20 +1,17 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # ---------------------------------------------------------------------
-# __init__
-# ---------------------------------------------------------------------
-# Copyright (c) 2017 Merchise Autrement [~º/~] and Contributors
+# Copyright (c) Merchise Autrement [~º/~] and Contributors
 # All rights reserved.
 #
-# This is free software; you can redistribute it and/or modify it under the
-# terms of the LICENCE attached (see LICENCE file) in the distribution
-# package.
+# This is free software; you can do what the LICENCE file allows you to.
 #
 
 from __future__ import (division as _py3_division,
                         print_function as _py3_print,
                         absolute_import as _py3_abs_import)
 
+from xoeuf import signals
 
 __all__ = ['Enumeration']
 
@@ -55,7 +52,7 @@ def Enumeration(enumclass, *args, **kwargs):
     from xoeuf import fields, MAJOR_ODOO_VERSION
     from xoutil.objects import classproperty
 
-    class EnumeratedField(fields.Integer):
+    class EnumeratedField(fields.Integer, EnumerationField):
         @classproperty
         def klass(cls):
             return import_object(enumclass)
@@ -89,8 +86,14 @@ def Enumeration(enumclass, *args, **kwargs):
                 # None should be False in read.
                 return self.get_member(value) if value is not None else False
 
-
     return EnumeratedField(*args, **kwargs)
+
+
+class EnumerationField(object):
+    '''A base clase for enumerated fields.
+
+    '''
+    pass
 
 
 try:
@@ -140,3 +143,13 @@ except ImportError:
             if default is None:
                 raise
         return default
+
+
+@signals.receiver([signals.pre_create, signals.pre_write], framework=True)
+def _check_enumeration_value(sender, signal, values=None, **kwargs):
+    for fieldname, value in values.items():
+        field = sender._fields[fieldname]
+        if isinstance(field, EnumerationField):
+            # The following raises a ValueError if the value is not a member
+            # of the enumeration class
+            field.get_member(value)
