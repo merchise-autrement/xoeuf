@@ -7,7 +7,24 @@
 # This is free software; you can do what the LICENCE file allows you to.
 #
 
-'''Odoo expression extension.
+'''Extensions to `odoo.osv.expression`.
+
+This module reexport all symbols from the `odoo.osv.expression` so it can be
+used a replacement.
+
+Additions and changes:
+
+- There's a new `Domain`:class: which allows to do some arithmetic with
+  domains.
+
+- The functions `AND`:func: and `OR`:func: don't need to you pass a domain in
+  first normal form, they ensure that themselves.
+
+- You can test some a weak form of implication, i.e 'Domain(X).implies(Y)' is
+  True if can proof that whenever X is True, Y also is.  This method can have
+  false negatives, but not false positives: there are cases for which we can't
+  find the proof (we return False) which should be True; but if we return
+  True, there's a proof.
 
 '''
 
@@ -329,7 +346,7 @@ class DomainTerm(object):
             self.left, self.operator, self.right = term
         else:
             # TODO: May be a # TypeError.
-            raise ValueError("Invalid domain term.")
+            raise ValueError("Invalid domain term %r" % term)
 
     def __getitem__(self, x):
         if self.is_leaf:
