@@ -151,29 +151,29 @@ class Domain(list):
         like::
 
             >>> domain1 = Domain([
-            >>>     ('field_x', '!=', False),
-            >>>     ('field_y', '=', 'value'),
-            >>>     ('field_z', 'in', (1, 2, 3)),
-            >>>     ('field_y', '=', 'value'),
-            >>> ])
+            ...     ('field_x', '!=', False),
+            ...     ('field_y', '=', 'value'),
+            ...     ('field_z', 'in', (1, 2, 3)),
+            ...     ('field_y', '=', 'value'),
+            ... ])
             >>> domain2 = Domain([
-            >>>     '|',
-            >>>     ('field_x', '!=', False),
-            >>>     ('field_y', '=', 'value'),
-            >>>     ('field_z', 'in', (1, 2, 3)),
-            >>>     '|',
-            >>>     ('field_y', '=', 'value'),
-            >>>     ('field_x', '!=', False)
-            >>> ])
+            ...     '|',
+            ...     ('field_x', '!=', False),
+            ...     ('field_y', '=', 'value'),
+            ...     ('field_z', 'in', (1, 2, 3)),
+            ...     '|',
+            ...     ('field_y', '=', 'value'),
+            ...     ('field_x', '!=', False)
+            ... ])
             >>> domain3 = Domain([
-            >>>     ('field_y', '!=', False),
-            >>>     ('field_x', 'in', (1,)),
-            >>>     '|',
-            >>>     ('field_y', '!=', False),
-            >>>     '|',
-            >>>     ('field_x', 'in', (1,)),
-            >>>     ('field_x', 'in', (2,))
-            >>> ])
+            ...     ('field_y', '!=', False),
+            ...     ('field_x', 'in', (1,)),
+            ...     '|',
+            ...     ('field_y', '!=', False),
+            ...     '|',
+            ...     ('field_x', 'in', (1,)),
+            ...     ('field_x', 'in', (2,))
+            ... ])
 
         Then::
 
@@ -207,11 +207,11 @@ class Domain(list):
         For instance, having ``domain`` value like::
 
             >>> domain = Domain([
-            >>>     '!', ('field_x', '!=', False),
-            >>>     '!', ('field_y', '=', 'value'),
-            >>>     '!', ('field_z', 'in', (1, 2, 3)),
-            >>>     '!', ('field_w', '>', 1),
-            >>> ])
+            ...     '!', ('field_x', '!=', False),
+            ...     '!', ('field_y', '=', 'value'),
+            ...     '!', ('field_z', 'in', (1, 2, 3)),
+            ...     '!', ('field_w', '>', 1),
+            ... ])
 
         Then::
 
