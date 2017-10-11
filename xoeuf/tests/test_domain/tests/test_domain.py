@@ -12,6 +12,7 @@ from __future__ import (division as _py3_division,
                         absolute_import as _py3_abs_import)
 
 import unittest
+from xoeuf.osv import expression as expr
 from xoeuf.osv.expression import Domain
 
 
@@ -55,6 +56,9 @@ class TestDomain(unittest.TestCase):
 
         # A & B => A | B
         self.assertTrue((A & B).implies(A | B))
+
+        self.assertEqual(Domain.AND(list(A), B), (A & B))
+        self.assertEqual(expr.AND(list(A), B), (A & B))
 
         # Inter terms implications.
         # -------------------------

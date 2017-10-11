@@ -30,6 +30,42 @@ del _copy_python_module_members
 del _odoo_expression
 
 
+try:
+    from xoutil.objects import crossmethod  # TODO: migrate
+except ImportError:
+    class crossmethod(object):
+        '''Decorate a function as static or instance level.
+
+        Example:
+
+          >>> class Mule(object):
+          ...     @crossmethod
+          ...     def print_args(*args):
+          ...         print(args)
+
+          # Call it as a staticmethod
+          >>> Mule.print_args()
+          ()
+
+          # Call it as an instance
+          >>> Mule().print_args()   # doctest: +ELLIPSIS
+          (<...Mule object at ...>,)
+
+        .. note:: This is different from `hybridmethod`:func:.  Hybrid method
+                  always receive the implicit argument (either `cls` or
+                  `self`).
+
+        '''
+        def __init__(self, func):
+            self.func = func
+
+        def __get__(self, instance, owner):
+            if instance is None:
+                return self.func
+            else:
+                return self.func.__get__(instance, owner)
+
+
 class Domain(list):
     '''A predicate expressed as an Odoo domain.
 
@@ -229,6 +265,7 @@ class Domain(list):
         '''
         return Domain(this.distribute_not(self.normalize_domain()))
 
+    @crossmethod
     def AND(*domains):
         '''Join given domains using `and` operator.
 
@@ -241,6 +278,7 @@ class Domain(list):
 
     __and__ = __rand__ = AND
 
+    @crossmethod
     def OR(*domains):
         '''Join given domains using `or` operator.
 
@@ -474,3 +512,7 @@ class DomainTree(object):
 
 
 del deprecated
+
+# Exports AND and OR so that we can replace 'from xoeuf.odoo.
+AND = Domain.AND
+OR = Domain.OR
