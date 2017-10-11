@@ -5,7 +5,7 @@
 Beta releases (series 0.X)
 ==========================
 
-Unreleased. Release 0.16.0
+2017-10-11. Release 0.16.0
 --------------------------
 
 - Allow to define `framework-level receivers <xoeuf.signals.receiver>`:func:.
