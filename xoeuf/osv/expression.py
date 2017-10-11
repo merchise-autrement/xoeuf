@@ -406,8 +406,6 @@ class DomainTerm(object):
                 return False
 
     def __hash__(self):
-        # Notice that ``[('x', '=', 1), ('y', '=', 2)]`` won't hash the same
-        # as ``[('y', '=', 2), ('x', '=', 1)]``.
         return hash(self.normalized)
 
 
