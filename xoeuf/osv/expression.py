@@ -339,7 +339,7 @@ class DomainTerm(object):
     def __eq__(self, other):
         if not isinstance(other, DomainTerm):
             other = DomainTerm(other)
-        return self.normalized == other.normalized
+        return hash(self) == hash(other)
 
     def __repr__(self):
         if self.original == self.normalized:
