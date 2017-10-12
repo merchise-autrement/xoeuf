@@ -148,7 +148,7 @@ except ImportError:
 @signals.receiver([signals.pre_create, signals.pre_write], framework=True)
 def _check_enumeration_value(sender, signal, values=None, **kwargs):
     for fieldname, value in values.items():
-        field = sender._fields[fieldname]
+        field = sender._fields.get(fieldname, None)
         if isinstance(field, EnumerationField):
             # The following raises a ValueError if the value is not a member
             # of the enumeration class

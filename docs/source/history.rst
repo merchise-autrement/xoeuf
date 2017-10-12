@@ -11,6 +11,15 @@ Unreleased. Release 0.17.0
 Nothing yet.
 
 
+2017-10-12. Release 0.16.1
+--------------------------
+
+- Avoid errors in `xoeuf.fields.Enumeration` if the writing/creating with
+  values for unknown fields.
+
+  Fixes MERCURIO-1ES.
+
+
 2017-10-11. Release 0.16.0
 --------------------------
 
