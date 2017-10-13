@@ -16,20 +16,11 @@ from hypothesis import strategies, given
 from xoeuf.odoo.tests.common import TransactionCase
 
 
-maybe_datetimes = strategies.datetimes()
-
+timedeltas = strategies.timedeltas()
 ALMOST_A_SECOND = timedelta(seconds=1, microseconds=-0.0001)
 
 
-@strategies.composite
-def timedeltas(draw):
-    start = draw(maybe_datetimes)
-    end = draw(maybe_datetimes)
-    return end - start
-
-
 class TestTimedelta(TransactionCase):
-
     def setUp(self):
         super(TestTimedelta, self).setUp()
         self.Value = self.env['test.timedelta.value']
