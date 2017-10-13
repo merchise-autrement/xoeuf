@@ -443,23 +443,25 @@ class DomainTree(object):
                    +----------------------------+       +-------------------+
 
     '''
-    def __init__(self, domain):
+    def __init__(self, domain, parent=None):
         term = domain.pop(0)
         self.term = DomainTerm(term)
+        self.parent = parent
         if term in this.DOMAIN_OPERATORS:
-            count = 1
+            count = 2  # minimum number of operand in an operation.
             childs = set()
-            while len(childs) <= count:
+            while count:
                 if domain[0] == term:
                     count += 1
                     domain.pop(0)
                 else:
-                    child = DomainTree(domain)
-                    # If new node is al ready implied by any other ignore it.
-                    if any(x.implies(child) for x in childs):
-                        count -= 1
+                    child = DomainTree(domain, self)
+                    # A & ((B & C) | A) should be simplified as A & B & C
+                    if child.term == self.term:
+                        childs |= child.childs
                     else:
                         childs.add(child)
+                    count -= 1
             # if a tree node have only one child it be come into it child.
             if len(childs) == 1:
                 child = childs.pop()
@@ -472,13 +474,38 @@ class DomainTree(object):
         else:
             self.childs = set()
             self.is_leaf = True
+        self._simplify()
+
+    def _simplify(self):
+        """Remove redundant branches.
+
+        """
+        for child in set(self.childs):
+            if self.term == this.AND_OPERATOR:
+                # If current `child` is implied by any other ignore it.
+                func = lambda x, y: y.implies(x)
+            else:
+                # If current `child` implies any other ignore it.
+                func = lambda x, y: x.implies(y)
+            if any(func(child, y) for y in self.childs - {child}):
+                self.childs.remove(child)
+        if len(self.childs) == 1:
+            _self = self.childs.pop()
+            self.childs = _self.childs
+            self.term = _self.term
 
     @property
     def sorted_childs(self):
-        return sorted(self.childs, key=lambda item: item.term.normalized)
+        return sorted(self.childs, key=lambda item: hash(item))
 
     def get_simplified_domain(self):
-        res = Domain(self.term for x in range(1, len(self.childs) or 2))
+        if self.parent:
+            res = Domain(self.term for x in range(1, len(self.childs) or 2))
+        elif self.is_leaf:
+            res = Domain([self.term])
+        else:
+            # Initials `&` aren't needed.
+            res = Domain([self.term] if self.term == this.OR_OPERATOR else [])
         if not self.is_leaf:
             res.extend(
                 chain(
