@@ -25,7 +25,7 @@ class TestTimedelta(TransactionCase):
         super(TestTimedelta, self).setUp()
         self.Value = self.env['test.timedelta.value']
 
-    @given(timedeltas())
+    @given(timedeltas)
     def test_create(self, value):
         obj = self.Value.create({
             'delta': value
@@ -35,7 +35,7 @@ class TestTimedelta(TransactionCase):
         obj = self.Value.browse(id)
         self.assertAlmostEqual(obj.delta, value, delta=ALMOST_A_SECOND)
 
-    @given(timedeltas())
+    @given(timedeltas)
     def test_create2(self, value):
         obj = self.Value.create({
             'delta': value.total_seconds()
@@ -46,7 +46,7 @@ class TestTimedelta(TransactionCase):
         self.assertIsInstance(obj.delta, timedelta)
         self.assertAlmostEqual(obj.delta, value, delta=ALMOST_A_SECOND)
 
-    @given(timedeltas())
+    @given(timedeltas)
     def test_set(self, value):
         obj = self.Value.new({})
         obj.delta = value
@@ -55,7 +55,7 @@ class TestTimedelta(TransactionCase):
         obj = self.Value.browse(id)
         self.assertAlmostEqual(obj.delta, value, delta=ALMOST_A_SECOND)
 
-    @given(timedeltas())
+    @given(timedeltas)
     def test_set2(self, value):
         obj = self.Value.new({})
         obj.delta = value.total_seconds()
