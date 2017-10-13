@@ -1,1 +1,0 @@
-/home/johanny/src/merchise/xoeuf/xoeuf/tests/test_timedelta/__openerp__.py
