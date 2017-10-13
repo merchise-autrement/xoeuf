@@ -360,10 +360,10 @@ class DomainTerm(object):
         return hash(self) == hash(other)
 
     def __repr__(self):
-        if self.original == self.second_normal_form:
+        if self.original == self.normalized:
             return repr(self.original)
         else:
-            return '%r => %r' % (self.original, self.second_normal_form)
+            return '%r => %r' % (self.original, self.normalized)
 
     operators_implication = {
         '=?': lambda x, y: operator.eq(x, y) or y is False,
