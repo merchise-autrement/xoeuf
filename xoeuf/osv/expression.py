@@ -322,6 +322,9 @@ class Domain(list):
         other = Domain(other)
         return hash(self) == hash(other)
 
+    def __ne__(self, other):
+        return not self == other
+
     def __hash__(self):
         return hash(DomainTree(self.second_normal_form))
 
@@ -355,6 +358,9 @@ class DomainTerm(object):
         if not isinstance(other, DomainTerm):
             other = DomainTerm(other)
         return hash(self) == hash(other)
+
+    def __ne__(self, other):
+        return not self == other
 
     def __repr__(self):
         if self.original == self.normalized:
@@ -498,6 +504,9 @@ class DomainTree(object):
                     self.term == other.term and not self.childs ^ other.childs
                 )
         return False
+
+    def __ne__(self, other):
+        return not self == other
 
     def implies(self, other):
         funct = all if other.term == this.AND_OPERATOR else any
