@@ -5,6 +5,16 @@
 Beta releases (series 0.X)
 ==========================
 
+2017-10-14. Release 0.16.2
+--------------------------
+
+- Fix interface of `xoeuf.osv.expression.AND`:func: and
+  `xoeuf.osv.expression.OR`:func:.
+
+  They take a single argument (a list of lists), so they can be drop-in
+  replacements for the ones in `odoo.osv.expression`:mod:.
+
+
 2017-10-12. Release 0.16.1
 --------------------------
 
