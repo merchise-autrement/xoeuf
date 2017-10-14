@@ -15,6 +15,7 @@ import unittest
 from hypothesis import strategies as s, given
 
 from xoeuf.osv import expression as expr
+from xoeuf.odoo.osv import expression as odoo_expr
 from xoeuf.osv.expression import Domain
 
 names = s.text(alphabet='abdefgh', min_size=1, average_size=3)
@@ -68,6 +69,11 @@ class TestDomain(unittest.TestCase):
             domain.second_normal_form.second_normal_form
         )
 
+    @given(s.lists(domains(), max_size=10, average_size=5))
+    def test_expr_replacement(self, domains):
+        expr.AND(domains)
+        odoo_expr.AND(domains)
+
     def test_eq(self):
         A = Domain([
             ('field_x', '=', 1)
@@ -109,7 +115,7 @@ class TestDomain(unittest.TestCase):
         self.assertTrue((A & B).implies(A | B))
 
         self.assertEqual(Domain.AND(list(A), B), (A & B))
-        self.assertEqual(expr.AND(list(A), B), (A & B))
+        self.assertEqual(expr.AND([list(A), B]), (A & B))
 
         # Inter terms implications.
         # -------------------------

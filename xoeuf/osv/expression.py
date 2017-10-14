@@ -526,5 +526,9 @@ class DomainTree(object):
 
 
 # Exports AND and OR so that we can replace 'from xoeuf.odoo.
-AND = Domain.AND
-OR = Domain.OR
+def AND(domains):
+    return Domain.AND(*domains)
+
+
+def OR(domains):
+    return Domain.OR(*domains)
