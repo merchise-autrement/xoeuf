@@ -19,3 +19,4 @@ from .properties import Property         # noqa: reexport
 from .monetary import Monetary           # noqa: reexport
 from .timespan import TimeSpan           # noqa: reexport
 from .enumeration import Enumeration     # noqa: reexport
+from .timezone import TimezoneSelection  # noqa: reexport
