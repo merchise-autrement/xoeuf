@@ -5,10 +5,11 @@
 Beta releases (series 0.X)
 ==========================
 
-Unreleased. Release 0.17.0
+2017-10-14. Release 0.17.0
 --------------------------
 
-Nothing yet.
+- Added `fields.TimezoneSelection`:func: as simple way to avoid creating the
+  same `fields.Selection` for timezones all over the place.
 
 
 2017-10-14. Release 0.16.2
