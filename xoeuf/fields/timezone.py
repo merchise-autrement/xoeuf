@@ -12,25 +12,21 @@ from __future__ import (division as _py3_division,
                         absolute_import as _py3_abs_import)
 
 
+from xoeuf import api, fields
+
+
+@api.model
+def _tz_get(self):
+    import pytz
+    def key(tz):
+        return tz if not tz.startswith('Etc/') else '_'
+    return [(tz, "(" + tz + ")") for tz in sorted(pytz.all_timezones, key=key)]
+
+
 def TimezoneSelection(*args, **kwargs):
     '''A selection field for installed timezones.
 
     '''
-    import pytz
-    from xoeuf import api, fields
-
-    @api.model
-    def _tz_get(self):
-        # put POSIX 'Etc/*' entries at the end to avoid confusing users - see bug
-        # 1086728
-        return [
-            (tz, "(" + tz + ")")
-            for tz in sorted(
-                pytz.all_timezones,
-                key=lambda tz: tz if not tz.startswith('Etc/') else '_'
-            )
-        ]
-
     return fields.Selection(
         _tz_get,
         *args,
