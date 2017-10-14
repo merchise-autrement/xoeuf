@@ -12,11 +12,23 @@ from __future__ import (division as _py3_division,
                         absolute_import as _py3_abs_import)
 
 
-from xoeuf.odoo.fields import *          # noqa: reexport
+from xoeuf import api, fields
 
-from .datetime import LocalizedDatetime  # noqa: reexport
-from .properties import Property         # noqa: reexport
-from .monetary import Monetary           # noqa: reexport
-from .timespan import TimeSpan           # noqa: reexport
-from .enumeration import Enumeration     # noqa: reexport
-from .timezone import TimezoneSelection  # noqa: reexport
+
+@api.model
+def _tz_get(self):
+    import pytz
+    def key(tz):
+        return tz if not tz.startswith('Etc/') else '_'
+    return [(tz, "(" + tz + ")") for tz in sorted(pytz.all_timezones, key=key)]
+
+
+def TimezoneSelection(*args, **kwargs):
+    '''A selection field for installed timezones.
+
+    '''
+    return fields.Selection(
+        _tz_get,
+        *args,
+        **kwargs
+    )

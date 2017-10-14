@@ -36,7 +36,6 @@ import operator
 from itertools import chain
 from xoeuf.odoo.osv import expression as _odoo_expression
 from xoutil.eight import string_types
-from xoutil.deprecation import deprecated
 
 
 # TODO: `copy_members` will be deprecated in xoutil 1.8, use instead the same
@@ -120,7 +119,6 @@ class Domain(list):
         '''
         other = DomainTree(Domain(other).second_normal_form)
         return DomainTree(self.second_normal_form).implies(other)
-    imply = deprecated(implies, msg='`imply` is deprecated, use `implies`.')(implies)
 
     @property
     def first_normal_form(self):
@@ -311,7 +309,6 @@ class Domain(list):
 
     def __invert__(self):
         return Domain(['!'] + self.second_normal_form)
-    __neg__ = deprecated(__invert__, msg='Use `~` instead of `-`')(__invert__)
 
     def __eq__(self, other):
         '''Two domains are equivalent if both have similar DomainTree.
@@ -406,8 +403,6 @@ class DomainTerm(object):
                 return False
 
     def __hash__(self):
-        # Notice that ``[('x', '=', 1), ('y', '=', 2)]`` won't hash the same
-        # as ``[('y', '=', 2), ('x', '=', 1)]``.
         return hash(self.normalized)
 
 
@@ -525,13 +520,10 @@ class DomainTree(object):
                      for other_child in other.sorted_childs):
                 return True
         return False
-    imply = deprecated(implies, msg='`imply` is deprecated use `implies`.')(implies)
 
     def __hash__(self):
         return hash(tuple([self.term] + self.sorted_childs))
 
-
-del deprecated
 
 # Exports AND and OR so that we can replace 'from xoeuf.odoo.
 def AND(domains):
