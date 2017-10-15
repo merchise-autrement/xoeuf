@@ -5,8 +5,14 @@
 Beta releases (series 0.X)
 ==========================
 
-2017-10-14. Release 0.17.0
+2017-10-14. Release 0.17.1
 --------------------------
+
+- Fix cyclic import in `fields.timezone`.  We have to retire 0.17.0.
+
+
+2017-10-14. Release 0.17.0 (unusable)
+-------------------------------------
 
 - Added `fields.TimezoneSelection`:func: as simple way to avoid creating the
   same `fields.Selection` for timezones all over the place.
