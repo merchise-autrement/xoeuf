@@ -12,14 +12,16 @@ from __future__ import (division as _py3_division,
                         absolute_import as _py3_abs_import)
 
 
-from xoeuf import api, fields
+from xoeuf.odoo import api, fields
 
 
 @api.model
 def _tz_get(self):
     import pytz
+
     def key(tz):
         return tz if not tz.startswith('Etc/') else '_'
+
     return [(tz, "(" + tz + ")") for tz in sorted(pytz.all_timezones, key=key)]
 
 
