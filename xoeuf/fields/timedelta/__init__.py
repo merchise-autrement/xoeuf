@@ -18,4 +18,7 @@ if MAJOR_ODOO_VERSION in (8, 9, 10,):
 else:
     raise NotImplementedError
 
+if MAJOR_ODOO_VERSION in (8, 9,):
+    from . import _v8
+
 TimeDelta.__module__ = __name__
