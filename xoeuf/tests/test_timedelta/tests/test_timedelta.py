@@ -48,7 +48,7 @@ class TestTimedelta(TransactionCase):
 
     @given(timedeltas)
     def test_set(self, value):
-        obj = self.Value.new({})
+        obj = self.Value.create({})
         obj.delta = value
         id = obj.id
         self.Value.invalidate_cache()
@@ -57,7 +57,7 @@ class TestTimedelta(TransactionCase):
 
     @given(timedeltas)
     def test_set2(self, value):
-        obj = self.Value.new({})
+        obj = self.Value.create({})
         obj.delta = value.total_seconds()
         id = obj.id
         self.Value.invalidate_cache()
