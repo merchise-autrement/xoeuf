@@ -5,6 +5,12 @@
 Beta releases (series 0.X)
 ==========================
 
+2017-10-16. Release 0.17.2
+--------------------------
+
+- Fix AttributeError in DomainTree.
+
+
 2017-10-14. Release 0.17.1
 --------------------------
 
