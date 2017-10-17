@@ -467,14 +467,19 @@ class DomainTree(object):
                 child = childs.pop()
                 self.term = child.term
                 self.childs = child.childs
-                self.is_leaf = child.is_leaf
             else:
                 self.childs = childs
-                self.is_leaf = False
         else:
             self.childs = set()
-            self.is_leaf = True
         self._simplify()
+
+    @property
+    def is_operator(self):
+        return self.term in this.DOMAIN_OPERATORS
+
+    @property
+    def is_leaf(self):
+        return not self.is_operator
 
     def _simplify(self):
         """Remove redundant branches.
@@ -542,10 +547,10 @@ class DomainTree(object):
             if self.term.implies(other.term):
                 return True
             # A => A | B
-            if not other.is_leaf and funct(self.implies(child)
+            if other.is_operator and funct(self.implies(child)
                                            for child in other.sorted_childs):
                 return True
-        elif not self.is_leaf:
+        elif self.is_operator:
             funct2 = any if self.term == this.AND_OPERATOR else all
             # A & B => A
             if funct2(child.implies(other) for child in self.sorted_childs):
