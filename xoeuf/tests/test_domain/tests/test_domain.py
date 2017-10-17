@@ -11,6 +11,7 @@ from __future__ import (division as _py3_division,
                         print_function as _py3_print,
                         absolute_import as _py3_abs_import)
 
+from itertools import product
 import unittest
 from hypothesis import strategies as s, given
 
@@ -67,6 +68,50 @@ class TestDomain(unittest.TestCase):
         self.assertEqual(
             domain.second_normal_form,
             domain.second_normal_form.second_normal_form
+        )
+
+    @given(domains())
+    def test_versions_equivalency(self, domain):
+        # Any domain must be equivalent in all its versions.
+        all_versions = [
+            domain,
+            domain.simplified,
+            domain.first_normal_form,
+            domain.second_normal_form
+        ]
+        for version1, version2 in product(all_versions, all_versions):
+            self.assertEqual(
+                version1,
+                version2,
+                msg="%r != %r" % (version1, version2)
+            )
+
+    @given(domains())
+    def test_simplified(self, domain):
+        # A simplified domain never start with '&' operator.
+        self.assertNotEqual(
+            domain.simplified[0],
+            expr.AND_OPERATOR,
+            msg="%r start with &" % domain.simplified
+        )
+        # The simplified domain must be the shortest.
+        all_versions = [
+            domain,
+            domain.first_normal_form,
+            domain.second_normal_form
+        ]
+        for version in all_versions:
+            self.assertLessEqual(
+                len(domain.simplified),
+                len(version),
+                msg="len(%r) > len(%r)" % (domain.simplified, version)
+            )
+
+    @given(domains())
+    def test_second_normal_form_idempotency(self, domain):
+        self.assertEqual(
+            domain.simplified,
+            domain.simplified.simplified
         )
 
     @given(s.lists(domains(), max_size=10, average_size=5))
