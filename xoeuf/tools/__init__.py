@@ -50,13 +50,16 @@ except ImportError:
 
 
 def localize_datetime(self, datetime_value=None, from_tz='UTC', to_tz='UTC'):
-    """Convert datetime value (assumed)in from_tz timezone to to_tz timezone.
+    """Convert datetime value from a timezone to another.
 
-    If datetime is None then context today is used.
+    We assume `datetime_value` is expressed in the timezone given in
+    `from_tz`, i.e is a naive datetime.
 
-    If from_tz or to_tz is None then user timezone is used.
+    If `datetime_value` is None then context today is used.
 
-    If from_tz is equal to_tz datetime_value is returned.
+    If `from_tz` or `to_tz` is None then user timezone is used.
+
+    If `from_tz` is the same as `to_tz`, return `datetime_value`.
 
     """
     from xoeuf.odoo import fields
