@@ -322,6 +322,9 @@ class Domain(list):
         other = Domain(other)
         return hash(self) == hash(other)
 
+    def __ne__(self, other):
+        return not self == other
+
     def __hash__(self):
         return hash(DomainTree(self.second_normal_form))
 
@@ -355,6 +358,9 @@ class DomainTerm(object):
         if not isinstance(other, DomainTerm):
             other = DomainTerm(other)
         return hash(self) == hash(other)
+
+    def __ne__(self, other):
+        return not self == other
 
     def __repr__(self):
         if self.original == self.normalized:
@@ -437,42 +443,74 @@ class DomainTree(object):
                    +----------------------------+       +-------------------+
 
     '''
-    def __init__(self, domain):
+    def __init__(self, domain, parent=None):
         term = domain.pop(0)
         self.term = DomainTerm(term)
+        self.parent = parent
         if term in this.DOMAIN_OPERATORS:
-            count = 1
+            count = 2  # minimum number of operand in an operation.
             childs = set()
-            while len(childs) <= count:
+            while count:
                 if domain[0] == term:
                     count += 1
                     domain.pop(0)
                 else:
-                    child = DomainTree(domain)
-                    # If new node is al ready implied by any other ignore it.
-                    if any(x.implies(child) for x in childs):
-                        count -= 1
+                    child = DomainTree(domain, self)
+                    # A & ((B & C) | A) should be simplified as A & B & C
+                    if child.term == self.term:
+                        childs |= child.childs
                     else:
                         childs.add(child)
+                    count -= 1
             # if a tree node have only one child it be come into it child.
             if len(childs) == 1:
                 child = childs.pop()
                 self.term = child.term
                 self.childs = child.childs
-                self.is_leaf = child.is_leaf
             else:
                 self.childs = childs
-                self.is_leaf = False
         else:
             self.childs = set()
-            self.is_leaf = True
+        self._simplify()
+
+    @property
+    def is_operator(self):
+        return self.term in this.DOMAIN_OPERATORS
+
+    @property
+    def is_leaf(self):
+        return not self.is_operator
+
+    def _simplify(self):
+        """Remove redundant branches.
+
+        """
+        for child in set(self.childs):
+            if self.term == this.AND_OPERATOR:
+                # If current `child` is implied by any other ignore it.
+                func = lambda x, y: y.implies(x)
+            else:
+                # If current `child` implies any other ignore it.
+                func = lambda x, y: x.implies(y)
+            if any(func(child, y) for y in self.childs - {child}):
+                self.childs.remove(child)
+        if len(self.childs) == 1:
+            _self = self.childs.pop()
+            self.childs = _self.childs
+            self.term = _self.term
 
     @property
     def sorted_childs(self):
-        return sorted(self.childs, key=lambda item: item.term.normalized)
+        return sorted(self.childs, key=lambda item: hash(item))
 
     def get_simplified_domain(self):
-        res = Domain(self.term for x in range(1, len(self.childs) or 2))
+        if self.parent:
+            res = Domain(self.term for x in range(1, len(self.childs) or 2))
+        elif self.is_leaf:
+            res = Domain([self.term])
+        else:
+            # Initials `&` aren't needed.
+            res = Domain([self.term] if self.term == this.OR_OPERATOR else [])
         if not self.is_leaf:
             res.extend(
                 chain(
@@ -499,6 +537,9 @@ class DomainTree(object):
                 )
         return False
 
+    def __ne__(self, other):
+        return not self == other
+
     def implies(self, other):
         funct = all if other.term == this.AND_OPERATOR else any
         if self.is_leaf:
@@ -506,10 +547,10 @@ class DomainTree(object):
             if self.term.implies(other.term):
                 return True
             # A => A | B
-            if not other.is_leaf and funct(self.implies(child)
+            if other.is_operator and funct(self.implies(child)
                                            for child in other.sorted_childs):
                 return True
-        elif not self.is_leaf:
+        elif self.is_operator:
             funct2 = any if self.term == this.AND_OPERATOR else all
             # A & B => A
             if funct2(child.implies(other) for child in self.sorted_childs):
