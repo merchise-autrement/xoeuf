@@ -5,10 +5,20 @@
 Beta releases (series 0.X)
 ==========================
 
-Unreleased. Release 0.18.0
+2017-10-31. Release 0.18.0
 --------------------------
 
-Nothing yet.
+- Fix issue `#2`_: `xoeuf.osv.datetime_user_to_server_tz`:func: and
+  `xoeuf.osv.datetime_server_to_user_tz`:func: didn't work on Odoo 10.
+
+
+.. _#2: https://gitlab.lahavane.com/mercurio/xoeuf/issues/2
+
+- Add explicit 'not equal' operator for `domain related
+  <xoeuf.osv.expression>`:mod: functions.
+
+- Covert to properties: `xoeuf.osv.expression.DomainTree.is_leaf`:prop: and
+  `xoeuf.osv.expression.DomainTree.is_operator`:prop:.
 
 
 2017-10-16. Release 0.17.2
