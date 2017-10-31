@@ -352,19 +352,3 @@ def get_time_string_from_float(value, up_24=True, include_seconds=False):
         up_24=up_24,
         include_seconds=include_seconds
     )
-
-
-def get_tz_list():
-    """Get the alphabetic sorted list of time zones in odoo selection
-    like format.
-
-    """
-    # put POSIX 'Etc/*' entries at the end to avoid confusing users - see bug
-    # 1086728
-    return [
-        (tz, "(" + tz + ")")
-        for tz in sorted(
-            pytz.all_timezones,
-            key=lambda tz: tz if not tz.startswith('Etc/') else "_"
-        )
-    ]
