@@ -5,7 +5,7 @@
 Beta releases (series 0.X)
 ==========================
 
-Unreleased. Release 0.19.0
+2017-11-01. Release 0.19.0
 --------------------------
 
 - Add `fields.TimeDelta`:class:
