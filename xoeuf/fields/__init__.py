@@ -20,3 +20,4 @@ from .monetary import Monetary           # noqa: reexport
 from .timespan import TimeSpan           # noqa: reexport
 from .enumeration import Enumeration     # noqa: reexport
 from .timezone import TimezoneSelection  # noqa: reexport
+from .timedelta import TimeDelta         # noqa: reexport
