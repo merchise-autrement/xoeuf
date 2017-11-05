@@ -26,14 +26,10 @@ except ImportError:
 from xoutil.modules import customize
 from xoutil.modules import modulemethod
 
-try:
-    import openerp as _o  # noqa
-    _ADDONS_NAMESPACE = re.compile(r'^openerp\.addons\.(?P<module>[^\.]+)\.')
-except ImportError:  # Odoo 10+
-    # In Odoo 9 they have an 'odoo.py' that is importable when developing
-    # (buildout, etc), so we have to try to import 'openerp' before trying
-    # 'odoo'.
-    _ADDONS_NAMESPACE = re.compile(r'^odoo\.addons\.(?P<module>[^\.]+)\.')
+# In Odoo 10, they allow to import from both 'odoo' and 'openerp'
+_ADDONS_NAMESPACE = re.compile(
+    r'^(?:odoo|openerp)\.addons\.(?P<module>[^\.]+)\.'
+)
 
 XOEUF_EXTERNAL_ADDON_GROUP = 'xoeuf.addons'
 
@@ -259,7 +255,7 @@ def get_object_module(obj, typed=False):
     name = nameof(obj, inner=True, full=True, typed=typed)
     match = _ADDONS_NAMESPACE.match(name)
     if match:
-        module = match.group(1)
+        module = match.groupdict()['module']
         return module
     else:
         return None

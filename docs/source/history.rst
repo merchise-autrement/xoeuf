@@ -8,7 +8,7 @@ Beta releases (series 0.X)
 Unreleased.  Release 0.20.0
 ---------------------------
 
-Nothing yet.
+- Fix `xoeuf.modules.get_object_module`:func: for Odoo 10.
 
 
 2017-11-01. Release 0.19.0
