@@ -1,0 +1,16 @@
+---
+stages:
+  - lint
+  - test
+
+test_code:
+  stage: test
+  script: tox
+  tags:
+    - mercurio
+
+lint:
+  script: merchise_lint
+  stage: lint
+  tags:
+    - mercurio
