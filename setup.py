@@ -9,8 +9,7 @@
 
 from __future__ import (division as _py3_division,
                         print_function as _py3_print,
-                        unicode_literals as _py3_unicode)
-                        # XXX: Don't put absolute imports in setup.py
+                        absolute_import as _py3_abs_import)
 
 import sys
 import os
@@ -41,7 +40,7 @@ setup(name=project_name,
       classifiers=[
           "Programming Language :: Python",
           "Intended Audience :: Developers",
-          'License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)',
+          'License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)',  # noqa
           'Development Status :: 4 - Beta',
       ],
       keywords='openerp open-object server library'.split(),
@@ -72,5 +71,4 @@ setup(name=project_name,
 
       [xoeuf.addons]
       test_localized_dt = xoeuf.tests.test_localized_dt
-      """
-)
+      """)
