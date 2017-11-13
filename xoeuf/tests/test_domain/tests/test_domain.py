@@ -108,7 +108,7 @@ class TestDomain(unittest.TestCase):
             )
 
     @given(domains())
-    def test_second_normal_form_idempotency(self, domain):
+    def test_simplified_idempotency(self, domain):
         self.assertEqual(
             domain.simplified,
             domain.simplified.simplified
