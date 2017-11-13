@@ -12,7 +12,7 @@ from __future__ import (division as _py3_division,
                         absolute_import as _py3_abs_import)
 
 from operator import attrgetter
-from xoeuf.odoo.fields import Field, Float
+from xoeuf.odoo.fields import Field
 
 import xoeuf.odoo.osv.fields as fields7
 
@@ -22,14 +22,17 @@ if not hasattr(fields7, 'monetary'):
     class monetary(fields7.float):
         _type = 'monetary'
         _symbol_set = ('%s', lambda x: __builtin__.float(x or 0.0))
-        _symbol_get = lambda self, x: x or 0.0
+        _symbol_get = lambda self, x: x or 0.0  # noqa: E731
 
         def to_field_args(self):
-            raise NotImplementedError("fields.monetary is only supported in the new API, "
-                                      "but you can use widget='monetary' in client-side views")
+            raise NotImplementedError(
+                "fields.monetary is only supported in the new API, "
+                "but you can use widget='monetary' in client-side views"
+            )
 
     fields7.monetary = monetary
     del monetary
+
 del fields7
 
 

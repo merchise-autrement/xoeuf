@@ -113,7 +113,7 @@ class Registry(ModuleType):
         with manager_lock():
             try:
                 self.wrapped = manager.new(self.db_name)
-            except:
+            except Exception:
                 del self.wrapped
                 del cls.instances[self.db_name]
                 # TODO: Manage the module in "sys.modules"
@@ -138,7 +138,7 @@ class Registry(ModuleType):
                 var = vars[name]
                 try:
                     var.clear()
-                except:
+                except Exception:
                     pass
         for name in names:
             var = getattr(self, name, Unset)

@@ -37,7 +37,7 @@ if not hasattr(fields7, 'timedelta'):
                 "fields.timdelta is only supported in the new API."
             )
 
-
     fields7.timedelta = timedelta
     del timedelta
+
 del fields7

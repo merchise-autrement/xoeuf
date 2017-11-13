@@ -71,6 +71,7 @@ class SysLogHandler(Handler):
         import syslog
         syslog.syslog(safe_encode(self.format(report)))
 
+
 del Handler
 
 
@@ -245,7 +246,7 @@ class Mailgate(Command):
             sender = safe_encode(msg.get('Sender', '<nobody>'))  # noqa
             logger.critical("Error while processing incoming message.",
                             exc_info=1)
-        except:
+        except Exception:
             # Avoid errors... This should be logged to the syslog instead and
             # raven prints the connection error.
             pass
@@ -290,8 +291,9 @@ class Mailgate(Command):
                     message = f.read()
             # TODO: assert message is bytes
             if options.queue_id:
-                message = ('X-Queue-ID: %s%s' % (options.queue_id, CRLF)
-                           + message)
+                message = (
+                    'X-Queue-ID: %s%s' % (options.queue_id, CRLF) + message
+                )
             retries = 0
             done = False
             while not done:
@@ -315,7 +317,7 @@ class Mailgate(Command):
                         raise
                 else:
                     done = True
-        except:
+        except Exception:
             import sys
             if options.defer:
                 print(str('4.3.5 System incorrectly configured'),
@@ -375,6 +377,7 @@ def main():
     from xoutil.cli.app import main
     from xoutil.cli import command_name
     main(default=command_name(Mailgate))
+
 
 if __name__ == '__main__':
     main()

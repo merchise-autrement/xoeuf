@@ -131,7 +131,7 @@ class MetaOptions(type):
             raise AttributeError(msg % (self.__name__, name))
 
     def __setattr__(self, name, value):
-        if not name in self.__dict__ and name in self.wrapped.options:
+        if name not in self.__dict__ and name in self.wrapped.options:
             self[name] = value
         else:
             super(MetaOptions, self).__setattr__(name, value)

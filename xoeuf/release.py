@@ -24,7 +24,7 @@ def dev_tag_installed():
             return version[match.start():]
         else:
             return None
-    except:
+    except Exception:
         return None
 
 

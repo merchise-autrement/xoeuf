@@ -39,8 +39,6 @@ except ImportError:
 
 from xoutil.objects import setdefaultattr
 
-from xoeuf.odoo import models
-
 # A dictionary holding the Raven's client keyword arguments.  You should
 # modify this dictionary before patching the logging.
 conf = {}
@@ -132,7 +130,7 @@ def patch_logging(override=True, force=False):
                 self.client.user_context(user_context)
             try:
                 super(SentryHandler, self)._emit(record, **kwargs)
-            except:
+            except:  # noqa
                 # We should never fail if emitting the log to Sentry fails.
                 # Neither we should print the error, other programs may think
                 # we have fail because of it: For instance, the mailgate

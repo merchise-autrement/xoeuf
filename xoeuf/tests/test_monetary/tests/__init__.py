@@ -15,4 +15,4 @@ from xoeuf import MAJOR_ODOO_VERSION
 
 if MAJOR_ODOO_VERSION < 9:
     # Don't pretend to test Odoo's own Monetary field.
-    from . import test_monetary
+    from . import test_monetary  # noqa

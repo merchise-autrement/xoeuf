@@ -10,6 +10,9 @@
 '''Xœuf tools for Open Object (OpenERP) models.
 
 '''
+from __future__ import (division as _py3_division,
+                        print_function as _py3_print,
+                        absolute_import as _py3_abs_import)
 
 from datetime import datetime as _dt, date as _d, time as _t
 
@@ -39,7 +42,7 @@ utc = pytz.UTC
 _SVR_DATETIME_FMT2 = _SVR_DATETIME_FMT + '.%f'
 
 try:
-    from xoutil.future.datetime import without_tzinfo as strip_tzinfo  # migrate
+    from xoutil.future.datetime import without_tzinfo as strip_tzinfo  # noqa: migrate
 except ImportError:
     def strip_tzinfo(dt):
         '''Return the given datetime value with tzinfo removed.
@@ -91,6 +94,8 @@ def date2str(d):
     if not isinstance(d, _d):
         d = normalize_datetime(d)
     return d.strftime(_SVR_DATE_FMT)
+
+
 normalize_datestr = date2str
 
 
@@ -105,6 +110,8 @@ def dt2str(dt):
     if not isinstance(dt, _dt):
         dt = normalize_datetime(dt)
     return dt.strftime(_SVR_DATETIME_FMT)
+
+
 normalize_datetimestr = dt2str
 
 
@@ -117,12 +124,16 @@ def str2dt(s):
         # when you save a .now() directly via the ORM.  It seems to not
         # sanitize properly the datetimes.
         return _dt.strptime(s, _SVR_DATETIME_FMT2)
+
+
 parse_datetime = str2dt
 
 
 def str2date(s):
     'Convert a string to a date-time using `OpenERP` default date format.'
     return _dt.strptime(s, _SVR_DATE_FMT)
+
+
 parse_date = str2date
 
 

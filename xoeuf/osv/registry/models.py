@@ -93,7 +93,7 @@ class ModelsManager(MutableMapping, SmartDictMixin):
         else:
             try:
                 return super(ModelsManager, self).__getattr__(name)
-            except:
+            except Exception:  # FIXME: Should we deal with this?
                 msg = "'%s' object has no attribute '%s'"
                 raise AttributeError(msg % (type(self).__name__, name))
 
@@ -178,8 +178,11 @@ class ModelsManager(MutableMapping, SmartDictMixin):
         from collections import Mapping
         from itertools import chain
         from xoutil.validators.identifiers import is_valid_identifier
-        args = [((key, m[key]) for key in m) if isinstance(m, Mapping) else m
-                    for m in args]
+        args = [
+            ((key, m[key]) for key in m)
+            if isinstance(m, Mapping) else m
+            for m in args
+        ]
         args.append(((key, kwargs[key]) for key in kwargs))
         mapping = ~self
         for name, model in chain(args):

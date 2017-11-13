@@ -175,9 +175,6 @@ class Signal(object):
                 else:
                     logger.exception(err)
                     responses.append((receiver, err))
-            except:
-                # Don't log: I expect you'll log where you actually catch it.
-                raise
             else:
                 responses.append((receiver, response))
         return responses
@@ -196,7 +193,7 @@ class Signal(object):
         senderkey = _make_model_id(sender)
         receivers = []
         for (receiverkey, r_senderkey), receiver in self.receivers:
-            if self._installed(sender, receiver) and (not r_senderkey or r_senderkey == senderkey):
+            if self._installed(sender, receiver) and (not r_senderkey or r_senderkey == senderkey):  # noqa
                 if registry_ready or not receiver.require_registry:
                     logger.debug(
                         'Accepting receiver %s as live',

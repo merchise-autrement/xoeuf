@@ -127,7 +127,8 @@ class Secure(Command):
             with open(filename, 'rb') as fh:
                 return exec_(compile(fh.read(), filename, 'exec'), cfg, cfg)
         except Exception:
-            import traceback, sys
+            import traceback
+            import sys
             print("Failed to read config file: %s" % filename)
             traceback.print_exc()
             sys.exit(1)

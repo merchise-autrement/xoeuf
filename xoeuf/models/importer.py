@@ -54,7 +54,12 @@ class _ImportNamespaceType(type):
                 setattr(definitions, attr, val)
                 proxies[attr] = _proxy.ModelProxy(get_modelname(val))
         attrs = dict(proxies, defs=definitions)
-        return super(_ImportNamespaceType, cls).__new__(cls, name, bases, attrs)
+        return super(_ImportNamespaceType, cls).__new__(
+            cls,
+            name,
+            bases,
+            attrs
+        )
 
 
 class ImportNamespace(metaclass(_ImportNamespaceType)):

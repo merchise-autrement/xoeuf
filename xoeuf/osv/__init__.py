@@ -45,7 +45,7 @@ def savepoint(cr, name=None):
             cr.execute('SAVEPOINT "%s"' % name)
             try:
                 yield
-            except:
+            except:  # noqa
                 cr.execute('ROLLBACK TO SAVEPOINT "%s"' % name)
                 raise
             else:
@@ -67,13 +67,17 @@ def datetime_user_to_server_tz(cr, uid, userdate, tz_name=None, context=None):
     if not tz_name:
         env = api.Environment(cr, uid, context or {})
         user = env.user
-        dt = dt_as_timezone(userdate, user.tz) if user.tz else dt_as_timezone(userdate)
+        if user.tz:
+            dt = dt_as_timezone(userdate, user.tz)
+        else:
+            dt = dt_as_timezone(userdate)
     else:
         dt = dt_as_timezone(userdate, tz_name)
     return utc.normalize(dt)
 
 
-def datetime_server_to_user_tz(cr, uid, serverdate, tz_name=None, context=None):
+def datetime_server_to_user_tz(cr, uid, serverdate, tz_name=None,
+                               context=None):
     """ Convert date values expressed in server-side UTC timestamp to
     user's timezone.
 

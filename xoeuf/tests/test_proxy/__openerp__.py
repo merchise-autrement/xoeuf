@@ -13,5 +13,5 @@
     'description': 'Test for the xoeuf.models.proxy',
     'depends': ['base', 'web', ],
     'installable': True,
-    'auto_install':  False,
+    'auto_install': False,
 }

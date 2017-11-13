@@ -63,7 +63,7 @@ class Base(object):
     def init(self, args):
         try:
             pos = args.index('--')
-            args, self.shell_args = args[:pos], args[pos+1:]
+            args, self.shell_args = args[:pos], args[pos+1:]  # noqa: E226
         except ValueError:
             self.shell_args = []
         config.parse_config(args)
@@ -123,7 +123,7 @@ class Base(object):
             registry = odoo.registry(dbname)
             with registry.cursor() as cr:
                 uid = odoo.SUPERUSER_ID
-                ctx = odoo.api.Environment(cr, uid, {})['res.users'].context_get()
+                ctx = odoo.api.Environment(cr, uid, {})['res.users'].context_get()  # noqa
                 env = odoo.api.Environment(cr, uid, ctx)
                 local_vars['env'] = env
                 local_vars['self'] = env.user
@@ -146,4 +146,8 @@ for alias in ('shell', 'ishell', 'python', 'ipython'):
         d['__doc__'] = 'A shell for Odoo'
         return d
 
-    globals()[alias] = new_class(alias, (aliased, Base, Command), exec_body=exec_body)
+    globals()[alias] = new_class(
+        alias,
+        (aliased, Base, Command),
+        exec_body=exec_body
+    )

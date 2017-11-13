@@ -44,7 +44,8 @@ class TestHTTPModelProxy(HttpCase):
             # Odoo 11+ uses requests to load the URL.
             return response.status_code
 
-    @unittest.skipIf(MAJOR_ODOO_VERSION >= 9, 'Does not raises the error in Odoo 9+')
+    @unittest.skipIf(MAJOR_ODOO_VERSION >= 9,
+                     'Does not raises the error in Odoo 9+')
     def test_request_no_auth(self):
         # The controller won't be able to find a proper environment and fail
         # with an AttributeError, we'll see as an error 500

@@ -149,7 +149,7 @@ def find_external_addons(self):
                 name = entry.module_name
                 pos = name.rfind('.')
                 if pos >= 0:
-                    name = name[pos+1:]
+                    name = name[pos+1:]  # noqa
     return delete_duplicates(res)
 
 
