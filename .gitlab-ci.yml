@@ -5,7 +5,7 @@ stages:
 
 test_code:
   stage: test
-  script: tox
+  script: tox -e system-odoo10-unit
   tags:
     - mercurio
 
