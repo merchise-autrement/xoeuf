@@ -9,17 +9,6 @@
 
 '''Integrate both Model Definition classes with Models.
 
-Usage::
-
-   >>> class M(xoeuf.models.importer.ImportNamespace):
-   ...     from openerp.addons.base.res.res_partner import res_partner as Partner
-
-   # M.defs.Partner will be the model definition class
-
-   # M(r).Partner will be the model as seen by registry r.  If r is None, i.e
-   # M().Partner or M.Partner, we search the frame stack to find a 'self' with
-   # the registry to get the model.
-
 '''
 
 from __future__ import (division as _py3_division,
