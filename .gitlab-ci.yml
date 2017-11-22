@@ -1,16 +1,104 @@
 ---
-stages:
-  - lint
-  - test
+variables:
+  PROJECT_NAME: xoeuf
 
-test_code:
+stages:
+  - test
+  - check
+  - build
+  - publish
+  - clean
+
+check code smells:
+  script: merchise_lint
+  stage: test
+  tags:
+    - merchise-lint
+
+run all tests:
   stage: test
   script: tox -e system-odoo10-unit
   tags:
-    - mercurio
+    - python
+    - virtualenv
+    - tox
 
-lint:
-  script: merchise_lint
-  stage: lint
+check signature of tag:
+  stage: check
+  script:
+    - git verify-tag $CI_COMMIT_REF_NAME
   tags:
-    - mercurio
+    - git
+    - gpg
+  only:
+    - tags
+
+build source distribution:
+  stage: build
+  script:
+    - rm -f dist/*
+    - python setup.py sdist
+  tags:
+    - python
+  artifacts:
+    paths:
+      - dist/
+  only:
+    - tags
+
+build binary distribution:
+  stage: build
+  script:
+    - rm -f dist/*
+    - python setup.py bdist_wheel
+  tags:
+    - wheel
+  artifacts:
+    paths:
+      - dist/
+  only:
+    - tags
+
+publish_locally:
+  stage: publish
+  script:
+    - ssh manu@gestion.lahavane.com "mkdir -p Repos/$PROJECT_NAME"
+    - scp dist/* manu@gestion.lahavane.com:Repos/$PROJECT_NAME/
+  tags:
+    - repo.lahavane.com
+  only:
+    - tags
+  dependencies:
+    - check signature of tag
+    - build source distribution
+    - build binary distribution
+
+
+publish_pypi:
+  stage: publish
+  script:
+    - twine upload dist/*
+  tags:
+    - twine
+  only:
+    - tags
+  dependencies:
+    - check signature of tag
+    - build source distribution
+    - build binary distribution
+  environment:
+    name: pypi
+    url: https://pypi.python.org/pypi/$PROJECT_NAME
+
+
+clean_build:
+  stage: clean
+  script:
+    - rm -f dist/*
+  tags:
+    - python
+  when: always
+  allow_failure: true
+  dependencies:
+    - build source distribution
+    - build binary distribution
