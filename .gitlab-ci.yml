@@ -14,14 +14,17 @@ check code smells:
   stage: test
   tags:
     - merchise-lint
+  only:
+    - branches
 
 run all tests:
   stage: test
   script: tox -e system-odoo10-unit
   tags:
     - python
-    - virtualenv
     - tox
+  only:
+    - branches
 
 check signature of tag:
   stage: check
