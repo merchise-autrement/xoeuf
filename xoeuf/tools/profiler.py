@@ -73,6 +73,7 @@ except ImportError:
             'Are you trying to use the profiler in production?! '
             'Don\'t do that EVER AGAIN!!'
         )
+        return func
 
 
 del decorator
