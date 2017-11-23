@@ -21,8 +21,8 @@ run all tests:
   stage: test
   script: tox -e system-odoo10-unit
   tags:
-    - python
     - tox
+    - xhg
   only:
     - branches
 
