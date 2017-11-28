@@ -132,7 +132,7 @@ def reset_invalid_passwords(self, security_level=_DEF_LEVEL):
     def check(self):
         from xoeuf.odoo.exceptions import AccessDenied
         try:
-            self.check_credentials(self.login)
+            self.sudo(self.id).check_credentials(self.login)
             return True
         except AccessDenied:
             return False
