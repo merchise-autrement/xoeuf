@@ -565,7 +565,22 @@ class DomainTree(object):
     def __hash__(self):
         return hash(tuple([self.term] + self.sorted_children))
 
-    # TODO: Provide pre-order and post-order traverse.
+    def walk(self):
+        '''Performs a post-fix walk of the tree.
+
+        Yields tuples of ``(kind, what)``.  `kind` can be either 'TERM' or
+        'OPERATOR'.  `what` will be the term or operator.  For `term` it will
+        the tuple ``(field, operator, arg)`` in Odoo domains.  For `operator`
+        it will be the string identifying the operator.
+
+        '''
+        if self.is_leaf:
+            yield ('TERM', self.term.original)
+        else:
+            for which in self.children:
+                for what in which.walk():
+                    yield what
+            yield ('OPERATOR', self.term)
 
 
 # Exports AND and OR so that we can replace 'from xoeuf.odoo.
