@@ -28,7 +28,6 @@ run all tests:
     - tox -esystem-{odoo10,odoo8}-unit
   tags:
     - tox
-    - xhg
     - xoeuf-tester
   only:
     - branches
