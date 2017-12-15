@@ -501,6 +501,7 @@ class DomainTree(object):
 
     @property
     def sorted_children(self):
+        # TODO: Sort by hash is weird.  What does it mean?
         return sorted(self.children, key=lambda item: hash(item))
 
     def get_simplified_domain(self):
