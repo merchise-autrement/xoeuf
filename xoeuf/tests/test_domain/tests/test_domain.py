@@ -17,7 +17,7 @@ from hypothesis import strategies as s, given
 
 from xoeuf.osv import expression as expr
 from xoeuf.odoo.osv import expression as odoo_expr
-from xoeuf.osv.expression import Domain
+from xoeuf.osv.expression import Domain, DomainTree
 
 names = s.text(alphabet='abdefgh', min_size=1, average_size=3)
 operators = s.sampled_from(['=', '!=', '<', '>', '<>'])
@@ -253,3 +253,31 @@ class TestDomain(unittest.TestCase):
             ('field_z', 'in', (1, 2, 3))
         ])
         assert x.implies(y)
+
+    def test_walk(self):
+        y = Domain([
+            '|',
+            ('a', '!=', False),
+            ('b', '=', 'value'),
+            ('c', 'in', (1, 2, 3)),
+            '|', '|', '!',
+            ('d', '=', 'value'),
+            ('f', '!=', False),
+            ('g', '=', 'h')
+        ])
+        tree = DomainTree(y.first_normal_form)
+        expected = [
+            ('TERM', ('g', '=', 'h'))
+            ('TERM', ('f', '!=', False)),
+            ('TERM', ('d', '=', 'value')),
+            ('OPERATOR', '!'),
+            ('OPERATOR', '|'),
+            ('OPERATOR', '|'),
+            ('TERM', ('c', 'in', (1, 2, 3))),
+            ('TERM', ('a', '!=', False)),
+            ('TERM', ('b', '=', 'value')),
+            ('OPERATOR', '|'),
+            ('OPERATOR', '&')
+            ('OPERATOR', '&')
+        ]
+        self.assertEqual(expected, list(tree.walk()))

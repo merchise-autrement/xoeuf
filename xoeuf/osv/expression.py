@@ -82,6 +82,10 @@ except ImportError:
                 return self.func.__get__(instance, owner)
 
 
+UNARY_OPERATORS = [this.NOT_OPERATOR]
+BINARY_OPERATORS = [this.AND_OPERATOR, this.OR_OPERATOR]
+
+
 class Domain(list):
     '''A predicate expressed as an Odoo domain.
 
@@ -582,6 +586,11 @@ class DomainTree(object):
                 for what in which.walk():
                     yield what
             yield ('OPERATOR', self.term)
+            # Since the tree groups more than two children under a single
+            # instance of binary operator, we have to yield it once per pair.
+            if self.term.original in BINARY_OPERATORS:
+                for _ in range(len(self.children) - 2):
+                    yield ('OPERATOR', self.term)
 
 
 # Exports AND and OR so that we can replace 'from xoeuf.odoo.
