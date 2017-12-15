@@ -449,7 +449,7 @@ class DomainTree(object):
         self.parent = parent
         if term in this.DOMAIN_OPERATORS:
             count = 2  # minimum number of operand in an operation.
-            childs = set()
+            children = set()
             while count:
                 if domain[0] == term:
                     count += 1
@@ -458,19 +458,19 @@ class DomainTree(object):
                     child = DomainTree(domain, self)
                     # A & ((B & C) | A) should be simplified as A & B & C
                     if child.term == self.term:
-                        childs |= child.childs
+                        children |= child.children
                     else:
-                        childs.add(child)
+                        children.add(child)
                     count -= 1
             # if a tree node have only one child it be come into it child.
-            if len(childs) == 1:
-                child = childs.pop()
+            if len(children) == 1:
+                child = children.pop()
                 self.term = child.term
-                self.childs = child.childs
+                self.children = child.children
             else:
-                self.childs = childs
+                self.children = children
         else:
-            self.childs = set()
+            self.children = set()
         self._simplify()
 
     @property
@@ -485,27 +485,27 @@ class DomainTree(object):
         """Remove redundant branches.
 
         """
-        for child in set(self.childs):
+        for child in set(self.children):
             if self.term == this.AND_OPERATOR:
                 # If current `child` is implied by any other ignore it.
                 func = lambda x, y: y.implies(x)
             else:
                 # If current `child` implies any other ignore it.
                 func = lambda x, y: x.implies(y)
-            if any(func(child, y) for y in self.childs - {child}):
-                self.childs.remove(child)
-        if len(self.childs) == 1:
-            _self = self.childs.pop()
-            self.childs = _self.childs
+            if any(func(child, y) for y in self.children - {child}):
+                self.children.remove(child)
+        if len(self.children) == 1:
+            _self = self.children.pop()
+            self.children = _self.children
             self.term = _self.term
 
     @property
-    def sorted_childs(self):
-        return sorted(self.childs, key=lambda item: hash(item))
+    def sorted_children(self):
+        return sorted(self.children, key=lambda item: hash(item))
 
     def get_simplified_domain(self):
         if self.parent:
-            res = Domain(self.term for x in range(1, len(self.childs) or 2))
+            res = Domain(self.term for x in range(1, len(self.children) or 2))
         elif self.is_leaf:
             res = Domain([self.term])
         else:
@@ -514,7 +514,7 @@ class DomainTree(object):
         if not self.is_leaf:
             res.extend(
                 chain(
-                    *(x.get_simplified_domain() for x in self.sorted_childs)
+                    *(x.get_simplified_domain() for x in self.sorted_children)
                 )
             )
         return res
@@ -524,7 +524,7 @@ class DomainTree(object):
             return repr(self.term)
         else:
             return '(%s)' % (' %r ' % self.term).join(
-                repr(child) for child in self.sorted_childs
+                repr(child) for child in self.sorted_children
             )
 
     def __eq__(self, other):
@@ -533,7 +533,7 @@ class DomainTree(object):
                 return self.term == other.term
             else:
                 return (
-                    self.term == other.term and not self.childs ^ other.childs
+                    self.term == other.term and not self.children ^ other.children
                 )
         return False
 
@@ -548,22 +548,24 @@ class DomainTree(object):
                 return True
             # A => A | B
             if other.is_operator and funct(self.implies(child)
-                                           for child in other.sorted_childs):
+                                           for child in other.sorted_children):
                 return True
         elif self.is_operator:
             funct2 = any if self.term == this.AND_OPERATOR else all
             # A & B => A
-            if funct2(child.implies(other) for child in self.sorted_childs):
+            if funct2(child.implies(other) for child in self.sorted_children):
                 return True
             # A & B => A | B
             if funct(funct2(child.implies(other_child)
-                            for child in self.sorted_childs)
-                     for other_child in other.sorted_childs):
+                            for child in self.sorted_children)
+                     for other_child in other.sorted_children):
                 return True
         return False
 
     def __hash__(self):
-        return hash(tuple([self.term] + self.sorted_childs))
+        return hash(tuple([self.term] + self.sorted_children))
+
+    # TODO: Provide pre-order and post-order traverse.
 
 
 # Exports AND and OR so that we can replace 'from xoeuf.odoo.
