@@ -23,7 +23,7 @@ run all tests:
     - export CWD=`pwd`
     - cd ~/src/odoo.git
     - git fetch
-    - export ODOO_URI="$HOME/src/odoo.git"
+    - export ODOO_URI="file:///$HOME/src/odoo.git"
     - cd $CWD
     - tox -esystem-{odoo10,odoo8}-unit
   tags:
