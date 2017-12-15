@@ -537,9 +537,7 @@ class DomainTree(object):
             if self.is_leaf:
                 return self.term == other.term
             else:
-                return (
-                    self.term == other.term and not self.children ^ other.children
-                )
+                return self.term == other.term and not self.children ^ other.children  # noqa
         return False
 
     def __ne__(self, other):
