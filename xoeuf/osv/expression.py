@@ -576,6 +576,23 @@ class DomainTree(object):
         the tuple ``(field, operator, arg)`` in Odoo domains.  For `operator`
         it will be the string identifying the operator.
 
+        Despite that the tree allows AND (``&``) and OR (``|``) operator to
+        have more than two children, we generate OPERATOR items for the
+        equivalent binary expression tree:
+
+           >>> from xoeuf.osv.expression import Domain, DomainTree
+           >>> d = Domain([('a', '=', 1), ('b', '=', 2), ('c', '=', 3)])
+           >>> tree = DomainTree(d.second_normal_form)
+           >>> list(tree.walk())
+           [('TERM', ('a', '=', 1)),
+            ('TERM', ('c', '=', 3)),
+            ('TERM', ('b', '=', 2)),
+            ('OPERATOR', '&'),
+            ('OPERATOR', '&')]
+
+        .. note:: DomainTree always simplify its input.  The walk is not a
+           syntactical walk of the input but of its simplified form.
+
         '''
         if self.is_leaf:
             yield ('TERM', self.term.original)
