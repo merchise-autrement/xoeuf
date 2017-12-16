@@ -425,7 +425,7 @@ class DomainTree(object):
           ('field_y', '!=', False),
           ('field_x', '=', 'value'),
           '|',
-          ('field_z', 'in', (1, 2, 3))
+          ('field_z', 'in', (1, 2, 3)),
           ('field_w', '>', 1)
       ]
 
