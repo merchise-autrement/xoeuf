@@ -25,10 +25,27 @@ run all tests:
     - git fetch
     - export ODOO_URI="file://$HOME/src/odoo.git"
     - cd $CWD
-    - tox -esystem-{odoo10,odoo8}-unit
+    - tox -esystem-{odoo10,odoo8}-{unit,integration}
   tags:
     - tox
     - xoeuf-tester
+  only:
+    - branches
+
+
+run all tests for Odoo 11:
+  stage: test
+  script:
+    - export CWD=`pwd`
+    - cd ~/src/odoo.git
+    - git fetch
+    - export ODOO_URI="file://$HOME/src/odoo.git"
+    - cd $CWD
+    - tox -esystem-odoo11-{unit,integration}
+  tags:
+    - tox
+    - xoeuf-tester
+    - python3
   only:
     - branches
 
