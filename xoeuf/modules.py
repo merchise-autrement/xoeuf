@@ -132,7 +132,7 @@ def find_external_addons(self):
     '''
     import os
     from pkg_resources import iter_entry_points
-    from xoutil.iterators import delete_duplicates
+    from xoutil.future.itertools import delete_duplicates
     res = []
     for entry in iter_entry_points(XOEUF_EXTERNAL_ADDON_GROUP):
         if not entry.attrs:
