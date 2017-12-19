@@ -24,14 +24,13 @@ check code smells:
     - test -d ~/virtualenvs/$CI_PROJECT_NAME-$ODOO_WORKTREE || virtualenv -p `which $PYTHON` ~/virtualenvs/$CI_PROJECT_NAME-$ODOO_WORKTREE
     - source ~/virtualenvs/$CI_PROJECT_NAME-$ODOO_WORKTREE/bin/activate
     - pip install -r requirements.txt
-    - pip install -U "six>=1.9.0" "decorator>=4.0,<4.2"
+    - pip install -U "six>=1.9.0" "decorator>=4.0,<4.2" "hypothesis>=3.24"
     - pip install -e .
     - cd $CWD
     - pip install -e .
-    - createdb $CI_PROJECT_NAME_$CI_COMMIT_SHA
-    - xoeuf -d $CI_PROJECT_NAME_$CI_COMMIT_SHA --stop-after-init --test-enable --log-level=test --workers=0 --max-cron-threads=0 -i `ls xoeuf/tests/ | grep ^test_ | xargs | tr " " ","`
-    - dropdb $CI_PROJECT_NAME_$CI_COMMIT_SHA
-    - deactivate
+    - export ADDONS=`ls xoeuf/tests/ | grep ^test_ | xargs | tr " " ","`
+    - cd ~/src/$ODOO_WORKTREE
+    - runtests-odoo.sh -i $ADDONS
   tags:
     - virtualenv
     - xoeuf-tester
