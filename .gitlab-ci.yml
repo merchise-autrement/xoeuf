@@ -1,7 +1,4 @@
 ---
-variables:
-  PROJECT_NAME: xoeuf
-
 stages:
   - test
   - check
@@ -17,37 +14,46 @@ check code smells:
   only:
     - branches
 
-run all tests:
+.run_tests: &run_tests
   stage: test
   script:
     - export CWD=`pwd`
-    - cd ~/src/odoo.git
-    - git fetch
-    - export ODOO_URI="file://$HOME/src/odoo.git"
+    - cd ~/src/$ODOO_WORKTREE
+    - git pull
+    - mkdir -p ~/virtualenvs
+    - test -d ~/virtualenvs/$CI_PROJECT_NAME-$ODOO_WORKTREE || virtualenv -p `which $PYTHON` ~/virtualenvs/$CI_PROJECT_NAME-$ODOO_WORKTREE
+    - source ~/virtualenvs/$CI_PROJECT_NAME-$ODOO_WORKTREE/bin/activate
+    - pip install -r requirements.txt
+    - pip install -U "six>=1.9.0" "decorator>=4.0,<4.2" "hypothesis>=3.24"
+    - pip install -e .
     - cd $CWD
-    - tox -esystem-{odoo10,odoo8}-{unit,integration}
+    - pip install -e .
+    - export ADDONS=`ls xoeuf/tests/ | grep ^test_ | xargs | tr " " ","`
+    - cd ~/src/$ODOO_WORKTREE
+    - runtests-odoo.sh -i $ADDONS
   tags:
-    - tox
+    - virtualenv
     - xoeuf-tester
   only:
     - branches
 
+run all Odoo 8 tests:
+  <<: *run_tests
+  variables:
+    PYTHON: python
+    ODOO_WORKTREE: odoo8
 
-run all tests for Odoo 11:
-  stage: test
-  script:
-    - export CWD=`pwd`
-    - cd ~/src/odoo.git
-    - git fetch
-    - export ODOO_URI="file://$HOME/src/odoo.git"
-    - cd $CWD
-    - tox -esystem-odoo11-{unit,integration}
-  tags:
-    - tox
-    - xoeuf-tester
-    - python3
-  only:
-    - branches
+run all Odoo 10 tests:
+  <<: *run_tests
+  variables:
+    PYTHON: python
+    ODOO_WORKTREE: odoo10
+
+run all Odoo 11 tests:
+  <<: *run_tests
+  variables:
+    PYTHON: python3
+    ODOO_WORKTREE: odoo11
 
 check signature of tag:
   stage: check
@@ -88,8 +94,8 @@ build binary distribution:
 publish_locally:
   stage: publish
   script:
-    - ssh manu@gestion.lahavane.com "mkdir -p Repos/$PROJECT_NAME"
-    - scp dist/* manu@gestion.lahavane.com:Repos/$PROJECT_NAME/
+    - ssh manu@gestion.lahavane.com "mkdir -p Repos/$CI_PROJECT_NAME"
+    - scp dist/* manu@gestion.lahavane.com:Repos/$CI_PROJECT_NAME/
   tags:
     - repo.lahavane.com
   only:
@@ -114,7 +120,7 @@ publish_pypi:
     - build binary distribution
   environment:
     name: pypi
-    url: https://pypi.python.org/pypi/$PROJECT_NAME
+    url: https://pypi.python.org/pypi/$CI_PROJECT_NAME
 
 
 clean_build:
