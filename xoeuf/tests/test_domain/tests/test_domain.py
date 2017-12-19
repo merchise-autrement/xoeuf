@@ -265,19 +265,18 @@ class TestDomain(unittest.TestCase):
             ('f', '!=', False),
             ('g', '=', 'h')
         ])
-        tree = DomainTree(y.first_normal_form)
+        tree = DomainTree(y.second_normal_form)
         expected = [
-            ('TERM', ('g', '=', 'h'))
-            ('TERM', ('f', '!=', False)),
-            ('TERM', ('d', '=', 'value')),
-            ('OPERATOR', '!'),
-            ('OPERATOR', '|'),
-            ('OPERATOR', '|'),
             ('TERM', ('c', 'in', (1, 2, 3))),
+            ('TERM', ('g', '=', 'h')),
+            ('TERM', ('d', '!=', 'value')),
+            ('TERM', ('f', '!=', False)),
+            ('OPERATOR', '|'),
+            ('OPERATOR', '|'),
             ('TERM', ('a', '!=', False)),
             ('TERM', ('b', '=', 'value')),
             ('OPERATOR', '|'),
-            ('OPERATOR', '&')
+            ('OPERATOR', '&'),
             ('OPERATOR', '&')
         ]
         self.assertEqual(expected, list(tree.walk()))
