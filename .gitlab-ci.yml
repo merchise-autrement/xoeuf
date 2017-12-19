@@ -1,7 +1,4 @@
 ---
-variables:
-  PROJECT_NAME: xoeuf
-
 stages:
   - test
   - check
@@ -98,8 +95,8 @@ build binary distribution:
 publish_locally:
   stage: publish
   script:
-    - ssh manu@gestion.lahavane.com "mkdir -p Repos/$PROJECT_NAME"
-    - scp dist/* manu@gestion.lahavane.com:Repos/$PROJECT_NAME/
+    - ssh manu@gestion.lahavane.com "mkdir -p Repos/$CI_PROJECT_NAME"
+    - scp dist/* manu@gestion.lahavane.com:Repos/$CI_PROJECT_NAME/
   tags:
     - repo.lahavane.com
   only:
@@ -124,7 +121,7 @@ publish_pypi:
     - build binary distribution
   environment:
     name: pypi
-    url: https://pypi.python.org/pypi/$PROJECT_NAME
+    url: https://pypi.python.org/pypi/$CI_PROJECT_NAME
 
 
 clean_build:
