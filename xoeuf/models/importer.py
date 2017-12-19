@@ -17,10 +17,7 @@ from __future__ import (division as _py3_division,
 
 from xoeuf.odoo import models
 from xoutil.eight.meta import metaclass
-try:
-    from xoutil.future.types import SimpleNamespace
-except ImportError:
-    from xoutil.eight.types import SimpleNamespace
+from xoutil.future.types import SimpleNamespace
 
 from . import get_modelname
 from . import _proxy

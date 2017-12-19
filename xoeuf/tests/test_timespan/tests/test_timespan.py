@@ -10,10 +10,7 @@
 from __future__ import (division as _py3_division,
                         print_function as _py3_print,
                         absolute_import as _py3_abs_import)
-try:
-    from xoutil.future.datetime import TimeSpan, parse_date
-except ImportError:
-    from xoutil.datetime import TimeSpan, parse_date
+from xoutil.future.datetime import TimeSpan, parse_date
 
 from datetime import date
 from hypothesis import strategies, given

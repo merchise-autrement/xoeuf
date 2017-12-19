@@ -19,10 +19,7 @@ import sys
 import logging
 import re
 
-try:
-    from xoutil.future.functools import lru_cache
-except ImportError:
-    from xoutil.functools import lru_cache
+from xoutil.future.functools import lru_cache
 from xoutil.modules import customize
 from xoutil.modules import modulemethod
 

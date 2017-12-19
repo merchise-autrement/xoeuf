@@ -34,7 +34,7 @@ class Secure(Command):
 
         def path(extensions=None):
             '''A type-builder for file arguments.'''
-            from xoutil.types import is_collection
+            from xoutil.future.types import is_collection
             from os.path import abspath, isfile, splitext
             if extensions and not is_collection(extensions):
                 extensions = (extensions, )

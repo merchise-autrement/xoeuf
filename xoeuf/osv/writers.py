@@ -23,10 +23,7 @@ class _BaseWriter(object):
 
     '''
     def __init__(self, model):
-        try:
-            from xoutil.future.collections import StackedDict
-        except ImportError:
-            from xoutil.collections import StackedDict
+        from xoutil.future.collections import StackedDict
         self.model = model
         self._commands = StackedDict()
         self.result = None
@@ -103,7 +100,7 @@ class _BaseWriter(object):
           be either a many2many or one2many column.
 
         '''
-        from xoutil.types import is_collection
+        from xoutil.future.types import is_collection
         from .orm import UPDATE_RELATED
         commands = self._commands
         if replacement:

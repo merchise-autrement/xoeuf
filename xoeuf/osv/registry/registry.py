@@ -21,7 +21,7 @@ from __future__ import (division as _py3_division,
 
 from types import ModuleType
 from collections import MutableMapping
-from xoutil import Unset
+from xoutil.symbols import Unset
 from xoutil.context import Context
 from xoutil.decorator import aliases, memoized_property
 
@@ -221,10 +221,7 @@ class Registry(ModuleType):
         checks the resulting context for common values (lang, tz).
 
         '''
-        try:
-            from xoutil.future.collections import opendict
-        except ImportError:
-            from xoutil.collections import opendict
+        from xoutil.future.collections import opendict
         res = opendict(**self._default_context)
         mngr = self.current_manager
         if mngr:

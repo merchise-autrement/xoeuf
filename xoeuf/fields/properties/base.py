@@ -83,7 +83,7 @@ class Property(Base):
         # allow for inheritance (_inherits) of this field.  Such inheritance
         # is done via a related field, but otherwise custom `write/create`
         # that treat properties could be ignored.
-        from xoutil import Unset
+        from xoutil.symbols import Unset
         kw = {
             'inherited': kwargs.get('inherited', None),
             'related': kwargs.get('related', None),

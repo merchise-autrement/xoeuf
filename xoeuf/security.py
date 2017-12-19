@@ -72,7 +72,7 @@ def _reset_passwords(self, security_level, verbose, check=None):
 
     '''
     from xoutil.crypto import generate_password
-    from xoutil.string import safe_encode
+    from xoutil.future.codecs import safe_encode
     users = self.search([])
     for user in users:
         login = user.login

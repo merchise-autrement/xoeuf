@@ -22,10 +22,7 @@ from xoeuf import odoo
 from xoeuf.odoo.tools import config
 
 from xoeuf.api import contextual
-try:
-    from xoutil.future.types import new_class
-except ImportError:
-    from xoutil.eight.types import new_class
+from xoutil.future.types import new_class
 
 
 from . import Command

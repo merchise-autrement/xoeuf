@@ -13,7 +13,7 @@ from __future__ import (division as _py3_division,
 
 
 from collections import MutableMapping
-from xoutil import Unset
+from xoutil.symbols import Unset
 from xoutil.collections import SmartDictMixin
 
 
@@ -33,12 +33,8 @@ class ModelsManager(MutableMapping, SmartDictMixin):
      * An open dictionary allowing access to keys as attributes.
 
     '''
-    try:
-        from xoutil.future.collections \
-            import opendict as __search_result_type__  # noqa
-    except ImportError:
-        from xoutil.collections \
-            import opendict as __search_result_type__  # noqa
+    from xoutil.future.collections \
+        import opendict as __search_result_type__  # noqa
     # see the the SmartDictMixin.search method
 
     def __new__(cls, registry):

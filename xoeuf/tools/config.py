@@ -122,7 +122,7 @@ class MetaOptions(type):
             raise KeyError('read only option "%s"!' % option)
 
     def __getattr__(self, name):
-        from xoutil import Unset
+        from xoutil.symbols import Unset
         res = self.wrapped.options.get(name, Unset)
         if res is not Unset:
             return res
@@ -143,7 +143,7 @@ class MetaOptions(type):
 
         '''
         if _SECTION_SEP in option:
-            from xoutil import Unset
+            from xoutil.symbols import Unset
             section, option = option.split(_SECTION_SEP)
             misc = self.wrapped.misc.get(section, Unset)
             return default if misc is Unset else misc.get(option, default)
@@ -174,7 +174,7 @@ class MetaOptions(type):
         '''
         count = len(args)
         if count <= 1:
-            from xoutil import Unset
+            from xoutil.symbols import Unset
             default = Unset if count == 0 else args[0]
             if _SECTION_SEP in option:
                 section, option = option.split(_SECTION_SEP)
@@ -239,7 +239,7 @@ class MetaOptions(type):
         '''
         count = len(args)
         if count <= 1:
-            from xoutil import Unset
+            from xoutil.symbols import Unset
             default = Unset if count == 0 else args[0]
             if _SECTION_SEP in option:
                 default = None if count == 0 else args[0]

@@ -23,6 +23,8 @@ import random
 from logging import Handler
 from psycopg2 import OperationalError, errorcodes
 
+from xoutil.future.codecs import safe_encode, safe_decode
+
 try:
     from xoeuf.odoo.jobs import Deferred
 except ImportError:
@@ -49,10 +51,7 @@ try:
 except NameError:
     pass
 
-try:
-    from xoutil.future.string import safe_encode, safe_decode
-except ImportError:
-    from xoutil.string import safe_encode, safe_decode
+
 
 # TODO: This has grown into a monstrous pile of code that needs
 # refactorization.
@@ -97,7 +96,7 @@ class Mailgate(Command):
     def get_arg_parser(cls):
         def path(extensions=None):
             '''A type-builder for file arguments.'''
-            from xoutil.types import is_collection
+            from xoutil.future.types import is_collection
             from os.path import abspath, isfile, splitext
             if extensions and not is_collection(extensions):
                 extensions = (extensions, )

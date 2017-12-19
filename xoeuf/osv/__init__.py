@@ -32,7 +32,7 @@ def savepoint(cr, name=None):
               argument `name` will be ignored in this case.
 
     '''
-    from xoutil import Unset
+    from xoutil.symbols import Unset
     _savepoint = getattr(cr, 'savepoint', Unset)
     if _savepoint is Unset:
         from contextlib import contextmanager
