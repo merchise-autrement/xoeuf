@@ -16,7 +16,6 @@ from __future__ import (division as _py3_division,
                         print_function as _py3_print,
                         absolute_import as _py3_abs_import)
 
-
 import time
 import random
 
@@ -50,7 +49,6 @@ try:
     Exception = StandardError
 except NameError:
     pass
-
 
 
 # TODO: This has grown into a monstrous pile of code that needs
