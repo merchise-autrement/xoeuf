@@ -5,6 +5,13 @@
 Beta releases (series 0.X)
 ==========================
 
+2017-12-20.  Release 0.21.1
+---------------------------
+
+- 0.21.0 was published as 0.21.0.dev20171220.  This is just a version
+  correction.
+
+
 2017-12-20.  Release 0.21.0
 ---------------------------
 
