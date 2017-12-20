@@ -417,11 +417,16 @@ class DomainTerm(object):
 
 
 class DomainTree(object):
-    '''Tree structure to express odoo filter domains.
+    '''Tree structure to express Odoo domains.
+
+    .. warning:: This class in not a public API of this model.  Its attributes
+       may change in incompatible ways from one release to the other.
 
     A domain like this::
 
       [
+          '&',
+          '&',
           ('field_y', '!=', False),
           ('field_x', '=', 'value'),
           '|',
@@ -445,6 +450,8 @@ class DomainTree(object):
                    +------------+---------------+       +---------------+---+
                    |('field_z', 'in', (1, 2, 3))|       |('field_w', '>', 1)|
                    +----------------------------+       +-------------------+
+
+    .. warning:: The domain must be in the second normal form.
 
     '''
     def __init__(self, domain, parent=None):
