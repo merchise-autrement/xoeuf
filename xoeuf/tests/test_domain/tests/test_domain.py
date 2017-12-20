@@ -265,7 +265,7 @@ class TestDomain(unittest.TestCase):
             ('f', '!=', False),
             ('g', '=', 'h')
         ])
-        tree = DomainTree(y.second_normal_form)
+        DomainTree(y.second_normal_form)
         # expected = [
         #     ('TERM', ('c', 'in', (1, 2, 3))),
         #     ('TERM', ('g', '=', 'h')),
