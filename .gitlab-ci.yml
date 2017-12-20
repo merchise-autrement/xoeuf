@@ -123,14 +123,50 @@ publish_pypi:
     url: https://pypi.python.org/pypi/$CI_PROJECT_NAME
 
 
-clean_build:
-  stage: clean
+build documentation:
+  stage: build
   script:
-    - rm -f dist/*
+    - export CWD=`pwd`
+    - cd ~/src/$ODOO_WORKTREE
+    - git pull
+    - mkdir -p ~/virtualenvs
+    - test -d ~/virtualenvs/$CI_PROJECT_NAME-$ODOO_WORKTREE || virtualenv -p `which $PYTHON` ~/virtualenvs/$CI_PROJECT_NAME-$ODOO_WORKTREE
+    - source ~/virtualenvs/$CI_PROJECT_NAME-$ODOO_WORKTREE/bin/activate
+    - pip install -r requirements.txt
+    - pip install -U "six>=1.9.0" "decorator>=4.0,<4.2" "hypothesis>=3.24"
+    - pip install -e .
+    - cd $CWD
+    - pip install -e .
+    - pip install sphinx sphinx-rtd-theme
+    - make -C docs/ html
+    - cd docs/build/html
+    - tar -cjf ../../../$CI_PROJECT_NAME-$CI_COMMIT_SHA.tar.bz2 ./
+  artifacts:
+    paths:
+      - $CI_PROJECT_NAME-$CI_COMMIT_SHA.tar.bz2
+    expire_in: 4 days
   tags:
-    - python
-  when: always
-  allow_failure: true
+    - virtualenv
+    - xoeuf-tester
+  only:
+    - master
+    - tags
+
+publish in our rtd:
+  stage: publish
+  script:
+    - scp $CI_PROJECT_NAME-$CI_COMMIT_SHA.tar.bz2 rtd@docs.lahavane.com:.
+    - ssh rtd@docs.lahavane.com mkdir -p $CI_PROJECT_NAME/.$CI_COMMIT_SHA
+    - ssh rtd@docs.lahavane.com tar -xf $CI_PROJECT_NAME-$CI_COMMIT_SHA.tar.bz2 -C $CI_PROJECT_NAME/.$CI_COMMIT_SHA
+    - ssh rtd@docs.lahavane.com "rm -r /var/www/html/$CI_PROJECT_NAME/$CI_COMMIT_REF_NAME; ln -sr /var/www/html/$CI_PROJECT_NAME/.$CI_COMMIT_SHA /var/www/html/$CI_PROJECT_NAME/$CI_COMMIT_REF_NAME"
+    - ssh rtd@docs.lahavane.com rm $CI_PROJECT_NAME-$CI_COMMIT_SHA.tar.bz2
+  tags:
+    - rtd@docs.lahavane.com
   dependencies:
-    - build source distribution
-    - build binary distribution
+    - build documentation
+  environment:
+    name: docs.lahavane.com
+    url: http://docs.lahavane.com/$CI_PROJECT_NAME/$CI_COMMIT_REF_NAME
+  only:
+    - tags
+    - master
