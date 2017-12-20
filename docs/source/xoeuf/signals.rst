@@ -1,5 +1,5 @@
 =======================================================
- `xoeuf.signals`:mod: -- Basic signaling of ORM events
+ :mod:`xoeuf.signals` -- Basic signaling of ORM events
 =======================================================
 
 .. module:: xoeuf.signals

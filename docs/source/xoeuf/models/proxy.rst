@@ -2,7 +2,7 @@
  `xoeuf.models.proxy`:mod: -- High-level importer for Odoo's models
 ====================================================================
 
-.. automodule:: xoeuf.models.proxy
+.. module:: xoeuf.models.proxy
 
 .. warning:: In the previous release this was named `xoeuf.models`, however
    that's now a package that contains a lot more, and the `ModelProxy`:class:

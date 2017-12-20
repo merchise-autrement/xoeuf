@@ -157,19 +157,21 @@ class Domain(list):
 
         .. seealso:: `distribute_not`:meth:
 
-        Example:
+        Example::
 
             >>> domain1 = Domain([
             ...     ('field_x', 'not in', False),
             ...     '!',
             ...     ('field_y', '>', 1)
             ... ])
+
             >>> domain2 = Domain([
             ...     '|',
             ...     ('field_x', 'not in', False),
             ...     ('field_y', '<>', 'value'),
             ...     ('field_z', '>', 1)
             ... ])
+
             >>> domain3 = Domain([
             ...     '|',
             ...     ('field_x', 'not in', False),
@@ -208,7 +210,7 @@ class Domain(list):
     def simplified(self):
         '''A simplified second normal form of the domain.
 
-        Example:
+        Example::
 
             >>> domain1 = Domain([
             ...     ('field_x', '!=', False),
@@ -216,6 +218,7 @@ class Domain(list):
             ...     ('field_z', 'in', (1, 2, 3)),
             ...     ('field_y', '=', 'value'),
             ... ])
+
             >>> domain2 = Domain([
             ...     '|',
             ...     ('field_x', '!=', False),
@@ -225,6 +228,7 @@ class Domain(list):
             ...     ('field_y', '=', 'value'),
             ...     ('field_x', '!=', False)
             ... ])
+
             >>> domain3 = Domain([
             ...     ('field_y', '!=', False),
             ...     ('field_x', 'in', (1,)),
@@ -435,21 +439,22 @@ class DomainTree(object):
       ]
 
     Is represented like this::
-                                   +-----+
-                                   | '&' |
-                                   +--+--+
-                                      |
-                 +--------------------+------------------------+
-                 |                    |                        |
-    +------------+-----------+ +------+------------------+  +--+--+
-    |('field_y', '!=', False)| |('field_x', '=', 'value')|  | '|' |
-    +------------------------+ +-------------------------+  +--+--+
-                                                               |
-                                +------------------------------+--------+
-                                |                                       |
-                   +------------+---------------+       +---------------+---+
-                   |('field_z', 'in', (1, 2, 3))|       |('field_w', '>', 1)|
-                   +----------------------------+       +-------------------+
+
+                                     +-----+
+                                     | '&' |
+                                     +--+--+
+                                        |
+                   +--------------------+------------------------+
+                   |                    |                        |
+      +------------+-----------+ +------+------------------+  +--+--+
+      |('field_y', '!=', False)| |('field_x', '=', 'value')|  | '|' |
+      +------------------------+ +-------------------------+  +--+--+
+                                                                 |
+                                  +------------------------------+--------+
+                                  |                                       |
+                     +------------+---------------+       +---------------+---+
+                     |('field_z', 'in', (1, 2, 3))|       |('field_w', '>', 1)|
+                     +----------------------------+       +-------------------+
 
     .. warning:: The domain must be in the second normal form.
 
@@ -585,7 +590,7 @@ class DomainTree(object):
 
         Despite that the tree allows AND (``&``) and OR (``|``) operator to
         have more than two children, we generate OPERATOR items for the
-        equivalent binary expression tree:
+        equivalent binary expression tree::
 
            >>> from xoeuf.osv.expression import Domain, DomainTree
            >>> d = Domain([('a', '=', 1), ('b', '=', 2), ('c', '=', 3)])
@@ -598,7 +603,9 @@ class DomainTree(object):
             ('OPERATOR', '&')]
 
         .. note:: DomainTree always simplify its input.  The walk is not a
-           syntactical walk of the input but of its simplified form.
+           syntactical walk of the input but of its simplified form.  Since
+           all operators are commutative, the order of the children may differ
+           widely from run to the other.
 
         '''
         if self.is_leaf:

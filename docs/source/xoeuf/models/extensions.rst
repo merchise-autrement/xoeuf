@@ -1,8 +1,8 @@
-=============================================================================
- :mod:`xoeuf.osv.model_extensions` -- OpenERP's ORM extensions and utilities
-=============================================================================
+==============================================================
+ :mod:`xoeuf.models.extensions` -- Extensions to Odoo models.
+==============================================================
 
-.. automodule:: xoeuf.osv.model_extensions
+.. automodule:: xoeuf.models.extensions
 
 .. autofunction:: search_read(self, cr, uid, domain=None, fields=None, context=None, *, offset=None, limit=None, order=None, ensure_list=False)
 

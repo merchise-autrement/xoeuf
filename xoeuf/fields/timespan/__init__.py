@@ -13,11 +13,11 @@ from __future__ import (division as _py3_division,
 
 
 def TimeSpan(start_date_field, end_date_field):
-    '''Create a time span property.
+    '''Create a time span `property <xoeuf.fields.Property>`:class:.
 
-    A time span property is stored in the DB as two separate Date fields [*].
-    It's never actually stored in the DB a single value.  You cannot search
-    for this property.
+    A time span `property <xoeuf.fields.Property>`:class: is stored in the DB
+    as two separate Date fields.  It's never actually stored in the DB a
+    single value.  You cannot search for this property.
 
     :param start_date_field: The name of the field which holds the start date
                              of the time span.
