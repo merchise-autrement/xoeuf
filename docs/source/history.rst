@@ -5,10 +5,13 @@
 Beta releases (series 0.X)
 ==========================
 
-Unreleased.  Release 0.21.0
+2017-12-20.  Release 0.21.0
 ---------------------------
 
-Nothing yet.
+- Require ``xoutil`` 1.8.4.
+
+- Improve the documentation of `xoeuf.osv.expression.DomainTree`:class:.  Add
+  method `~xoeuf.osv.expression.DomainTree.walk`:meth:.
 
 
 2017-11-06.  Release 0.20.0
