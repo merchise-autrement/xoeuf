@@ -86,6 +86,17 @@ UNARY_OPERATORS = [this.NOT_OPERATOR]
 BINARY_OPERATORS = [this.AND_OPERATOR, this.OR_OPERATOR]
 
 
+# Exports normalize_leaf so that we can replace 'from xoeuf.odoo.
+def normalize_leaf(term):
+    if this.is_leaf(term):
+        left, operator, right = this.normalize_leaf(term)
+        # Avoid no hashable values in domain terms
+        if not getattr(right, '__hash__', False) and hasattr(right, '__iter__'):  # noqa
+            right = tuple(right)
+        return left, operator, right
+    return term
+
+
 class Domain(list):
     '''A predicate expressed as an Odoo domain.
 
@@ -203,7 +214,7 @@ class Domain(list):
 
         '''
         res = self.first_normal_form
-        res = Domain((this.normalize_leaf(item) for item in res))
+        res = Domain((normalize_leaf(item) for item in res))
         return res.distribute_not()
 
     @property
@@ -342,7 +353,7 @@ class DomainTerm(object):
         if isinstance(term, DomainTerm):
             term = term.original
         self.original = term
-        term = this.normalize_leaf(term)
+        term = normalize_leaf(term)
         self.normalized = term
         if this.is_operator(term):
             self.is_operator = True
