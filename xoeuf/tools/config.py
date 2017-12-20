@@ -29,7 +29,7 @@ from __future__ import (division as _py3_division,
                         absolute_import as _py3_abs_import)
 
 from collections import MutableMapping
-from xoutil.objects import metaclass
+from xoutil.eight.meta import metaclass
 
 
 DEFAULT_COMMAND = str('server')
