@@ -26,52 +26,19 @@ except ImportError:  # Odoo 10+
     from odoo import api, models
 
 
-def _make_id(target):
-    if hasattr(target, '__func__'):
-        return (id(target.__self__), id(target.__func__))
-    return id(target)
-
-
-def _issubcls(which, Class):
-    return isinstance(which, type) and issubclass(which, Class)
-
-
-def _make_model_id(sender):
-    '''Creates a unique key for 'senders'.
-
-    Since Odoo models can be spread across several classes we can't simply
-    compare by class object.  So if 'sender' is a BaseModel (subclass or
-    instance), the key will be the same for all classes targeting the same
-    model.
-
-    '''
-    BaseModel = models.BaseModel
-    if isinstance(sender, BaseModel) or _issubcls(sender, BaseModel):
-        return sender._name
-    else:
-        return sender
-
-
-class Signal(object):
-    """Base class for all signals
-
-    Internal attributes:
-
-        receivers
-            [(receriverkey (id), receiver)]
-    """
+class HookDefinition(object):
     def __init__(self, action=None, doc=None):
-        self.receivers = []
+        self.hooks = []
         self.action = action
         self.__doc__ = doc
 
-    def connect(self, receiver, sender=None, require_registry=True,
+    def connect(self, hook, sender=None, require_registry=True,
                 framework=False):
-        """Connect receiver to sender for signal.
+        """Connect hook.
 
-        :param receiver: A function or an instance method which is to receive
-                signals.  Receivers must be hashable objects and must be able
-                to accept keyword arguments.
+        :param hook: A function or an instance method which is to receive
+                handle the hook.  Hooks must be hashable objects and must be
+                able to accept keyword arguments.
 
         :param sender: The sender(s) to which the receiver should
                 respond. Must either a model name, list of model names or None
@@ -80,39 +47,71 @@ class Signal(object):
         :param require_registry: If True the receiver will only be called if a
                the actual `sender` of the signal has a ready DB registry.
 
-        :keyword framework: Set to True to make this a `framework-level
-                            receiver <FrameworkReceiver>`:class:.
+        :keyword framework: Set to True to make this a `framework-level hook
+                            <FrameworkHookData>`:class:.
 
-        :return: None
+        :return: receiver
 
         """
         if not isinstance(sender, (list, tuple)):
             sender = [sender]
-        ReceiverClass = Receiver if not framework else FrameworkReceiver
+        HookClass = Hook if not framework else FrameworkHook
         for s in sender:
             lookup_key = (_make_id(receiver), _make_model_id(s))
-            if not any(lookup_key == r_key for r_key, _ in self.receivers):
-                self.receivers.append(
+            if not any(lookup_key == r_key for r_key, _ in self.hooks):
+                self.hooks.append(
                     (lookup_key,
-                     ReceiverClass(receiver, sender=sender,
-                                   require_registry=require_registry))
+                     HookClass(hook, sender=s,
+                               require_registry=require_registry))
                 )
+        return hook
 
-    def disconnect(self, receiver=None, sender=None):
-        """Disconnect receiver from sender for signal.
+    def disconnect(self, hook=None, sender=None):
+        """Disconnect hook from sender.
 
-        :param receiver: The registered receiver to disconnect.
+        :param hook: The registered hook to disconnect.
 
         :param sender: The registered sender to disconnect
 
         """
-        receiver_item = (_make_id(receiver), _make_model_id(sender)), receiver
-        if receiver_item in self.receivers:
-            sender.receivers.remove(receiver_item)
+        key = (_make_id(hook), _make_model_id(sender)), hook
+        if key in self.hooks:
+            self.hooks.remove(key)
 
     def has_listeners(self, sender=None):
-        return bool(self._live_receivers(sender))
+        return bool(self.live_hooks(sender))
 
+    def live_hooks(self, sender):
+        """Filter sequence of hooks to get resolved (live hooks).
+
+        Live hook are defined as those that are installed in the DB and apply
+        to the given sender.  Framework-level hooks are always live.
+
+        """
+        if isinstance(sender, models.Model):
+            registry_ready = sender.pool.ready
+        else:
+            registry_ready = False
+        result = []
+        for _, hook in self.hooks:
+            if hook.is_installed(sender) and hook.matches(sender):
+                if registry_ready or not hook.require_registry:
+                    logger.debug(
+                        'Accepting hook %s as live',
+                        hook,
+                        extra=dict(
+                            registry_ready=registry_ready,
+                            registry_required=hook.require_registry,
+                        )
+                    )
+                    result.append(hook)
+        return result
+
+
+class Signal(HookDefinition):
+    """Base class for all signals
+
+    """
     def send(self, sender, **kwargs):
         """Send signal from sender to all connected receivers.
 
@@ -124,16 +123,18 @@ class Signal(object):
         requires a ready registry will no be called.
 
         :param sender: The sender of the signal either a model or None.
+
         :param kwargs: Named arguments which will be passed to receivers.
+
         :return: Returns a list of tuple pairs [(receiver, response), ... ].
 
         """
         responses = []
-        if not self.receivers:
+        if not self.hooks:
             return responses
-        for receiver in self._live_receivers(sender):
-            response = receiver(sender, signal=self, **kwargs)
-            responses.append((receiver, response))
+        for hook in self.live_hooks(sender):
+            response = hook(sender, self, **kwargs)
+            responses.append((hook, response))
         return responses
 
     def safe_send(self, sender, catched=(Exception, ), thrown=None, **kwargs):
@@ -160,11 +161,11 @@ class Signal(object):
         responses = []
         if thrown and not isinstance(thrown, (list, tuple)):
             thrown = (thrown, )
-        if not self.receivers:
+        if not self.hooks:
             return responses
-        for receiver in self._live_receivers(sender):
+        for hook in self.live_hooks(sender):
             try:
-                response = receiver(sender, signal=self, **kwargs)
+                response = hook(sender, self, **kwargs)
             except SoftTimeLimitExceeded:
                 raise
             except catched as err:
@@ -174,46 +175,74 @@ class Signal(object):
                     raise
                 else:
                     logger.exception(err)
-                    responses.append((receiver, err))
+                    responses.append((hook, err))
             else:
-                responses.append((receiver, response))
+                responses.append((hook, response))
         return responses
 
-    def _live_receivers(self, sender):
-        """Filter sequence of receivers to get resolved (live receivers).
 
-        Live receivers are defined are those that are installed in the DB and
-        apply to the given sender.
-
-        """
-        if isinstance(sender, models.Model):
-            registry_ready = sender.pool.ready
-        else:
-            registry_ready = False
-        senderkey = _make_model_id(sender)
-        receivers = []
-        for (receiverkey, r_senderkey), receiver in self.receivers:
-            if self._installed(sender, receiver) and (not r_senderkey or r_senderkey == senderkey):  # noqa
-                if registry_ready or not receiver.require_registry:
-                    logger.debug(
-                        'Accepting receiver %s as live',
-                        receiver,
-                        extra=dict(
-                            registry_ready=registry_ready,
-                            registry_required=receiver.require_registry,
-                            r_senderkey=r_senderkey,
-                            senderkey=senderkey,
-                        )
+class Wrapping(HookDefinition):
+    def perform(self, method, sender, *args, **kwargs):
+        livewrappers = self.live_hooks(sender)
+        wrappers = []
+        for wrapper in livewrappers:
+            try:
+                w = wrapper(sender, *args, **kwargs)
+                try:
+                    next(w)
+                except StopIteration:
+                    logger.error(
+                        'Wrapper %s failed to yield once',
+                        wrapper
                     )
-                    receivers.append(receiver)
-        return receivers
+                else:
+                    wrappers.append(w)
+            except Exception:
+                logger.exception('Unexpected error in wrapper')
+        result = method(sender, *args, **kwargs)
+        for wrapper in wrappers:
+            try:
+                wrapper.send(dict(result=result))
+                logger.error('Wrapper %s failed to yield only once')
+            except StopIteration:
+                pass
+            except Exception:
+                logger.exception('Unexpected error in wrapper')
+        return result
 
-    def _installed(self, sender, receiver):
-        '''Return True if the receiver is defined in a module installed in
-        sender's database.
 
-        If the receiver is not inside an addon it is considered system-wide,
-        and thus, return True.
+class Hook(object):
+    '''Wraps a hook function, so that we can store some metadata.'''
+    def __init__(self, func, **kwargs):
+        from xoutil.objects import smart_copy
+        hash(func)  # Fail if func is not hashable
+        self.func = func
+        smart_copy(
+            kwargs,
+            self.__dict__,
+            defaults={'require_registry': True, 'sender': None}
+        )
+
+    def __repr__(self):
+        return '<Hook for %r>' % self.func
+
+    def __call__(self, *args, **kwargs):
+        return self.func(*args, **kwargs)
+
+    # So that the original receiver compares equal to this wrapper.  This
+    # avoids having the same function being registered twice.
+    def __hash__(self):
+        return hash(self.func)
+
+    def __eq__(self, other):
+        return self.func == other
+
+    def matches(self, sender):
+        key = _make_model_id(sender)
+        return not self.sender or key == _make_model_id(self.sender)
+
+    def is_installed(self, sender):
+        '''Check whether this receiver is installed in the DB of `sender`.
 
         If the sender does not have an 'env' attribute it will considered
         installed as well (this is for dispatching outside the Odoo model
@@ -221,11 +250,7 @@ class Signal(object):
 
         '''
         from xoeuf.modules import get_object_module
-        if isinstance(receiver, FrameworkReceiver):
-            return True
-        if isinstance(receiver, Receiver):
-            receiver = receiver.receiver
-        module = get_object_module(receiver, typed=True)
+        module = get_object_module(self.func, typed=True)
         env = getattr(sender, 'env', None)
         if module and env:
             mm = env['ir.module.module'].sudo()
@@ -235,38 +260,16 @@ class Signal(object):
             return True
 
 
-class Receiver(object):
-    '''Wraps a receiver, so that we can store some metadata.'''
-    def __init__(self, receiver, **kwargs):
-        from xoutil.objects import smart_copy
-        self.receiver = receiver
-        smart_copy(
-            kwargs,
-            self.__dict__,
-            defaults={'require_registry': True, }
-        )
+class FrameworkHook(Hook):
+    '''A hook that is defined in a framework-level module.
 
-    def __repr__(self):
-        return '<Receiver for %r>' % self.receiver
-
-    def __call__(self, *args, **kwargs):
-        return self.receiver(*args, **kwargs)
-
-    # So that the original receiver compares equal to this wrapper.
-    def __hash__(self):
-        return hash(self.receiver)
-
-    def __eq__(self, other):
-        return self.receiver == other
-
-
-class FrameworkReceiver(Receiver):
-    '''A receiver that is defined in a framework-level module.
-
-    Framework-level receivers are always considered installed in any DB.  So
-    you should be careful no requiring addon-level stuff.
+    Framework-level hooks are always considered installed in any DB.  So you
+    should be careful no requiring addon-level stuff.
 
     '''
+    def is_installed(self, sender):
+        '''Check whether this receiver is installed in the DB of `sender`.'''
+        return True
 
 
 def receiver(signal, **kwargs):
@@ -278,7 +281,7 @@ def receiver(signal, **kwargs):
              if the Odoo DB registry is ready.
 
     :keyword framework: Set to True to make this a `framework-level receiver
-                        <FrameworkReceiver>`:class:.
+                        <FrameworkHook>`:class:.
 
     Used by passing in the signal (or list of signals) and keyword arguments
     to connect::
@@ -300,6 +303,34 @@ def receiver(signal, **kwargs):
             signal.connect(func, **kwargs)
         return func
     return _decorator
+
+
+def wrapper(wrapping, **kwargs):
+    """A decorator for connecting wrappers.
+
+    :param wrapping: Either a single wrapping or a list of them.
+
+    :keyword require_registry: If set to True the wrapper will only be called
+             if the Odoo DB registry is ready.
+
+    :keyword framework: Set to True to make this a `framework-level wrapper
+                        <FrameworkHookData>`:class:.
+
+    Example::
+
+        @wrapper(write_wrapper, sender='my.model')
+        def _do_what_i_mean(sender, **kwargs):
+            yield
+
+    Wrappers must yield exactly once.  The code before the ``yield`` runs
+    before the original method.  Any errors in the code of the wrapper are
+    logged and ignored: the original method always runs.
+
+    Standard wrappers wrap the pre/post signals.  So wrappers may be affected
+    by the effects in post signals.
+
+    """
+    return receiver(wrapping, **kwargs)
 
 
 def filtered(*predicates):
@@ -325,6 +356,97 @@ def filtered(*predicates):
                 return func(self, **kwargs)
         return inner
     return decorator
+
+
+def mock_replace(hook, func, **replacement_attrs):
+    '''Mock a hook.
+
+    Example::
+
+       with mock_replace(post_create, receiver) as mock:
+          # do things that should trigger post_create
+          assert mock.called
+
+    '''
+    import contextlib
+    from xoutil.symbols import Undefined
+    try:
+        from unittest.mock import MagicMock
+    except ImportError:
+        from mock import MagicMock
+
+    @contextlib.contextmanager
+    def _hidden_patcher():
+        mock = MagicMock(func, **replacement_attrs)
+        registry = hook.hooks
+        pos = find(func, registry, extract=snd)
+        if pos is not Undefined:
+            _, receiver_holder = registry[pos]
+            previous_receiver = receiver_holder.func
+            receiver_holder.func = mock
+            previous_is_installed = receiver_holder.is_installed
+            receiver_holder.is_installed = is_installed
+        else:
+            receiver_holder = None
+        try:
+            yield mock
+        finally:
+            if receiver_holder is not None:
+                receiver_holder.func = previous_receiver
+                receiver_holder.is_installed = previous_is_installed
+
+    def snd(pair):
+        _, res = pair
+        return res
+
+    def find(what, l, extract=None):
+        if not extract:
+            extract = lambda x: x
+        ll = [extract(x) for x in l]
+        try:
+            return ll.index(what)
+        except ValueError:
+            return Undefined
+
+    def is_installed(sender):
+        '''Mocked is installed'''
+        from xoeuf.modules import get_object_module
+        module = get_object_module(func, typed=True)
+        env = getattr(sender, 'env', None)
+        if module and env:
+            mm = env['ir.module.module'].sudo()
+            query = [('state', '=', 'installed'), ('name', '=', module)]
+            return bool(mm.search(query))
+        else:
+            return True
+
+    return _hidden_patcher()
+
+
+def _make_id(target):
+    if hasattr(target, '__func__'):
+        return (id(target.__self__), id(target.__func__))
+    return id(target)
+
+
+def _issubcls(which, Class):
+    return isinstance(which, type) and issubclass(which, Class)
+
+
+def _make_model_id(sender):
+    '''Creates a unique key for 'senders'.
+
+    Since Odoo models can be spread across several classes we can't simply
+    compare by class object.  So if 'sender' is a BaseModel (subclass or
+    instance), the key will be the same for all classes targeting the same
+    model.
+
+    '''
+    BaseModel = models.BaseModel
+    if isinstance(sender, BaseModel) or _issubcls(sender, BaseModel):
+        return sender._name
+    else:
+        return sender
 
 
 # **************SIGNALS DECLARATION****************
@@ -453,8 +575,8 @@ def _api_model_fields_view_get(self, view_id=None, view_type='form',
 
 if getattr(super_fields_view_get, '_api', None) is api.cr_uid_context:
     @api.cr_uid_context
-    def fields_view_get(self, cr, uid, view_id=None, view_type='form',
-                        context=None, toolbar=False, submenu=False):
+    def _fvg_for_signals(self, cr, uid, view_id=None, view_type='form',
+                         context=None, toolbar=False, submenu=False):
         from xoeuf import api
         env = api.Environment(cr, uid, context or {})
         self = env[self._name]
@@ -466,12 +588,12 @@ if getattr(super_fields_view_get, '_api', None) is api.cr_uid_context:
             submenu=submenu
         )
 else:
-    fields_view_get = _api_model_fields_view_get
+    _fvg_for_signals = _api_model_fields_view_get
 
 
 @api.model
 @api.returns('self', lambda value: value.id if value else value)
-def create(self, vals):
+def _create_for_signals(self, vals):
     pre_create.send(sender=self, values=vals)
     res = super_create(self, vals)
     post_create.safe_send(sender=self, result=res, values=vals)
@@ -479,7 +601,7 @@ def create(self, vals):
 
 
 @api.multi
-def write(self, vals):
+def _write_for_signals(self, vals):
     pre_write.send(self, values=vals)
     res = super_write(self, vals)
     post_write.safe_send(self, result=res, values=vals)
@@ -487,14 +609,25 @@ def write(self, vals):
 
 
 @api.multi
-def unlink(self):
+def _unlink_for_signals(self):
     pre_unlink.send(self)
     res = super_unlink(self)
     post_unlink.safe_send(self, result=res)
     return res
 
 
-models.Model.fields_view_get = fields_view_get
-models.BaseModel.create = create
-models.BaseModel.write = write
-models.BaseModel.unlink = unlink
+write_wrapper = Wrapping('write', '''\
+Wraps the `write` method.
+
+''')
+
+
+@api.multi
+def _write_for_wrappers(self, vals):
+    return write_wrapper.perform(_write_for_signals, self, vals)
+
+
+models.Model.fields_view_get = _fvg_for_signals
+models.BaseModel.create = _create_for_signals
+models.BaseModel.unlink = _unlink_for_signals
+models.BaseModel.write = _write_for_wrappers

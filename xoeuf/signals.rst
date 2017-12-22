@@ -1,6 +1,6 @@
-=========
- Signals
-=========
+=======================
+ Signals and Wrappings
+=======================
 
 A basic signals system for Odoo.  Allows you to define Signal and dispatch
 them when certain events happen in the system.
@@ -11,6 +11,10 @@ Includes four basic pairs of signals:
 - `pre_write`:obj: and `post_write`:obj:
 - `pre_unlink`:obj: and `post_unlink`:obj:
 - `pre_fields_view_get`:obj: and `post_fields_view_get`:obj:
+
+and a wrapping:
+
+- `write_wrapping`:obj:.
 
 
 Usage::
