@@ -27,7 +27,10 @@ from __future__ import (division as _py3_division,
 
 
 import logging
-from xoeuf import models, api
+try:
+    from openerp import api, models
+except ImportError:
+    from odoo import api, models
 
 
 logger = logging.getLogger(__name__)
