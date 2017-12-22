@@ -10,7 +10,7 @@
 {
     'name': 'test_signals',
     'author': 'Merchise Autrement [~º/~] and Contributors',
-    'description': 'Test for signals (as implemented in xoeuf)',
+    'description': 'Test for signals (as implemented in Odoo)',
     'depends': ['base', ],
     'installable': True,
     'auto_install': False,

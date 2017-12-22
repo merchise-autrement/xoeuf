@@ -13,7 +13,7 @@ from __future__ import (division as _py3_division,
 
 import contextlib
 from xoeuf.odoo.tests.common import TransactionCase
-from xoeuf.odoo.addons.test_signals.models import (
+from xoeuf.odoo.addons.test_signals_for_odoo.models import (
     signals,  # this is the same implementation the models use.
     do_nothing,
     do_nothing_again,

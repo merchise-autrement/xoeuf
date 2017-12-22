@@ -7,11 +7,8 @@
 # This is free software; you can do what the LICENCE file allows you to.
 #
 
-{
-    'name': 'test_signals',
-    'author': 'Merchise Autrement [~º/~] and Contributors',
-    'description': 'Test for signals (as implemented in xoeuf)',
-    'depends': ['base', ],
-    'installable': True,
-    'auto_install': False,
-}
+from __future__ import (division as _py3_division,
+                        print_function as _py3_print,
+                        absolute_import as _py3_abs_import)
+
+from . import models  # noqa
