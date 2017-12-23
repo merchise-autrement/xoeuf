@@ -26,7 +26,12 @@ sys.path.insert(0, os.path.abspath('../'))
 VIRTUAL_ENV = os.environ.get('VIRTUAL_ENV')
 if VIRTUAL_ENV:
     VENV_FILE = os.path.join(VIRTUAL_ENV, 'bin', 'activate_this.py')
-    execfile(VENV_FILE, dict(__file__=VENV_FILE))
+    try:
+        execfile(VENV_FILE, dict(__file__=VENV_FILE))
+    except NameError:
+        with open(VENV_FILE, 'rb') as f:
+            code = compile(f.read(), VENV_FILE, 'exec')
+            eval(code, dict(__file__=VENV_FILE))
     del VENV_FILE
 del VIRTUAL_ENV
 
