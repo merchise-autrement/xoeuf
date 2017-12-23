@@ -5,7 +5,7 @@
 Beta releases (series 0.X)
 ==========================
 
-Unreleased. Release 0.22.0
+2017-12-23. Release 0.22.0
 --------------------------
 
 - Add `~xoeuf.signals.Wrapping`:class: and `~xoeuf.signals.wrapper`:func:.
