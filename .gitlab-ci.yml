@@ -42,8 +42,6 @@ run all Odoo 8 tests:
     ODOO_WORKTREE: odoo8
   only:
     - branches
-  except:
-    - master
   allow_failure: true
 
 run all Odoo 10 tests:
@@ -53,8 +51,6 @@ run all Odoo 10 tests:
     ODOO_WORKTREE: odoo10
   only:
     - branches
-  except:
-    - master
 
 run all Odoo 11 tests:
   <<: *run_tests
@@ -63,8 +59,6 @@ run all Odoo 11 tests:
     ODOO_WORKTREE: odoo11
   only:
     - branches
-  except:
-    - master
 
 check signature of tag:
   stage: check
