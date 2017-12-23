@@ -2,8 +2,8 @@
  Signals and Wrappings
 =======================
 
-A basic signals system for Odoo.  Allows you to define Signal and dispatch
-them when certain events happen in the system.
+A basic signals system for Odoo.  Allows you to define Signal and Wrapping and
+dispatch them when certain events happen in the system.
 
 Includes four basic pairs of signals:
 
@@ -14,30 +14,62 @@ Includes four basic pairs of signals:
 
 and a wrapping:
 
-- `write_wrapping`:obj:.
+- `write_wrapper`:obj:.
 
 
-Usage::
+Terms and concepts
+==================
+
+.. glossary::
+
+   signal
+
+     It's the notification of an event in the system.  The provided signals
+     belongs to very simple types of events.
+
+   receiver
+
+     Any callable (although normally a function) that should be ran when a
+     signal is dispatched.
+
+   wrapping
+
+     Allows to defined (more) complex types of events that occur when the
+     conditions of the systems are different before and after an operation.
+
+   wrapper
+
+     A function that ``yields`` exactly once, that is processed when a
+     wrapping is executing.
+
+
+Usage
+=====
+
+Example::
 
    >>> @receiver([pre_write, pre_create], sender='account.move.line')
    ... def watch_for_something(sender, signal, values=None, **kwargs):
    ...     pass
 
+
 The `watch_for_something` function will be called each time a ``.create()`` or
-``.write()`` performed for an 'account.move.line'.
+``.write()`` performed for the model 'account.move.line'.
 
-Notice that a single call is made per recordset.  The receiver is called only
-if the addon where it is defined is installed in the DB where the signal was
-dispatched.
+A single call is made per per call of ``.create()`` or ``.write()``.  No
+serialization of singleton recordset happens.
 
-This signal scheme can be applied to non Odoo models, in which case all
-receivers matching receives will be applied despite the addon where they are
+The receiver is called only if the addon where it is defined is installed in
+the DB where the signal was dispatched.
+
+This signal scheme can be applied to non Odoo models, in this case all
+receivers matching the sender will be applied despite the addon where they are
 defined.
 
 .. warning:: The first positional is always the sender.
 
    It's best to make your receivers functions outside Odoo models to gain
-   readability.
+   readability: Readers may believe they are reading a normal method code.
 
 Caveats:
 
@@ -49,9 +81,26 @@ Caveats:
   method, and the 'post' signals will be called before the code following
   the call to `super`.
 
-- Receivers must ensure to be registered on every thread/process.  Most of
-  the time this requires little effort, though.
 
+Writing receivers and wrappers
+==============================
+
+The signature of the receiver is::
+
+  _do_receive(sender, signal, **kwargs)
+
+
+The keyword arguments vary from signal to signal.  It's recommended that all
+receivers include the ``**kwargs`` after the known keywords.
+
+
+The signature of the wrapper is::
+
+  _do_wrap(sender, wrapping, *args, **kwargs)
+
+
+The variable positional arguments and keywords are just the same as the
+operation that we're wrapping.
 
 ..
    Local Variables:
