@@ -333,31 +333,6 @@ def wrapper(wrapping, **kwargs):
     return receiver(wrapping, **kwargs)
 
 
-def filtered(*predicates):
-    '''Allow to decorate receivers with simple predicates.
-
-    This is useful if the simple filter by model name is not enough, and also
-    if the filter needs to connect to use the DB.
-
-    Usage::
-
-        >>> @receiver(signal)
-        ... @filtered(lambda self, **kwargs: True)
-        ... def handler(self, **kwargs):
-        ...     pass
-
-    '''
-    def decorator(func):
-        from functools import wraps
-
-        @wraps(func)
-        def inner(self, **kwargs):
-            if all(pred(self, **kwargs) for pred in predicates):
-                return func(self, **kwargs)
-        return inner
-    return decorator
-
-
 def mock_replace(hook, func, **replacement_attrs):
     '''Mock a hook.
 
