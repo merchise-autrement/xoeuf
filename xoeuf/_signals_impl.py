@@ -187,7 +187,7 @@ class Wrapping(HookDefinition):
         wrappers = []
         for wrapper in livewrappers:
             try:
-                w = wrapper(sender, *args, **kwargs)
+                w = wrapper(sender, self, *args, **kwargs)
                 try:
                     next(w)
                 except StopIteration:

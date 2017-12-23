@@ -33,12 +33,18 @@ class TestXoeufSignals(TransactionCase):
 
     @contextlib.contextmanager
     def mocks(self, method):
-        def wrapper(sender, wrapping, **kwargs):
-            yield
+        def post_create(sender, signal, **kwargs):
+            return do_nothing(sender, signal, **kwargs)
+
+        def pre_create(sender, signal, **kwargs):
+            return do_nothing_again(sender, signal, **kwargs)
+
+        def wrapper(sender, wrapping, *args, **kwargs):
+            return wrap_nothing(sender, wrapping, *args, **kwargs)
 
         mock = signals.mock_replace
-        with mock(signals.post_create, method) as post, \
-             mock(signals.pre_create, method) as pre, \
+        with mock(signals.post_create, method, side_effect=post_create) as post, \
+             mock(signals.pre_create, method, side_effect=pre_create) as pre, \
              mock(signals.write_wrapper, method,
                   side_effect=wrapper) as wrap, \
              temp_attributes(self.env.registry, dict(ready=True)):

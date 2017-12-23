@@ -33,5 +33,5 @@ def do_nothing_again(sender, signal, **kwargs):
 
 
 @signals.wrapper(signals.write_wrapper, sender='test_signals.signaling_model')
-def wrap_nothing(sender, wrapping, **kwargs):
+def wrap_nothing(sender, wrapping, *args, **kwargs):
     yield
