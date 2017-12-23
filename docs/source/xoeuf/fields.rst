@@ -21,7 +21,7 @@ We don't backport all fields from later Odoo versions to earlier ones, though.
 
    This is always non-store field.  This is a kind of hack:
 
-   Normal Python `properties <property>` are not copied through Odoo
+   Normal Python `properties <property>`:class: are not copied through Odoo
    inheritance mechanisms.  This `Property` is a Field and Odoo accounts for
    it.  But, it is NOT an actual ORM field in the sense that it never
    interacts with the DB.  Therefore:
