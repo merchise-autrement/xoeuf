@@ -34,26 +34,37 @@ check code smells:
   tags:
     - virtualenv
     - xoeuf-tester
-  only:
-    - branches
 
 run all Odoo 8 tests:
   <<: *run_tests
   variables:
     PYTHON: python
     ODOO_WORKTREE: odoo8
+  only:
+    - branches
+  except:
+    - master
+  allow_failure: true
 
 run all Odoo 10 tests:
   <<: *run_tests
   variables:
     PYTHON: python
     ODOO_WORKTREE: odoo10
+  only:
+    - branches
+  except:
+    - master
 
 run all Odoo 11 tests:
   <<: *run_tests
   variables:
     PYTHON: python3
     ODOO_WORKTREE: odoo11
+  only:
+    - branches
+  except:
+    - master
 
 check signature of tag:
   stage: check
@@ -124,6 +135,9 @@ publish_pypi:
 
 
 build documentation:
+  variables:
+    PYTHON: python3
+    ODOO_WORKTREE: odoo11
   stage: build
   script:
     - export CWD=`pwd`
