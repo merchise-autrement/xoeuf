@@ -48,7 +48,7 @@ class HookDefinition(object):
                the actual `sender` of the signal has a ready DB registry.
 
         :keyword framework: Set to True to make this a `framework-level hook
-                            <FrameworkHookData>`:class:.
+                            <FrameworkHook>`:class:.
 
         :return: receiver
 
