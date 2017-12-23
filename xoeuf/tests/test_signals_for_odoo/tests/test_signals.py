@@ -64,3 +64,12 @@ class TestXoeufSignals(TransactionCase):
             self.assertFalse(wrap.called)
             who.write(dict(name='My new name'))
             self.assertTrue(wrap.called)
+        with self.mocks(wrap_nothing) as (_, _p, wrap):
+            who.name = 'My new other name'
+            self.assertTrue(wrap.called)
+
+    def test_not_called_for_partners(self):
+        with self.mocks(do_nothing) as (post, pre, wrap):
+            partner = self.env['res.partner'].create(dict(name='Contact Info'))
+            partner.email = 'a@b.c'
+            self.assertFalse(post.called and pre.called and wrap.called)
