@@ -32,6 +32,9 @@ class HookDefinition(object):
         self.action = action
         self.__doc__ = doc
 
+    def __repr__(self):
+        return '<Signal(%r)>' % self.action
+
     def connect(self, hook, sender=None, require_registry=True,
                 framework=False):
         """Connect hook.
@@ -376,7 +379,7 @@ def mock_replace(hook, func, **replacement_attrs):
 
     def find(what, l, extract=None):
         if not extract:
-            extract = lambda x: x
+            extract = lambda x: x  # noqa: E731
         ll = [extract(x) for x in l]
         try:
             return ll.index(what)
@@ -425,10 +428,10 @@ def _make_model_id(sender):
 
 
 # **************SIGNALS DECLARATION****************
-pre_fields_view_get = Signal('fields_view_get')
-post_fields_view_get = Signal('fields_view_get')
+pre_fields_view_get = Signal('pre_fields_view_get')
+post_fields_view_get = Signal('post_fields_view_get')
 
-pre_create = Signal('create', '''
+pre_create = Signal('pre_create', '''
 Signal sent when the 'create' method is to be invoked.
 
 If a receiver raises an error the create is aborted, and post_create won't be
@@ -442,7 +445,7 @@ Arguments:
 
 ''')
 
-post_create = Signal('create', '''
+post_create = Signal('post_create', '''
 Signal sent when the 'create' method has finished but before data is committed
 to the DB.
 
@@ -463,7 +466,7 @@ Arguments:
 :keyword values: The values passed to 'create'.
 ''')
 
-pre_write = Signal('write', '''
+pre_write = Signal('pre_write', '''
 Signal sent when the 'write' method of model is to be invoked.
 
 If a receiver raises an error the write is aborted and 'post_write' is not
@@ -476,7 +479,7 @@ Arguments:
 :keyword values: The values passed to the write method.
 
 ''')
-post_write = Signal('write', '''
+post_write = Signal('post_write', '''
 Signal sent after the 'write' method of model was executed.
 
 If 'write' raises an error no receiver is invoked.  If a receiver raises an
@@ -494,7 +497,7 @@ Arguments:
 
 ''')
 
-pre_unlink = Signal('unlink', '''
+pre_unlink = Signal('pre_unlink', '''
 Signal sent when the 'unlink' method of model is to be invoked.
 
 If a receiver raises an error unlink is aborted and 'post_unlink' is not
@@ -506,7 +509,7 @@ Arguments:
 
 ''')
 
-post_unlink = Signal('unlink', '''
+post_unlink = Signal('post_unlink', '''
 Signal sent when the 'unlink' method of a model was executed.
 
 If the 'unlink' raises an error no receiver is invoked.  If a receiver
@@ -591,7 +594,7 @@ def _unlink_for_signals(self):
     return res
 
 
-write_wrapper = Wrapping('write', '''\
+write_wrapper = Wrapping('write_wrapper', '''\
 Wraps the `write` method.
 
 ''')
