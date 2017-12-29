@@ -105,6 +105,9 @@ publish_locally:
     - repo.lahavane.com
   only:
     - tags
+  environment:
+    name: repo.lahavane.com
+    url: http://repo.lahavane.com/pypi/$CI_PROJECT_NAME
   dependencies:
     - check signature of tag
     - build source distribution
