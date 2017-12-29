@@ -57,7 +57,7 @@ class HookDefinition(object):
             sender = [sender]
         HookClass = Hook if not framework else FrameworkHook
         for s in sender:
-            lookup_key = (_make_id(receiver), _make_model_id(s))
+            lookup_key = (_make_id(hook), _make_model_id(s))
             if not any(lookup_key == r_key for r_key, _ in self.hooks):
                 self.hooks.append(
                     (lookup_key,
