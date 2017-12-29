@@ -17,6 +17,7 @@ from xoeuf.odoo.addons.test_signals_for_odoo.models import (
     signals,  # this is the same implementation the models use.
     do_nothing,
     do_nothing2,
+    do_nothing3,
     do_nothing_again,
     wrap_nothing,
 )
@@ -53,12 +54,15 @@ class TestXoeufSignals(TransactionCase):
 
     def test_post_create(self):
         with self.mocks(do_nothing) as (post, pre, _), \
-             self.mocks(do_nothing2) as (post2, pre2, _):
+             self.mocks(do_nothing2) as (post2, pre2, _), \
+             self.mocks(do_nothing3) as (post3, pre3, _):
             self.Model.create(dict(name='My name'))
             self.assertTrue(post.called)
             self.assertTrue(post2.called)
+            self.assertTrue(post3.called)
             self.assertFalse(pre.called)
             self.assertFalse(pre2.called)
+            self.assertFalse(pre3.called)
 
     def test_pre_create(self):
         ready = self.env.registry.ready

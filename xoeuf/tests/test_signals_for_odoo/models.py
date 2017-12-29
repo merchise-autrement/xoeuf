@@ -32,6 +32,11 @@ def do_nothing2(sender, signal, **kwargs):
     pass
 
 
+@signals.receiver(signals.post_save)
+def do_nothing3(sender, signal, **kwargs):
+    pass
+
+
 @signals.receiver(signals.pre_save, sender='test_signals.signaling_model')
 def do_nothing_again(sender, signal, **kwargs):
     pass
