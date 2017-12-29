@@ -5,10 +5,12 @@
 Beta releases (series 0.X)
 ==========================
 
-Unreleased.  Release 0.23.0
+2017-12-29.  Release 0.23.0
 ---------------------------
 
-Nothing yet.
+- Fix critical issue in `xoeuf.signals`:mod:.  Different receivers for the
+  same model would not be registered (and thus not called).  Introduced in
+  0.22.0.
 
 
 2017-12-23. Release 0.22.0
