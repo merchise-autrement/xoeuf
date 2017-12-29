@@ -16,6 +16,7 @@ from xoeuf.odoo.tests.common import TransactionCase
 from xoeuf.odoo.addons.test_signals_for_odoo.models import (
     signals,  # this is the same implementation the models use.
     do_nothing,
+    do_nothing2,
     do_nothing_again,
     wrap_nothing,
 )
@@ -34,13 +35,13 @@ class TestXoeufSignals(TransactionCase):
     @contextlib.contextmanager
     def mocks(self, method):
         def post_create(sender, signal, **kwargs):
-            return do_nothing(sender, signal, **kwargs)
+            return method(sender, signal, **kwargs)
 
         def pre_create(sender, signal, **kwargs):
-            return do_nothing_again(sender, signal, **kwargs)
+            return method(sender, signal, **kwargs)
 
         def wrapper(sender, wrapping, *args, **kwargs):
-            return wrap_nothing(sender, wrapping, *args, **kwargs)
+            return method(sender, wrapping, *args, **kwargs)
 
         mock = signals.mock_replace
         with mock(signals.post_create, method, side_effect=post_create) as post, \
@@ -51,10 +52,13 @@ class TestXoeufSignals(TransactionCase):
             yield post, pre, wrap
 
     def test_post_create(self):
-        with self.mocks(do_nothing) as (post, pre, _):
+        with self.mocks(do_nothing) as (post, pre, _), \
+             self.mocks(do_nothing2) as (post2, pre2, _):
             self.Model.create(dict(name='My name'))
             self.assertTrue(post.called)
+            self.assertTrue(post2.called)
             self.assertFalse(pre.called)
+            self.assertFalse(pre2.called)
 
     def test_pre_create(self):
         ready = self.env.registry.ready
