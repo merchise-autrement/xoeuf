@@ -5,6 +5,12 @@
 Beta releases (series 0.X)
 ==========================
 
+2018-01-04. Release 0.24.0
+--------------------------
+
+- Fix bug in `xoeuf secure` command for Odoo 10.
+
+
 2017-12-29.  Release 0.23.0
 ---------------------------
 
