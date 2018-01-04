@@ -84,11 +84,11 @@ class Secure(Command):
         from xoeuf.odoo import api, SUPERUSER_ID
         # TODO: Homogenize 'get' in a compatibility module.
         try:
-            from odoo.modules.registry import Registry
-            get = Registry.get
-        except ImportError:
-            from openerp.modules.registry import RegistryManager
+            from xoeuf.odoo.modules.registry import RegistryManager
             get = RegistryManager.get
+        except ImportError:
+            from xoeuf.odoo.modules.registry import Registry
+            get = Registry.get
         db = get(database)
         env = api.Environment(db.cursor(), SUPERUSER_ID, {})
         return env['res.users']
