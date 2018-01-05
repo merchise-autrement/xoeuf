@@ -53,9 +53,12 @@ _sentry_client = None
 
 
 def get_client():
+    from xoeuf.odoo.tools import config
     global _sentry_client
+    overrides = config.misc.get('sentry', {})
+    conf.update(overrides)
     if not _sentry_client and 'dsn' in conf:
-        releasetag = conf.pop('sentrylog.release-tag', '')
+        releasetag = conf.pop('release-tag', '')
         if 'release' not in conf:
             from xoeuf.odoo.release import version
             conf['release'] = '%s/%s' % (version, releasetag)
