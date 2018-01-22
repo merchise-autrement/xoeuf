@@ -5,6 +5,13 @@
 Beta releases (series 0.X)
 ==========================
 
+2018-01-22. Release 0.25.0
+--------------------------
+
+- Unify sentry configuration under the 'sentry' namespace.  Also read the
+  configuration from Odoo config object.
+
+
 2018-01-04. Release 0.24.0
 --------------------------
 
