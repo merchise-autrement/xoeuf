@@ -5,6 +5,12 @@
 Beta releases (series 0.X)
 ==========================
 
+2018-01-23. Release 0.26.0
+--------------------------
+
+- Fix access denied error in `xoeuf.modules.is_object_installed`:func:.
+
+
 2018-01-22. Release 0.25.0
 --------------------------
 
