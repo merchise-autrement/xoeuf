@@ -266,7 +266,7 @@ def is_object_installed(self, object):
     '''
     module = get_object_module(object)
     if module:
-        mm = self.env['ir.module.module']
+        mm = self.env['ir.module.module'].sudo()
         query = [('state', '=', 'installed'), ('name', '=', module)]
         return bool(mm.search(query))
     else:
