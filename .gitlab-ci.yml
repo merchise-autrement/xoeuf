@@ -35,15 +35,6 @@ check code smells:
     - virtualenv
     - xoeuf-tester
 
-run all Odoo 8 tests:
-  <<: *run_tests
-  variables:
-    PYTHON: python
-    ODOO_WORKTREE: odoo8
-  only:
-    - branches
-  allow_failure: true
-
 run all Odoo 10 tests:
   <<: *run_tests
   variables:
