@@ -5,6 +5,13 @@
 Beta releases (series 0.X)
 ==========================
 
+Unreleased. Release 0.27.0
+--------------------------
+
+- Drop official support for Odoo 8 and 9.  Tests are only run in Odoo 10
+  and 11.
+
+
 2018-01-23. Release 0.26.0
 --------------------------
 
