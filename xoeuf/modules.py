@@ -208,18 +208,21 @@ def get_dangling_modules(db):
     :param db: Either the name of the database to load or a `registry
                <xoeuf.osv.registry.Registry>`:class:.
 
+    :return: A record-set with dangling modules.
+
+    .. warning:: We create a new cursor to the DB and the returned recordset
+                 uses it.
+
     '''
+    from xoeuf import api
     from xoeuf.odoo import SUPERUSER_ID
     from xoeuf.odoo.modules.module import get_modules
-    from xoeuf.osv.model_extensions import search_read
     registry = _get_registry(db)
-    with registry.cursor() as cr:
-        ir_modules = registry['ir.module.module']
-        available = get_modules()
-        dangling = search_read(ir_modules, cr, SUPERUSER_ID,
-                               [('name', 'not in', available)],
-                               context=None, ensure_list=True)
-        return dangling
+    cr = registry.cursor()
+    env = api.Environment(cr, SUPERUSER_ID, {})
+    Module = env['ir.module.module']
+    available = get_modules()
+    return Module.search([('name', 'not in', available)])
 
 
 def mark_dangling_modules(db):
@@ -229,16 +232,10 @@ def mark_dangling_modules(db):
     :func:`get_dangling_modules`.
 
     '''
-    from xoeuf.odoo import SUPERUSER_ID
-    from xoeuf.osv.model_extensions import get_writer
-    registry = _get_registry(db)
-    with registry.cursor() as cr:
-        ir_mods = registry['ir.module.module']
-        dangling = get_dangling_modules(registry)  # reuse the registry
-        dangling_ids = [module['id'] for module in dangling]
-        with get_writer(ir_mods, cr, SUPERUSER_ID, dangling_ids) as writer:
-            writer.update(state='uninstallable')
-        return dangling
+    dangling = get_dangling_modules(db)
+    dangling.write(dict(state='uninstallable'))
+    dangling.env.cr.commit()
+    return dangling
 
 
 def get_object_module(obj, typed=False):
