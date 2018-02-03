@@ -199,11 +199,11 @@ def _get_registry(db_name):
 def get_dangling_modules(db):
     '''Get registered modules that are no longer available.
 
-    Returns the list of dangling modules.  Each item in the list the `read` of
-    the `ir.module.module`.
+    Returns the recordset of dangling modules.  This is a recordset of the
+    model `ir.module.module`.
 
-    A dangling module is one that is listed in the instances DB, but is not
-    reachable in any of the addons paths (not even externally installed).
+    A dangling module is one that is listed in the DB, but is not reachable in
+    any of the addons paths (not even externally installed).
 
     :param db: Either the name of the database to load or a `registry
                <xoeuf.osv.registry.Registry>`:class:.
