@@ -11,6 +11,9 @@ Unreleased. Release 0.27.0
 - Drop official support for Odoo 8 and 9.  Tests are only run in Odoo 10
   and 11.
 
+- Add `_instances_ <xoeuf.models.proxy.ModelProxy._instances_>`:attr: property
+  to allows easy recordset ``isinstance`` like checks.
+
 
 2018-01-23. Release 0.26.0
 --------------------------
@@ -85,8 +88,8 @@ Unreleased. Release 0.27.0
 - Add explicit 'not equal' operator for `domain related
   <xoeuf.osv.expression>`:mod: functions.
 
-- Covert to properties: `xoeuf.osv.expression.DomainTree.is_leaf`:prop: and
-  `xoeuf.osv.expression.DomainTree.is_operator`:prop:.
+- Covert to properties: `xoeuf.osv.expression.DomainTree.is_leaf`:attr: and
+  `xoeuf.osv.expression.DomainTree.is_operator`:attr:.
 
 
 2017-10-16. Release 0.17.2
