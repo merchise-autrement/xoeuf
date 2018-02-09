@@ -18,6 +18,7 @@ except ImportError:
 
 from xoeuf import MAJOR_ODOO_VERSION
 from xoeuf.models.proxy import ResUsers as Users
+from xoeuf.odoo import SUPERUSER_ID
 from xoeuf.odoo.tests.common import TransactionCase, HttpCase
 
 
@@ -30,6 +31,13 @@ class TestModelProxy(TransactionCase):
         self = this.env['ir.model']  # noqa: make self a valid recordset
         Users.create({'name': 'John Doe', 'login': 'john.doe'})
         this.assertEqual(Users.search([]), self.env['res.users'].search([]))
+
+    def test_instances_check(this):
+        self = this.env['ir.model']  # noqa: make self a valid recordset
+        root = Users.browse(SUPERUSER_ID)
+        this.assertIn(root, Users._instances_)
+        this.assertNotIn(self, Users._instances_)
+        this.assertNotIn(object(), Users._instances_)
 
 
 class TestHTTPModelProxy(HttpCase):

@@ -17,6 +17,7 @@ from __future__ import (division as _py3_division,
 
 
 import re
+from xoutil.objects import memoized_property
 
 try:
     from xoeuf.odoo import models
@@ -26,6 +27,31 @@ except ImportError:
 
 
 class ModelProxy(object):
+    @memoized_property
+    def _instances_(self):
+        '''All the *possible* instances of this model.
+
+        The result is an object that allows for containment tests.  The
+        containment test would be equivalent to an `isinstance` check.
+
+        Example::
+
+           from xoeuf.models.proxy import SomeModel
+           record in SomeModel._instances_
+
+        .. warning:: This may shadow an attribute '_instances_' in the proxied
+           model.
+
+        '''
+        model = self.__model
+
+        class Instances(object):
+            def __contains__(_, who):
+                from xoeuf import models
+                return isinstance(who, models.BaseModel) and who._name == model
+
+        return Instances()
+
     def __init__(self, name):
         self.__model = _get_model(name)
         self.__env = None
@@ -97,3 +123,6 @@ def _get_model(name):
 
 
 UPPERS = re.compile('[A-Z]')
+
+
+del memoized_property
