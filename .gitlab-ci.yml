@@ -7,7 +7,7 @@ stages:
   - clean
 
 check code smells:
-  script: merchise_lint
+  script: merchise_lint2
   stage: test
   tags:
     - merchise-lint
