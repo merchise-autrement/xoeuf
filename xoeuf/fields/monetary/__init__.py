@@ -14,7 +14,22 @@ from __future__ import (division as _py3_division,
 from xoeuf.odoo.release import version_info as ODOO_VERSION_INFO
 
 if ODOO_VERSION_INFO[0] == 8:
-    from ._v8 import Monetary
-    Monetary.__module__ = __name__
+    from ._v8 import Monetary as Base
 else:
-    from xoeuf.odoo.fields import Monetary
+    from xoeuf.odoo.fields import Monetary as Base
+
+
+class Monetary(Base):
+    _slots = {
+        'concrete': False,
+    }
+
+    def convert_to_cache(self, value, record, validate=True):
+        from xoutil.dim.currencies import currency as Currency
+        value = super(Monetary, self).convert_to_cache(value, record, validate=validate)
+        # FIXME:  Ensure to resolve currency for compute and or related.
+        if self.concrete:
+            currency = Currency(record[self.currency_field].name)
+            return value * currency
+        else:
+            return value

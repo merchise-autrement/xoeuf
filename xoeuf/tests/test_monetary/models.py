@@ -20,3 +20,18 @@ class Line(models.Model):
     currency_id = fields.Many2one(
         'res.currency',
     )
+
+
+class ConcreteLine(models.Model):
+    _name = 'test.monetary.concrete'
+    value = fields.Monetary(concrete=True)
+    currency_id = fields.Many2one(
+        'res.currency',
+    )
+
+
+class RelatedLine(models.Model):
+    _name = 'test.monetary.related'
+    value = fields.Monetary(concrete=True)
+    company_id = fields.Many2one('res.company')
+    currency_id = fields.Many2one(related='company_id.currency_id')

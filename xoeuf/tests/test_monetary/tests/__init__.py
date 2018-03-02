@@ -11,8 +11,4 @@ from __future__ import (division as _py3_division,
                         print_function as _py3_print,
                         absolute_import as _py3_abs_import)
 
-from xoeuf import MAJOR_ODOO_VERSION
-
-if MAJOR_ODOO_VERSION < 9:
-    # Don't pretend to test Odoo's own Monetary field.
-    from . import test_monetary  # noqa
+from . import test_monetary  # noqa
