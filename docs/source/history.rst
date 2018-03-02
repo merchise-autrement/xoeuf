@@ -5,6 +5,12 @@
 Beta releases (series 0.X)
 ==========================
 
+2018-03-02. Release 0.28.0
+--------------------------
+
+- Adds no functions.  Just allows xoutil 1.9.
+
+
 2018-02-09. Release 0.27.0
 --------------------------
 
