@@ -14,9 +14,7 @@ from __future__ import (division as _py3_division,
 
 from xoeuf.odoo.release import version_info as ODOO_VERSION_INFO
 
-if 8 <= ODOO_VERSION_INFO[0] < 9:
-    from ._v8 import Property  # noqa: reexport
-elif ODOO_VERSION_INFO[0] < 12:
+if 10 <= ODOO_VERSION_INFO[0] < 12:
     from ._v10 import Property  # noqa: reexport
 else:
     raise NotImplementedError

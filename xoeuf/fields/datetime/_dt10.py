@@ -13,7 +13,7 @@ from __future__ import (division as _py3_division,
 
 
 from xoeuf.odoo.release import version_info as ODOO_VERSION_INFO
-assert ODOO_VERSION_INFO >= (9, 0)
+assert ODOO_VERSION_INFO >= (10, 0)
 del ODOO_VERSION_INFO
 
 import pytz
