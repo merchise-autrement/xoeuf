@@ -49,7 +49,7 @@ def Enumeration(enumclass, *args, **kwargs):
                  `xoeuf.fields.Integer`:class: and it's a new API field.
 
     '''
-    from xoeuf import fields, MAJOR_ODOO_VERSION
+    from xoeuf import fields
     from xoutil.objects import classproperty
 
     class EnumeratedField(fields.Integer, EnumerationField):
@@ -77,14 +77,9 @@ def Enumeration(enumclass, *args, **kwargs):
             )
             return self.get_member(value)
 
-        if MAJOR_ODOO_VERSION < 10:
-            def convert_to_read(self, value, use_name_get=True):
-                # None should be False in read.
-                return self.get_member(value) if value is not None else False
-        else:
-            def convert_to_read(self, value, record, use_name_get=True):
-                # None should be False in read.
-                return self.get_member(value) if value is not None else False
+        def convert_to_read(self, value, record, use_name_get=True):
+            # None should be False in read.
+            return self.get_member(value) if value is not None else False
 
     return EnumeratedField(*args, **kwargs)
 
