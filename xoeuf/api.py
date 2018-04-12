@@ -1,16 +1,11 @@
 #!/usr/bin/env python
-# -*- encoding: utf-8 -*-
+# -*- coding: utf-8 -*-
 # ---------------------------------------------------------------------
-# xoeuf.api
-# ---------------------------------------------------------------------
-# Copyright (c) 2015-2017 Merchise and Contributors
+# Copyright (c) Merchise Autrement [~º/~] and Contributors
 # All rights reserved.
 #
-# This is free software; you can redistribute it and/or modify it under the
-# terms of the LICENCE attached (see LICENCE file) in the distribution
-# package.
+# This is free software; you can do what the LICENCE file allows you to.
 #
-# Created on 2015-01-01
 
 '''Odoo API bridge.
 
@@ -23,13 +18,14 @@ from __future__ import (division as _py3_division,
                         print_function as _py3_print,
                         absolute_import as _py3_abs_import)
 
-from xoutil.decorator.meta import decorator
+from xoutil.deprecation import deprecated
+from xoutil.decorator.meta import decorator as _xdecorator
 
-try:
-    from openerp import api as _odoo_api
-except ImportError:
-    from odoo import api as _odoo_api
+from xoeuf.odoo import api as _odoo_api
 
+
+# TODO: `copy_members` will be deprecated in xoutil 1.8, use instead the same
+# mechanisms as `xoutil.future`.
 from xoutil.modules import copy_members as _copy_python_module_members
 this = _copy_python_module_members(_odoo_api)
 del _copy_python_module_members
@@ -49,39 +45,56 @@ def contextual(func):
     return inner
 
 
-@decorator
-def take_one(func, index=0, warn=True):
-    '''A weaker version of `api.one`.
+@_xdecorator
+def take_one(func, index=0, warn=True, strict=False):
+    '''Same as `requires_singleton()`.
 
-    The decorated method will receive a recordset with a single record
-    just like `api.one` does.
-
-    The single record will be the one in the `index` provided in the
-    decorator.
-
-    This means the decorated method *can* make the same assumptions about
-    its `self` it can make when decorated with `api.one`.  Nevertheless
-    its return value *will not* be enclosed in a list.
-
-    If `warn` is True and more than one record is in the record set, a
-    warning will be issued.
-
-    If the given recordset has no `index`, raise an IndexError.
+    The arguments are now ignored.
 
     '''
-    from functools import wraps
-    import logging
-    logger = logging.getLogger(__name__)
-    del logging
+    return requires_singleton(func)
 
-    @_odoo_api.multi
-    @wraps(func)
-    def inner(self):
-        if self[index] != self:
-            # More than one item was in the recordset.
-            if warn:
-                logger.warn('More than one record for function %s',
-                            func, extra=self)
-            self = self[index]
-        return func(self)
-    return inner
+
+_MSG = ("{funcname} is now deprecated and it will be removed. "
+        "Use `{replacement}` directly and let the method raise "
+        "`expected singleton` exception.")
+take_one = deprecated('`api.requires_singleton()`', msg=_MSG)(take_one)
+del _MSG, deprecated
+
+
+def requires_singleton(f):
+    '''An idiomatic alias for `api.multi()`.
+
+    This is exactly the same as `api.multi()`, however it's expected to be
+    used when the code you're decorating requires a singleton recordset.
+
+    Notice we don't fail at the method call, but only if the actual code
+    executes a command that requires such a condition to be met (for instance,
+    accessing a field in ``self``.)
+
+    '''
+    return _odoo_api.multi(f)
+
+
+def mimic(original):
+    '''Apply the API guess of `original` to the decorated function.
+
+    Usage::
+
+       def f1(self, cr, uid, ids, context=None):
+           # Actually any valid signature
+
+       @api.mimic(f1)
+       def f2(*args, **kwargs):
+           pass
+
+    '''
+    import types
+    method = _odoo_api.guess(original)
+    # Odoo stores the decorator in the _api attribute.  But Odoo 10 only
+    # stores the name of the API method.
+    decorator = method._api
+    if isinstance(decorator, types.FunctionType):
+        return decorator
+    else:
+        return getattr(_odoo_api, decorator)

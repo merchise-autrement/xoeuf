@@ -1,13 +1,10 @@
 #!/usr/bin/env python
-# -*- encoding: utf-8 -*-
+# -*- coding: utf-8 -*-
 # ---------------------------------------------------------------------
-# xoeuf.security
-# ---------------------------------------------------------------------
-# Copyright (c) 2014-2017 Merchise Autrement [~º/~] and Contributors
+# Copyright (c) Merchise Autrement [~º/~] and Contributors
 # All rights reserved.
 #
-# This is free software; you can redistribute it and/or modify it under
-# the terms of the LICENCE attached in the distribution package.
+# This is free software; you can do what the LICENCE file allows you to.
 #
 
 '''Some tools to improve `OpenERP` security.
@@ -49,13 +46,13 @@ __all__ = strs('PASS_PHRASE_LEVEL_BASIC',
 del strs
 
 
-def _reset_passwords(db, security_level, verbose, check=None):
+def _reset_passwords(self, security_level, verbose, check=None):
     '''Internal module function to reset passwords in a data-base.
 
     This function is used by :func:`reset_all_passwords` and
     :func:`reset_invalid_passwords` functions.
 
-      :param db: `OpenERP` data-base as defined in `xoeuf.pool`.
+      :param self: The res.user model.
 
       :param security_level: Numerical security level (the bigger the more
              secure).
@@ -74,35 +71,28 @@ def _reset_passwords(db, security_level, verbose, check=None):
              `login` the user login identifier.
 
     '''
-    from xoutil.objects import smart_copy
     from xoutil.crypto import generate_password
-    from xoutil.string import safe_encode
-    uid = db.uid
-    users_model = db.models.res_users
-    with db(transactional=True) as cr:
-        ids = users_model.search(cr, uid, [])
-        data = users_model.read(cr, uid, ids, fields=['name', 'login'])
-        for item in data:
-            login = item['login']
-            if check is None or check(users_model, cr, item['id'], login):
-                item['password'] = generate_password(login, security_level)
-                vals = smart_copy(item, {}, defaults=('id', 'password'))
-                if users_model.write(cr, uid, item['id'], vals):
-                    if verbose:
-                        print(safe_encode(">>> id: %(id)s, login: %(login)s, "
-                                          "name: %(name)s, "
-                                          "password: '%(password)s'" % item))
-                else:
-                    print(safe_encode(
-                        "<<< ERROR: id: %(id)s, login: %(login)s, "
-                        "name: %(name)s, " % item
-                    ), "NOT CHANGED")
+    from xoutil.future.codecs import safe_encode
+    users = self.search([])
+    for user in users:
+        login = user.login
+        if check is None or check(user):
+            user.password = password = generate_password(login, security_level)
+            if verbose:
+                print(safe_encode(
+                    ">>> id: %(id)s, login: %(login)s, "
+                    "name: %(name)s, "
+                    "password: '%(password)s'" % dict(id=user.id,
+                                                      login=user.login,
+                                                      name=user.name,
+                                                      password=password)
+                ))
 
 
-def reset_all_passwords(db, security_level=_DEF_LEVEL, verbose=True):
+def reset_all_passwords(self, security_level=_DEF_LEVEL, verbose=True):
     '''Reset all passwords in a data-base.
 
-    :param db: `OpenERP` data-base cursor as defined in `xoeuf.pool`.
+    :param self: The res.users model.
 
     :param security_level: Numerical security level (the bigger the more
            secure).
@@ -111,20 +101,19 @@ def reset_all_passwords(db, security_level=_DEF_LEVEL, verbose=True):
 
     This function can be used as::
 
-      from xoeuf.pool import test as db
       from xoeuf.security import reset_all_passwords
-      reset_all_passwords(db, security_level=2)
+      reset_all_passwords(env['res.users'], security_level=2)
 
     See module documentation for more info.
 
     '''
-    _reset_passwords(db, security_level, verbose)
+    _reset_passwords(self, security_level, verbose)
 
 
-def reset_invalid_passwords(db, security_level=_DEF_LEVEL):
+def reset_invalid_passwords(self, security_level=_DEF_LEVEL):
     '''Reset all invalid passwords in a data-base.
 
-    :param db: `OpenERP` data-base cursor as defined in `xoeuf.pool`.
+    :param self: The res.users model.
 
     :param security_level: Numerical security level (the bigger the more
            secure).
@@ -134,21 +123,18 @@ def reset_invalid_passwords(db, security_level=_DEF_LEVEL):
 
     This function can be used as::
 
-      from xoeuf.pool import test as db
       from xoeuf.security import reset_invalid_passwords
-      reset_invalid_passwords(db)
+      reset_invalid_passwords(env['res.users'])
 
     See module documentation for more info.
 
     '''
-    def check(self, cr, id, login):
+    def check(self):
+        from xoeuf.odoo.exceptions import AccessDenied
         try:
-            from openerp.exceptions import AccessDenied
-        except ImportError:
-            from odoo.exceptions import AccessDenied
-        try:
-            self.check_credentials(cr, id, login)
+            self.sudo(self.id).check_credentials(self.login)
             return True
         except AccessDenied:
             return False
-    _reset_passwords(db, security_level, True, check)
+
+    _reset_passwords(self, security_level, True, check)

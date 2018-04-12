@@ -1,15 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # ---------------------------------------------------------------------
-# xoeuf
-# ---------------------------------------------------------------------
-# Copyright (c) 2013-2017 Merchise Autrement [~º/~] and Contributors
+# Copyright (c) Merchise Autrement [~º/~] and Contributors
 # All rights reserved.
 #
-# This is free software; you can redistribute it and/or modify it under
-# the terms of the LICENCE attached in the distribution package.
+# This is free software; you can do what the LICENCE file allows you to.
 #
-# Created on 2013-05-01
 
 '''Xœuf are basic services for OpenERP and Open Object.
 
@@ -20,12 +16,15 @@ The name is composed by:
 
 '''
 
-# TODO: I was thinking in "œil", "cœur", "nœud", of course starting with "X"
-
 from __future__ import (division as _py3_division,
                         print_function as _py3_print,
-                        unicode_literals as _py3_unicode,
                         absolute_import as _py3_abs_import)
 
 
+from . import modules  # noqa; bootstrap 'xoeuf.odoo'
 from . import signals  # noqa
+
+from xoeuf.odoo import SUPERUSER_ID  # noqa
+from xoeuf.odoo.release import version_info as ODOO_VERSION_INFO  # noqa
+
+MAJOR_ODOO_VERSION = ODOO_VERSION_INFO[0]  # noqa

@@ -24,25 +24,10 @@ Odoo introduces a change in its API for models.  This document won't explain
 all the details.  For that you should see the `Official API documentation
 <openerp.api>`:mod:.
 
-.. Use auto-class so that the "alias of" is printed.
-
-.. function:: v8(func)
-
-   Either an alias to `_version_X`:func: or an alias to
-   `openerp.api.v8`:func:.
-
-.. function:: v7(func)
-
-   Either an alias to `_version_X`:func: or an alias to
-   `openerp.api.v7`:func:.
-
-
-.. autofunction:: _version_X
-
 
 .. function:: guess(func)
 
-   A bridge for `openerp.api.guess`:func:.  It allows to guess the API version
+   A bridge for `odoo.api.guess`:func:.  It allows to guess the API version
    from the function signature.
 
    This allows you old mixins to work properly on both Odoo and OpenERP::

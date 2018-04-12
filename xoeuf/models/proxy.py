@@ -1,23 +1,18 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # ---------------------------------------------------------------------
-# xoeuf.models
-# ---------------------------------------------------------------------
-# Copyright (c) 2016-2017 Merchise Autrement [~º/~] and Contributors
+# Copyright (c) Merchise Autrement [~º/~] and Contributors
 # All rights reserved.
 #
-# This is free software; you can redistribute it and/or modify it under the
-# terms of the LICENCE attached (see LICENCE file) in the distribution
-# package.
+# This is free software; you can do what the LICENCE file allows you to.
 #
-# Created on 2016-08-24
 
 '''Transparently import models.
 
 Example usage (in xoeuf' shell)::
 
-    >>> from xoeuf.pool import mercurio as db
-    >>> from xoeuf.models import AccountAccount
+    $ xoeuf shell
+    >>> from xoeuf.models.proxy import AccountAccount
 
     # We need a 'self' (and possible cr, uid) in the context of any method
     # call to model.
@@ -26,10 +21,12 @@ Example usage (in xoeuf' shell)::
     ...
     AttributeError: search
 
-    >>> db.salt_shell(_='mail.mail')  # inject a 'self'
 
-    >>> AccountAccount.search([], limit=1)  # doctest: +ELLIPSIS
-    account.account(...)
+    $ xoeuf shell -d somedb
+    >>> from xoeuf.models.proxy import ResUsers as User
+
+    >>> User.search([], limit=1)  # doctest: +ELLIPSIS
+    res.users(...)
 
 
 '''
@@ -69,6 +66,7 @@ class ModelImporter(object):
         res = sys.modules.get(fullname, None)
         if res is None:
             res = ModelProxy(fullname.rsplit(str('.'), 1)[-1])
+            res.__path__ = __path__
             sys.modules[fullname] = res
         return res
 
@@ -95,10 +93,9 @@ class ModelImporter(object):
 
 class ModelProxy(ModuleType, _proxy.ModelProxy):
     def __init__(self, name):
+        ModuleType.__init__(self, name)
         _proxy.ModelProxy.__init__(self, name)
 
-
-UPPERS = re.compile('[A-Z]')
 
 __path__ = [splitext(__file__)[0]]
 

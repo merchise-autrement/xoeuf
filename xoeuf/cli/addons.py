@@ -1,16 +1,11 @@
 #!/usr/bin/env python
-# -*- encoding: utf-8 -*-
+# -*- coding: utf-8 -*-
 # ---------------------------------------------------------------------
-# xoeuf.cli.addons
-# ---------------------------------------------------------------------
-# Copyright (c) 2015-2017 Merchise Autrement [~º/~] and Contributors
+# Copyright (c) Merchise Autrement [~º/~] and Contributors
 # All rights reserved.
 #
-# This is free software; you can redistribute it and/or modify it under the
-# terms of the LICENCE attached (see LICENCE file) in the distribution
-# package.
+# This is free software; you can do what the LICENCE file allows you to.
 #
-# Created on 2015-04-07
 
 from __future__ import (division as _py3_division,
                         print_function as _py3_print,
@@ -54,10 +49,7 @@ class Addons(Command):
             print(addon)
 
     def get_addons(self, filters):
-        try:
-            from openerp.modules import get_modules
-        except ImportError:
-            from odoo.modules import get_modules
+        from xoeuf.odoo.modules import get_modules
         return [
             addon
             for addon in get_modules()

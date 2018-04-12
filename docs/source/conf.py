@@ -10,6 +10,7 @@
 #
 # All configuration values have a default; values that are commented out
 # serve to show the default.
+# flake8: noqa
 
 import sys, os
 import datetime
@@ -25,7 +26,12 @@ sys.path.insert(0, os.path.abspath('../'))
 VIRTUAL_ENV = os.environ.get('VIRTUAL_ENV')
 if VIRTUAL_ENV:
     VENV_FILE = os.path.join(VIRTUAL_ENV, 'bin', 'activate_this.py')
-    execfile(VENV_FILE, dict(__file__=VENV_FILE))
+    try:
+        execfile(VENV_FILE, dict(__file__=VENV_FILE))
+    except NameError:
+        with open(VENV_FILE, 'rb') as f:
+            code = compile(f.read(), VENV_FILE, 'exec')
+            eval(code, dict(__file__=VENV_FILE))
     del VENV_FILE
 del VIRTUAL_ENV
 
@@ -139,7 +145,12 @@ pygments_style = 'sphinx'
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-html_theme = 'pyramid'
+try:
+    import sphinx_rtd_theme
+    html_theme = 'sphinx_rtd_theme'
+    html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
+except ImportError:
+    html_theme = 'pyramid'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -168,7 +179,7 @@ html_theme = 'pyramid'
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
+html_static_path = []
 
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
 # using the given strftime format.
@@ -294,8 +305,11 @@ texinfo_documents = [
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {
     'py2': ('http://docs.python.org/2.7/', None),
+    'py3': ('http://docs.python.org/', None),
     'xoutil': ('http://xoutil.readthedocs.org/en/latest/', None),
-    'odoo': ('https://www.odoo.com/documentation/8.0/', None)
+    'odoo8': ('https://www.odoo.com/documentation/8.0/', None),
+    'odoo10': ('https://www.odoo.com/documentation/10.0/', None),
+    'odoo11': ('https://www.odoo.com/documentation/11.0/', None),
 }
 
 intersphinx_cache_limit = 60

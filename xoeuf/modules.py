@@ -1,15 +1,11 @@
-# -*- encoding: utf-8 -*-
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 # ---------------------------------------------------------------------
-# xoeuf.modules
-# ---------------------------------------------------------------------
-# Copyright (c) 2014-2017 Merchise Autrement [~º/~] and Contributors
+# Copyright (c) Merchise Autrement [~º/~] and Contributors
 # All rights reserved.
 #
-# This is free software; you can redistribute it and/or modify it under the
-# terms of the LICENCE attached (see LICENCE file) in the distribution
-# package.
+# This is free software; you can do what the LICENCE file allows you to.
 #
-# Created on 2014-04-28
 
 '''External OpenERP's addons
 
@@ -19,20 +15,63 @@ from __future__ import (division as _py3_division,
                         print_function as _py3_print,
                         absolute_import as _py3_abs_import)
 
+import sys
 import logging
 import re
 
-from xoutil.functools import lru_cache
+from xoutil.future.functools import lru_cache
 from xoutil.modules import customize
 from xoutil.modules import modulemethod
 
-try:
-    import openerp as _o  # noqa
-    _ADDONS_NAMESPACE = re.compile(r'^openerp\.addons\.(?P<module>[^\.]+)\.')
-except ImportError:  # Odoo 10+
-    _ADDONS_NAMESPACE = re.compile(r'^odoo\.addons\.(?P<module>[^\.]+)\.')
+# In Odoo 10, they allow to import from both 'odoo' and 'openerp'
+_ADDONS_NAMESPACE = re.compile(
+    r'^(?:odoo|openerp)\.addons\.(?P<module>[^\.]+)\.'
+)
 
 XOEUF_EXTERNAL_ADDON_GROUP = 'xoeuf.addons'
+
+
+# XXX: @manu, probably the prefix 'xoeuf.' could be avoided.
+class OdooHook(object):
+    '''Hook for 'odoo' (or 'openerp') package to be available as 'xoeuf.odoo'.
+
+    '''
+    try:
+        import openerp as _mod
+    except ImportError:
+        # In Odoo 9 they have an 'odoo.py' that is importable when developing
+        # (buildout, etc), so we have to try to import 'openerp' before trying
+        # 'odoo'.
+        import odoo as _mod
+    NAME = _mod.__name__
+    del _mod
+    REGEX = r'^xoeuf[.](?:openerp|odoo)\b'
+
+    def find_module(self, name, path=None):
+        import re
+        if re.match(self.REGEX, name):
+            return self
+
+    def load_module(self, name):
+        import sys
+        import re
+        import importlib
+        assert name not in sys.modules
+        regex = self.REGEX + r'(.*)'
+        canonical = re.sub(regex, self.NAME + '\g<1>', name)
+        if canonical in sys.modules:
+            mod = sys.modules[canonical]
+        else:
+            # probable failure
+            mod = importlib.import_module(canonical)
+        # just set the original module at the new location. Don't proxy,
+        # it breaks *-import (unless you can find how `from a import *` lists
+        # what's supposed to be imported by `*`, and manage to override it)
+        sys.modules[name] = mod
+        return sys.modules[name]
+
+
+sys.meta_path.insert(0, OdooHook())
 
 
 class _PatchesRegistry(object):
@@ -49,10 +88,7 @@ class _PatchesRegistry(object):
         return self._wrapped[name]
 
     def apply(self):
-        try:
-            from openerp.modules import module
-        except ImportError:
-            from odoo.modules import module
+        from xoeuf.odoo.modules import module
         patched = getattr(module, '__xoeuf_patched__', False)
         if patched:
             # This is an Odoo that's being patched by us.
@@ -65,6 +101,7 @@ class _PatchesRegistry(object):
             for name, func in self._registry.items():
                 setattr(module, name, func)
             self.bootstraped = True
+
 
 patch = _PatchesRegistry()
 
@@ -92,7 +129,7 @@ def find_external_addons(self):
     '''
     import os
     from pkg_resources import iter_entry_points
-    from xoutil.iterators import delete_duplicates
+    from xoutil.future.itertools import delete_duplicates
     res = []
     for entry in iter_entry_points(XOEUF_EXTERNAL_ADDON_GROUP):
         if not entry.attrs:
@@ -109,7 +146,7 @@ def find_external_addons(self):
                 name = entry.module_name
                 pos = name.rfind('.')
                 if pos >= 0:
-                    name = name[pos+1:]
+                    name = name[pos+1:]  # noqa
     return delete_duplicates(res)
 
 
@@ -117,10 +154,7 @@ def find_external_addons(self):
 @modulemethod
 def initialize_sys_path(self):
     from xoutil.objects import setdefaultattr
-    try:
-        from openerp.modules import module
-    except ImportError:
-        from odoo.modules import module
+    from xoeuf.odoo.modules import module
     _super = patch.get_super('initialize_sys_path')
     external_addons = setdefaultattr(self, '__addons', [])
     if not external_addons:
@@ -144,7 +178,8 @@ def patch_modules():
 def _get_registry(db_name):
     '''Helper method to get the registry for a `db_name`.'''
     from xoutil.eight import string_types
-    from xoeuf.osv.registry import Registry
+    # TODO: Homogenize 'get_registry' in a compatibility module
+    from odoo.modules.registry import Registry
     if isinstance(db_name, string_types):
         db = Registry(db_name)
     elif isinstance(db_name, Registry):
@@ -159,31 +194,30 @@ def _get_registry(db_name):
 def get_dangling_modules(db):
     '''Get registered modules that are no longer available.
 
-    Returns the list of dangling modules.  Each item in the list the `read` of
-    the `ir.module.module`.
+    Returns the recordset of dangling modules.  This is a recordset of the
+    model `ir.module.module`.
 
-    A dangling module is one that is listed in the instances DB, but is not
-    reachable in any of the addons paths (not even externally installed).
+    A dangling module is one that is listed in the DB, but is not reachable in
+    any of the addons paths (not even externally installed).
 
     :param db: Either the name of the database to load or a `registry
                <xoeuf.osv.registry.Registry>`:class:.
 
+    :return: A record-set with dangling modules.
+
+    .. warning:: We create a new cursor to the DB and the returned recordset
+                 uses it.
+
     '''
-    try:
-        from openerp import SUPERUSER_ID
-        from openerp.modules.module import get_modules
-    except ImportError:
-        from odoo import SUPERUSER_ID
-        from odoo.modules.module import get_modules
-    from xoeuf.osv.model_extensions import search_read
+    from xoeuf import api
+    from xoeuf.odoo import SUPERUSER_ID
+    from xoeuf.odoo.modules.module import get_modules
     registry = _get_registry(db)
-    with registry() as cr:
-        ir_modules = registry['ir.module.module']
-        available = get_modules()
-        dangling = search_read(ir_modules, cr, SUPERUSER_ID,
-                               [('name', 'not in', available)],
-                               context=None, ensure_list=True)
-        return dangling
+    cr = registry.cursor()
+    env = api.Environment(cr, SUPERUSER_ID, {})
+    Module = env['ir.module.module']
+    available = get_modules()
+    return Module.search([('name', 'not in', available)])
 
 
 def mark_dangling_modules(db):
@@ -193,19 +227,10 @@ def mark_dangling_modules(db):
     :func:`get_dangling_modules`.
 
     '''
-    try:
-        from openerp import SUPERUSER_ID
-    except ImportError:
-        from odoo import SUPERUSER_ID
-    from xoeuf.osv.model_extensions import get_writer
-    registry = _get_registry(db)
-    with registry() as cr:
-        ir_mods = registry['ir.module.module']
-        dangling = get_dangling_modules(registry)  # reuse the registry
-        dangling_ids = [module['id'] for module in dangling]
-        with get_writer(ir_mods, cr, SUPERUSER_ID, dangling_ids) as writer:
-            writer.update(state='uninstallable')
-        return dangling
+    dangling = get_dangling_modules(db)
+    dangling.write(dict(state='uninstallable'))
+    dangling.env.cr.commit()
+    return dangling
 
 
 def get_object_module(obj, typed=False):
@@ -219,10 +244,25 @@ def get_object_module(obj, typed=False):
     name = nameof(obj, inner=True, full=True, typed=typed)
     match = _ADDONS_NAMESPACE.match(name)
     if match:
-        module = match.group(1)
+        module = match.groupdict()['module']
         return module
     else:
         return None
 
 
-del re, logging
+def is_object_installed(self, object):
+    '''Detects if `object` is installed in the DB.
+
+    `self` must be an Odoo model (recordset, but it may be empty).
+
+    '''
+    module = get_object_module(object)
+    if module:
+        mm = self.env['ir.module.module'].sudo()
+        query = [('state', '=', 'installed'), ('name', '=', module)]
+        return bool(mm.search(query))
+    else:
+        return False
+
+
+del re, logging, sys, OdooHook

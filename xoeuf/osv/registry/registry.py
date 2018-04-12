@@ -1,19 +1,13 @@
 #!/usr/bin/env python
-# -*- encoding: utf-8 -*-
+# -*- coding: utf-8 -*-
 # ---------------------------------------------------------------------
-# xoeuf.osv.registry
-# ---------------------------------------------------------------------
-# Copyright (c) 2013-2017 Merchise Autrement [~º/~] and Contributors
+# Copyright (c) Merchise Autrement [~º/~] and Contributors
 # All rights reserved.
 #
-# This is free software; you can redistribute it and/or modify it under
-# the terms of the LICENCE attached in the distribution package.
+# This is free software; you can do what the LICENCE file allows you to.
 #
 
 '''Xœuf Models registry for OpenERP databases.
-
-If OpenERP is properly installed and configured, then all databases can be
-found as submodules of :mod:`xoeuf.pool`.
 
 Through this registry you can obtain a database from a customized
 configuration.
@@ -27,19 +21,19 @@ from __future__ import (division as _py3_division,
 
 from types import ModuleType
 from collections import MutableMapping
-from xoutil import Unset
+from xoutil.symbols import Unset
 from xoutil.context import Context
 from xoutil.decorator import aliases, memoized_property
 
 from .transaction import TransactionManager
 
+from xoeuf.odoo import SUPERUSER_ID
+# TODO: Homogenize 'manager_get' and 'manager_lock' in a compatibility module
 try:
-    from odoo import SUPERUSER_ID
     from odoo.modules.registry import Registry as manager
     manager_get = manager
     manager_lock = lambda: manager._lock  # noqa
 except ImportError:
-    from openerp import SUPERUSER_ID
     from openerp.modules.registry import RegistryManager as manager
     manager_get = manager.get
     manager_lock = manager.lock
@@ -119,7 +113,7 @@ class Registry(ModuleType):
         with manager_lock():
             try:
                 self.wrapped = manager.new(self.db_name)
-            except:
+            except Exception:
                 del self.wrapped
                 del cls.instances[self.db_name]
                 # TODO: Manage the module in "sys.modules"
@@ -128,32 +122,15 @@ class Registry(ModuleType):
     def salt_shell(self, **kwargs):
         '''Assign common shell global variables.
 
-        It only function properly if the client of this function is a shell
-        running in a terminal (like `IPython`) and working with a `Pythn`
-        version with support for ``sys._getframe``.
-
-        Keyword parameters are models to be assigned, for example
-        ``db.salt_shell(_='hr.contract', users_obj='res.users')``. Especial
-        name ``_`` is replaced by ``self``.
-
         Also fix documentations and execute special tools
         ``fix_documentations`` and ``integrate_extensions``.
 
         '''
         from sys import _getframe
-        try:
-            from openerp.api import Environment
-        except ImportError:
-            from odoo.api import Environment
         from xoeuf.osv.improve import fix_documentations, integrate_extensions
-        CURSOR_NAME = str('cr')
-        ROOT_USER_NAME = str('uid')
-        MODELS_NAME = str('models')
-        CONTEXT_NAME = str('context')
         ENV_NAME = str('env')
-        close_names = (CURSOR_NAME, )
         clear_names = (ENV_NAME, )
-        names = (CURSOR_NAME, ROOT_USER_NAME, MODELS_NAME, CONTEXT_NAME)
+        names = ()
         f = _getframe(1)
         vars = f.f_locals
         for name in clear_names:
@@ -161,28 +138,17 @@ class Registry(ModuleType):
                 var = vars[name]
                 try:
                     var.clear()
-                except:
-                    pass
-        for name in close_names:
-            if name in vars:
-                var = vars[name]
-                try:
-                    var.close()
-                except:
+                except Exception:
                     pass
         for name in names:
             var = getattr(self, name, Unset)
             if var is not Unset:
                 vars[name] = var
-        # The env cannot be simply gotten from the Registry cause it will
-        # create another cursor for it. The property Registry.cursor is not
-        # memoized, and it probably shouldn't since that would render the
-        # registry a single-use thing.
-        vars[ENV_NAME] = Environment(vars[CURSOR_NAME],
-                                     vars[ROOT_USER_NAME],
-                                     vars[CONTEXT_NAME])
+        vars[ENV_NAME] = env = self.env
+        if not kwargs:
+            kwargs['_'] = 'res.users'
         if kwargs:
-            models = getattr(self, MODELS_NAME)
+            models = self.models
             for kwname in kwargs:
                 model_name = kwargs[kwname]
                 model = models.get(model_name, Unset)
@@ -190,17 +156,16 @@ class Registry(ModuleType):
                     model = getattr(models, model_name, Unset)
                 if model:
                     var_name = 'self' if kwname == '_' else kwname
-                    vars[var_name] = model
+                    # Instead of getting the model from 'models' do it from
+                    # the environment.
+                    vars[var_name] = env[model_name]
         fix_documentations(self)
         integrate_extensions()
 
     @staticmethod
     def get_all_db_names():
         '''Return all database names presents in the connected host.'''
-        try:
-            from openerp.service.db import exp_list
-        except ImportError:
-            from odoo.service.db import exp_list
+        from xoeuf.odoo.service.db import exp_list
         return exp_list()
 
     @aliases('db')
@@ -213,17 +178,6 @@ class Registry(ModuleType):
 
     def __call__(self, **kwargs):
         '''Create a execution context.
-
-        To use it as a managed cursor::
-
-        reg = Registry('my_db')
-        users = reg.models.res_users
-        with reg(foo='bar') as cr:   # Define context variables
-            ids = users.search(cr, 1, [('partner_id', 'like', 'Med%')])
-            for rec in users.read(cr, uid, ids):
-                name = rec['partner_id'][1]
-                mail = rec['user_email']
-                print('"%s" <%s>' % (name, mail))
 
         '''
         return TransactionManager(self, **kwargs)
@@ -245,10 +199,7 @@ class Registry(ModuleType):
 
     @property
     def env(self):
-        try:
-            from openerp.api import Environment
-        except ImportError:
-            from odoo.api import Environment
+        from xoeuf.odoo.api import Environment
         return Environment(self.cr, self.uid, self.context)
 
     @property
@@ -270,7 +221,7 @@ class Registry(ModuleType):
         checks the resulting context for common values (lang, tz).
 
         '''
-        from xoutil.collections import opendict
+        from xoutil.future.collections import opendict
         res = opendict(**self._default_context)
         mngr = self.current_manager
         if mngr:
@@ -278,10 +229,7 @@ class Registry(ModuleType):
         return self._check_context(res)
 
     def _check_context(self, ctx):
-        try:
-            from odoo import api
-        except ImportError:
-            from openerp import api
+        from xoeuf.odoo import api
         # TODO: catch these values
         if 'lang' not in ctx:
             import os
@@ -289,7 +237,7 @@ class Registry(ModuleType):
             lang = os.environ.get('LANG', DEFAULT).split('.')[0]
             # Environment language could not be installed.
             # So, check and obtain 'lang' from DB
-            with self() as cr:
+            with self.cr as cr:
                 Lang = api.Environment(cr, self.uid, {})['res.lang']
                 ok = Lang.search([('code', '=', lang)])
                 if not ok:

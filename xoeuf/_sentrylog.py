@@ -1,16 +1,11 @@
 #!/usr/bin/env python
-# -*- encoding: utf-8 -*-
+# -*- coding: utf-8 -*-
 # ---------------------------------------------------------------------
-# sentrylog
-# ---------------------------------------------------------------------
-# Copyright (c) 2015-2017 Merchise Autrement [~º/~] and Contributors
+# Copyright (c) Merchise Autrement [~º/~] and Contributors
 # All rights reserved.
 #
-# This is free software; you can redistribute it and/or modify it under the
-# terms of the LICENCE attached (see LICENCE file) in the distribution
-# package.
+# This is free software; you can do what the LICENCE file allows you to.
 #
-# Created on 2015-04-09
 
 '''Extends/Overrides the OpenERP's logging system to Sentry-based approach.
 
@@ -44,11 +39,6 @@ except ImportError:
 
 from xoutil.objects import setdefaultattr
 
-try:
-    from openerp import models
-except ImportError:
-    from odoo import models
-
 # A dictionary holding the Raven's client keyword arguments.  You should
 # modify this dictionary before patching the logging.
 conf = {}
@@ -63,14 +53,14 @@ _sentry_client = None
 
 
 def get_client():
+    from xoeuf.odoo.tools import config
     global _sentry_client
+    overrides = config.misc.get('sentry', {})
+    conf.update(overrides)
     if not _sentry_client and 'dsn' in conf:
-        releasetag = conf.pop('sentrylog.release-tag', '')
+        releasetag = conf.pop('release-tag', '')
         if 'release' not in conf:
-            try:
-                from openerp.release import version
-            except ImportError:
-                from odoo.release import version
+            from xoeuf.odoo.release import version
             conf['release'] = '%s/%s' % (version, releasetag)
         transport = conf.get('transport', None)
         if transport == 'sync':
@@ -103,15 +93,9 @@ def patch_logging(override=True, force=False):
 
     '''
     try:
-        # If the openerp has the sentrylog module, this means that we have
-        # integrated sentrylog within the core of Odoo.  So this patching does
-        # not make any sense.
-        from openerp import sentrylog  # noqa
+        from xoeuf.odoo import sentrylog  # noqa
     except ImportError:
-        try:
-            from odoo import sentrylog  # noqa
-        except ImportError:
-            sentrylog = None
+        sentrylog = None
     if sentrylog and not force:
         return   # Bail out
     elif sentrylog:
@@ -119,19 +103,13 @@ def patch_logging(override=True, force=False):
 
     import logging
     from raven.handlers.logging import SentryHandler as Base
-    try:
-        from openerp.netsvc import init_logger
-    except ImportError:
-        from odoo.netsvc import init_logger
+    from xoeuf.odoo.netsvc import init_logger
     init_logger()
 
     def _require_httprequest(func):
         def inner(self, record):
             try:
-                try:
-                    from openerp.http import request
-                except ImportError:
-                    from odoo.http import request
+                from xoeuf.odoo.http import request
                 httprequest = getattr(request, 'httprequest', None)
                 if httprequest:
                     return func(self, record, httprequest)
@@ -155,7 +133,7 @@ def patch_logging(override=True, force=False):
                 self.client.user_context(user_context)
             try:
                 super(SentryHandler, self)._emit(record, **kwargs)
-            except:
+            except:  # noqa
                 # We should never fail if emitting the log to Sentry fails.
                 # Neither we should print the error, other programs may think
                 # we have fail because of it: For instance, the mailgate
@@ -232,12 +210,8 @@ def patch_logging(override=True, force=False):
                     record.fingerprint = fingerprint
 
         def _get_http_request_data(self, request):
-            try:
-                from openerp.http import JsonRequest, HttpRequest
-                from openerp.http import request  # Let it raise
-            except ImportError:
-                from odoo.http import JsonRequest, HttpRequest
-                from odoo.http import request  # Let it raise
+            from xoeuf.odoo.http import JsonRequest, HttpRequest
+            from xoeuf.odoo.http import request  # Let it raise
             # We can't simply use `isinstance` cause request is actual a
             # 'werkzeug.local.LocalProxy' instance.
             if request._request_type == JsonRequest._request_type:
@@ -254,23 +228,14 @@ def patch_logging(override=True, force=False):
             exc_info = record.exc_info
             if not exc_info:
                 return res
-            try:
-                from openerp.exceptions import Warning
-            except ImportError:
-                from odoo.exceptions import Warning
+            from xoeuf.odoo.exceptions import Warning
             ignored = (Warning, )
             try:
-                try:
-                    from openerp.exceptions import RedirectWarning
-                except ImportError:
-                    from odoo.exceptions import RedirectWarning
+                from xoeuf.odoo.exceptions import RedirectWarning
                 ignored += (RedirectWarning, )
             except ImportError:
                 pass
-            try:
-                from openerp.exceptions import except_orm
-            except ImportError:
-                from odoo.exceptions import except_orm
+            from xoeuf.odoo.exceptions import except_orm
             ignored += (except_orm, )
             _type, value, _tb = exc_info
             return not isinstance(value, ignored)

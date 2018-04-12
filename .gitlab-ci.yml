@@ -1,0 +1,174 @@
+---
+stages:
+  - test
+  - check
+  - build
+  - publish
+  - clean
+
+check code smells:
+  script: merchise_lint2
+  stage: test
+  tags:
+    - merchise-lint
+  only:
+    - branches
+
+.run_tests: &run_tests
+  stage: test
+  script:
+    - export CWD=`pwd`
+    - cd ~/src/$ODOO_WORKTREE
+    - git pull
+    - mkdir -p ~/virtualenvs
+    - test -d ~/virtualenvs/$CI_PROJECT_NAME-$ODOO_WORKTREE || virtualenv -p `which $PYTHON` ~/virtualenvs/$CI_PROJECT_NAME-$ODOO_WORKTREE
+    - source ~/virtualenvs/$CI_PROJECT_NAME-$ODOO_WORKTREE/bin/activate
+    - pip install -r requirements.txt
+    - pip install -U "six>=1.9.0" "decorator>=4.0,<4.2" "hypothesis>=3.24"
+    - pip install -e .
+    - cd $CWD
+    - pip install -e .
+    - export ADDONS=`ls xoeuf/tests/ | grep ^test_ | xargs | tr " " ","`
+    - cd ~/src/$ODOO_WORKTREE
+    - runtests-odoo.sh -i $ADDONS
+  tags:
+    - virtualenv
+    - xoeuf-tester
+
+run all Odoo 10 tests:
+  <<: *run_tests
+  variables:
+    PYTHON: python
+    ODOO_WORKTREE: odoo10
+  only:
+    - branches
+
+run all Odoo 11 tests:
+  <<: *run_tests
+  variables:
+    PYTHON: python3
+    ODOO_WORKTREE: odoo11
+  only:
+    - branches
+
+check signature of tag:
+  stage: check
+  script:
+    - git verify-tag $CI_COMMIT_REF_NAME
+  tags:
+    - git
+    - gpg
+  only:
+    - tags
+
+build source distribution:
+  stage: build
+  script:
+    - rm -f dist/*
+    - python setup.py sdist
+  tags:
+    - python
+  artifacts:
+    paths:
+      - dist/
+  only:
+    - tags
+
+build binary distribution:
+  stage: build
+  script:
+    - rm -f dist/*
+    - python setup.py bdist_wheel
+  tags:
+    - wheel
+  artifacts:
+    paths:
+      - dist/
+  only:
+    - tags
+
+publish_locally:
+  stage: publish
+  script:
+    - ssh manu@gestion.lahavane.com "mkdir -p Repos/$CI_PROJECT_NAME"
+    - scp dist/* manu@gestion.lahavane.com:Repos/$CI_PROJECT_NAME/
+  tags:
+    - repo.lahavane.com
+  only:
+    - tags
+  environment:
+    name: repo.lahavane.com
+    url: http://repo.lahavane.com/pypi/$CI_PROJECT_NAME
+  dependencies:
+    - check signature of tag
+    - build source distribution
+    - build binary distribution
+
+
+publish_pypi:
+  stage: publish
+  script:
+    - twine upload dist/*
+  tags:
+    - twine
+  only:
+    - tags
+  dependencies:
+    - check signature of tag
+    - build source distribution
+    - build binary distribution
+  environment:
+    name: pypi
+    url: https://pypi.python.org/pypi/$CI_PROJECT_NAME
+
+
+build documentation:
+  variables:
+    PYTHON: python3
+    ODOO_WORKTREE: odoo11
+  stage: build
+  script:
+    - export CWD=`pwd`
+    - cd ~/src/$ODOO_WORKTREE
+    - git pull
+    - mkdir -p ~/virtualenvs
+    - test -d ~/virtualenvs/$CI_PROJECT_NAME-$ODOO_WORKTREE || virtualenv -p `which $PYTHON` ~/virtualenvs/$CI_PROJECT_NAME-$ODOO_WORKTREE
+    - source ~/virtualenvs/$CI_PROJECT_NAME-$ODOO_WORKTREE/bin/activate
+    - pip install -r requirements.txt
+    - pip install -U "six>=1.9.0" "decorator>=4.0,<4.2" "hypothesis>=3.24"
+    - pip install -e .
+    - cd $CWD
+    - pip install -e .
+    - pip install sphinx sphinx-rtd-theme
+    - make -C docs/ html
+    - cd docs/build/html
+    - tar -cjf ../../../$CI_PROJECT_NAME-$CI_COMMIT_SHA.tar.bz2 ./
+  artifacts:
+    paths:
+      - $CI_PROJECT_NAME-$CI_COMMIT_SHA.tar.bz2
+    expire_in: 4 days
+  tags:
+    - virtualenv
+    - xoeuf-tester
+  only:
+    - master
+    - tags
+
+publish in our rtd:
+  stage: publish
+  script:
+    - scp $CI_PROJECT_NAME-$CI_COMMIT_SHA.tar.bz2 rtd@docs.lahavane.com:.
+    - ssh rtd@docs.lahavane.com mkdir -p $CI_PROJECT_NAME/.$CI_COMMIT_SHA
+    - ssh rtd@docs.lahavane.com tar -xf $CI_PROJECT_NAME-$CI_COMMIT_SHA.tar.bz2 -C $CI_PROJECT_NAME/.$CI_COMMIT_SHA
+    - ssh rtd@docs.lahavane.com "rm -r /var/www/html/$CI_PROJECT_NAME/$CI_COMMIT_REF_NAME; ln -sr /var/www/html/$CI_PROJECT_NAME/.$CI_COMMIT_SHA /var/www/html/$CI_PROJECT_NAME/$CI_COMMIT_REF_NAME"
+    - ssh rtd@docs.lahavane.com rm $CI_PROJECT_NAME-$CI_COMMIT_SHA.tar.bz2
+  tags:
+    - rtd@docs.lahavane.com
+  dependencies:
+    - build documentation
+  environment:
+    name: docs.lahavane.com
+    url: http://docs.lahavane.com/$CI_PROJECT_NAME/$CI_COMMIT_REF_NAME
+  only:
+    - tags
+    - master

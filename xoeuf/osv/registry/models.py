@@ -1,16 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # ---------------------------------------------------------------------
-# models
-# ---------------------------------------------------------------------
-# Copyright (c) 2017 Merchise Autrement [~º/~] and Contributors
+# Copyright (c) Merchise Autrement [~º/~] and Contributors
 # All rights reserved.
 #
-# This is free software; you can redistribute it and/or modify it under the
-# terms of the LICENCE attached (see LICENCE file) in the distribution
-# package.
+# This is free software; you can do what the LICENCE file allows you to.
 #
-# Created on 2017-01-25
 
 from __future__ import (division as _py3_division,
                         print_function as _py3_print,
@@ -18,7 +13,7 @@ from __future__ import (division as _py3_division,
 
 
 from collections import MutableMapping
-from xoutil import Unset
+from xoutil.symbols import Unset
 from xoutil.collections import SmartDictMixin
 
 
@@ -38,7 +33,8 @@ class ModelsManager(MutableMapping, SmartDictMixin):
      * An open dictionary allowing access to keys as attributes.
 
     '''
-    from xoutil.collections import opendict as __search_result_type__  # noqa:
+    from xoutil.future.collections \
+        import opendict as __search_result_type__  # noqa
     # see the the SmartDictMixin.search method
 
     def __new__(cls, registry):
@@ -93,7 +89,7 @@ class ModelsManager(MutableMapping, SmartDictMixin):
         else:
             try:
                 return super(ModelsManager, self).__getattr__(name)
-            except:
+            except Exception:  # FIXME: Should we deal with this?
                 msg = "'%s' object has no attribute '%s'"
                 raise AttributeError(msg % (type(self).__name__, name))
 
@@ -178,8 +174,11 @@ class ModelsManager(MutableMapping, SmartDictMixin):
         from collections import Mapping
         from itertools import chain
         from xoutil.validators.identifiers import is_valid_identifier
-        args = [((key, m[key]) for key in m) if isinstance(m, Mapping) else m
-                    for m in args]
+        args = [
+            ((key, m[key]) for key in m)
+            if isinstance(m, Mapping) else m
+            for m in args
+        ]
         args.append(((key, kwargs[key]) for key in kwargs))
         mapping = ~self
         for name, model in chain(args):
@@ -244,16 +243,7 @@ class ModelsManager(MutableMapping, SmartDictMixin):
 
 def _valid_model_base(model):
     '''Check if a model has a right base class.'''
-    try:
-        from odoo.models import BaseModel
-        from odoo.models import MetaModel
-    except ImportError:
-        from openerp.models import BaseModel
-
-        class MetaModel(type):
-            # impossible metaclass to avoid Odoo 8 meta-objects from being
-            # leaked.
-            pass
+    from xoeuf.odoo.models import BaseModel, MetaModel
     if not isinstance(model, (BaseModel, MetaModel)):
         from inspect import getmro
         from xoutil.eight import typeof

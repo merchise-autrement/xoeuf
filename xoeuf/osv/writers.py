@@ -1,13 +1,10 @@
-# -*- encoding: utf-8 -*-
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 # ---------------------------------------------------------------------
-# xoeuf.osv.writers
-# ---------------------------------------------------------------------
-# Copyright (c) 2014-2017 Merchise Autrement [~º/~] and Contributors
+# Copyright (c) Merchise Autrement [~º/~] and Contributors
 # All rights reserved.
 #
-# This is free software; you can redistribute it and/or modify it under the
-# terms of the LICENCE attached (see LICENCE file) in the distribution
-# package.
+# This is free software; you can do what the LICENCE file allows you to.
 #
 
 '''Helpers to generate ``BaseModel.write`` commands.
@@ -26,34 +23,29 @@ class _BaseWriter(object):
 
     '''
     def __init__(self, model):
-        from xoutil.collections import StackedDict
+        from xoutil.future.collections import StackedDict
         self.model = model
         self._commands = StackedDict()
         self.result = None
 
     def _get_field(self, attrname):
-        return self.model._all_columns[attrname].column
+        return self.model._fields[attrname]
 
     __getitem__ = _get_field
 
     def _is_many2many(self, attrname):
-        try:
-            from openerp.fields import Many2many
-        except ImportError:
-            from odoo.fields import Many2many
+        from xoeuf.odoo.fields import Many2many
+        rel_types = (Many2many, )
         try:
             from openerp.osv.fields import many2many
+            rel_types += (many2many, )
         except ImportError:
-            class many2many(object):
-                # I have no instances
-                pass
-        return isinstance(self[attrname], (many2many, Many2many))
+            pass
+        return isinstance(self[attrname], rel_types)
 
     def _is_one2many(self, attrname):
-        try:
-            from openerp.fields import One2many
-        except ImportError:
-            from odoo.fields import One2many
+        from xoeuf.odoo.fields import One2many
+        # XXX: Don't understand next
         try:
             from openerp.osv.fields import one2many
         except ImportError:
@@ -108,7 +100,7 @@ class _BaseWriter(object):
           be either a many2many or one2many column.
 
         '''
-        from xoutil.types import is_collection
+        from xoutil.future.types import is_collection
         from .orm import UPDATE_RELATED
         commands = self._commands
         if replacement:

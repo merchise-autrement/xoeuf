@@ -1,15 +1,11 @@
-# -*- encoding: utf-8 -*-
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 # ---------------------------------------------------------------------
-# xoeuf.cli.mailgate
-# ---------------------------------------------------------------------
-# Copyright (c) 2014-2017 Merchise Autrement [~º/~] and Contributors
+# Copyright (c) Merchise Autrement [~º/~] and Contributors
 # All rights reserved.
 #
-# This is free software; you can redistribute it and/or modify it under the
-# terms of the LICENCE attached (see LICENCE file) in the distribution
-# package.
+# This is free software; you can do what the LICENCE file allows you to.
 #
-# Created on 2014-03-12
 
 '''An alternative OpenERP mailgate that does it's stuff in the DB instead via
 XMLRPC.
@@ -20,18 +16,16 @@ from __future__ import (division as _py3_division,
                         print_function as _py3_print,
                         absolute_import as _py3_abs_import)
 
-
 import time
 import random
 
 from logging import Handler
 from psycopg2 import OperationalError, errorcodes
 
+from xoutil.future.codecs import safe_encode, safe_decode
+
 try:
-    try:
-        from openerp.jobs import Deferred
-    except ImportError:
-        from odoo.jobs import Deferred
+    from xoeuf.odoo.jobs import Deferred
 except ImportError:
     Deferred = None
 
@@ -56,7 +50,6 @@ try:
 except NameError:
     pass
 
-from xoutil.string import safe_encode, safe_decode
 
 # TODO: This has grown into a monstrous pile of code that needs
 # refactorization.
@@ -74,6 +67,7 @@ class SysLogHandler(Handler):
         # syslog.  But then Windows is f.cked.
         import syslog
         syslog.syslog(safe_encode(self.format(report)))
+
 
 del Handler
 
@@ -100,7 +94,7 @@ class Mailgate(Command):
     def get_arg_parser(cls):
         def path(extensions=None):
             '''A type-builder for file arguments.'''
-            from xoutil.types import is_collection
+            from xoutil.future.types import is_collection
             from os.path import abspath, isfile, splitext
             if extensions and not is_collection(extensions):
                 extensions = (extensions, )
@@ -192,6 +186,7 @@ class Mailgate(Command):
 
     @classmethod
     def database_factory(cls, database):
+        # TODO: Homogenize 'get' in a compatibility module.
         try:
             from odoo.modules.registry import Registry
             get = Registry
@@ -248,16 +243,13 @@ class Mailgate(Command):
             sender = safe_encode(msg.get('Sender', '<nobody>'))  # noqa
             logger.critical("Error while processing incoming message.",
                             exc_info=1)
-        except:
+        except Exception:
             # Avoid errors... This should be logged to the syslog instead and
             # raven prints the connection error.
             pass
 
     def send_immediate(self, options, message):
-        try:
-            from openerp import SUPERUSER_ID, api
-        except ImportError:
-            from odoo import SUPERUSER_ID, api
+        from xoeuf.odoo import SUPERUSER_ID, api
         default_model = options.default_model
         db = self.database_factory(options.database)
         with db.cursor() as cr:
@@ -269,10 +261,7 @@ class Mailgate(Command):
                                 strip_attachments=options.strip_attachments)
 
     def send_deferred(self, options, message):
-        try:
-            from openerp import SUPERUSER_ID
-        except ImportError:
-            from odoo import SUPERUSER_ID
+        from xoeuf.odoo import SUPERUSER_ID
         default_model = options.default_model
         Deferred(
             str('mail.thread'),
@@ -283,7 +272,7 @@ class Mailgate(Command):
 
     def run(self, args=None):
         from xoeuf.sentrylog import patch_logging
-        patch_logging(force=True)
+        patch_logging(override=True, force=True)
         parser = self.get_arg_parser()
         options = parser.parse_args(args)
         conffile = options.conf
@@ -299,8 +288,9 @@ class Mailgate(Command):
                     message = f.read()
             # TODO: assert message is bytes
             if options.queue_id:
-                message = ('X-Queue-ID: %s%s' % (options.queue_id, CRLF)
-                           + message)
+                message = (
+                    'X-Queue-ID: %s%s' % (options.queue_id, CRLF) + message
+                )
             retries = 0
             done = False
             while not done:
@@ -324,7 +314,7 @@ class Mailgate(Command):
                         raise
                 else:
                     done = True
-        except:
+        except Exception:
             import sys
             if options.defer:
                 print(str('4.3.5 System incorrectly configured'),
@@ -374,10 +364,7 @@ class Mailgate(Command):
 
     @staticmethod
     def load_config_from_inifile(filename):
-        try:
-            from openerp.tools import config
-        except ImportError:
-            from odoo.tools import config
+        from xoeuf.odoo.tools import config
         config.rcfile = filename
         config.load()
 
@@ -387,6 +374,7 @@ def main():
     from xoutil.cli.app import main
     from xoutil.cli import command_name
     main(default=command_name(Mailgate))
+
 
 if __name__ == '__main__':
     main()

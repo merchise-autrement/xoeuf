@@ -1,16 +1,11 @@
-# -*- encoding: utf-8 -*-
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 # ---------------------------------------------------------------------
-# xoeuf.cli.shell
-# ---------------------------------------------------------------------
-# Copyright (c) 2014-2017 Merchise Autrement [~º/~] and Contributors
+# Copyright (c) Merchise Autrement [~º/~] and Contributors
 # All rights reserved.
 #
-# This is free software; you can redistribute it and/or modify it under the
-# terms of the LICENCE attached (see LICENCE file) in the distribution
-# package.
+# This is free software; you can do what the LICENCE file allows you to.
 #
-# Created on 2014-05-02
-
 
 from __future__ import (division as _py3_division,
                         print_function as _py3_print,
@@ -23,15 +18,12 @@ import os
 import signal
 import sys
 
-try:
-    import odoo
-    from odoo.tools import config
-except ImportError:
-    import openerp as odoo
-    from openerp.tools import config
+from xoeuf import odoo
+from xoeuf.odoo.tools import config
 
 from xoeuf.api import contextual
-from xoutil.eight.types import new_class
+from xoutil.future.types import new_class
+
 
 from . import Command
 
@@ -66,14 +58,20 @@ class Base(object):
     supported_shells = ['ipython', 'ptpython', 'bpython', 'python']
 
     def init(self, args):
+        try:
+            pos = args.index('--')
+            args, self.shell_args = args[:pos], args[pos+1:]  # noqa: E226
+        except ValueError:
+            self.shell_args = []
         config.parse_config(args)
         odoo.cli.server.report_configuration()
         odoo.service.server.start(preload=[], stop=True)
         signal.signal(signal.SIGINT, raise_keyboard_interrupt)
 
     def console(self, local_vars):
+        from xoutil.eight import exec_
         if not os.isatty(sys.stdin.fileno()):
-            exec sys.stdin in local_vars
+            exec_(sys.stdin, local_vars)
         else:
             if 'env' not in local_vars:
                 print(
@@ -100,7 +98,7 @@ class Base(object):
 
     def ipython(self, local_vars):
         from IPython import start_ipython
-        start_ipython(argv=[], user_ns=local_vars)
+        start_ipython(argv=self.shell_args, user_ns=local_vars)
 
     def ptpython(self, local_vars):
         from ptpython.repl import embed
@@ -122,7 +120,7 @@ class Base(object):
             registry = odoo.registry(dbname)
             with registry.cursor() as cr:
                 uid = odoo.SUPERUSER_ID
-                ctx = odoo.api.Environment(cr, uid, {})['res.users'].context_get()
+                ctx = odoo.api.Environment(cr, uid, {})['res.users'].context_get()  # noqa
                 env = odoo.api.Environment(cr, uid, ctx)
                 local_vars['env'] = env
                 local_vars['self'] = env.user
@@ -140,4 +138,13 @@ class Base(object):
 for alias in ('shell', 'ishell', 'python', 'ipython'):
     class aliased(object):
         command_cli_name = alias
-    globals()[alias] = new_class(alias, (aliased, Base, Command))
+
+    def exec_body(d):
+        d['__doc__'] = 'A shell for Odoo'
+        return d
+
+    globals()[alias] = new_class(
+        alias,
+        (aliased, Base, Command),
+        exec_body=exec_body
+    )

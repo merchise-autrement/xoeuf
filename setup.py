@@ -1,23 +1,15 @@
 #!/usr/bin/env python
-# -*- encoding: utf-8 -*-
+# -*- coding: utf-8 -*-
 # ---------------------------------------------------------------------
-# setup
-# ---------------------------------------------------------------------
-# Copyright (c) 2015-2017 Merchise and Contributors
-# Copyright (c) 2013, 2014 Merchise Autrement [~º/~] and Contributors
+# Copyright (c) Merchise Autrement [~º/~] and Contributors
 # All rights reserved.
 #
-# This is free software; you can redistribute it and/or modify it under the
-# terms of the LICENCE attached (see LICENCE file) in the distribution
-# package.
+# This is free software; you can do what the LICENCE file allows you to.
 #
-# Created on 2013-05-05
-
 
 from __future__ import (division as _py3_division,
                         print_function as _py3_print,
-                        unicode_literals as _py3_unicode)
-                        # XXX: Don't put absolute imports in setup.py
+                        absolute_import as _py3_abs_import)
 
 import sys
 import os
@@ -48,10 +40,10 @@ setup(name=project_name,
       classifiers=[
           "Programming Language :: Python",
           "Intended Audience :: Developers",
-          'License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)',
+          'License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)',  # noqa
           'Development Status :: 4 - Beta',
       ],
-      keywords='openerp open-object server library',
+      keywords='openerp open-object server library'.split(),
       author='Merchise Autrement [~º/~]',
       author_email='',
       url='http://www.merchise.org/',
@@ -60,15 +52,23 @@ setup(name=project_name,
       include_package_data=True,
       zip_safe=False,
       install_requires=[
-          # -*- Extra requirements: -*-
-          'odoo>=8.0,<11.0',
-          'xoutil>=1.7.1.dev20151028,<1.8',
-          'ipython',
+          'decorator>=4.0,<4.2',
+          'xoutil>=1.8.4,<2.0',
+          'ipython<6',
           'raven>=5.8.0',
           'raven-sanitize-openerp',
+          'enum34; python_version < "3.4"',
+          'celery>=4.1.0,<5',
       ],
+      extra_requires={
+          'odoo': ['odoo==8.0,==10.0', ],
+          'test': ['hypothesis>=3.7.0,<4', ],
+      },
       entry_points="""
       [console_scripts]
       xoeuf = xoeuf.cli.server:server
       xoeuf_mailgate = xoeuf.cli.mailgate:main
+
+      [xoeuf.addons]
+      test_localized_dt = xoeuf.tests.test_localized_dt
       """)

@@ -1,12 +1,10 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # ---------------------------------------------------------------------
-# xoeuf.osv.orm
-# ---------------------------------------------------------------------
-# Copyright (c) 2013-2017 Merchise Autrement [~º/~] and Contributors
+# Copyright (c) Merchise Autrement [~º/~] and Contributors
 # All rights reserved.
 #
-# This is free software; you can redistribute it and/or modify it under
-# the terms of the LICENCE attached in the distribution package.
+# This is free software; you can do what the LICENCE file allows you to.
 #
 
 '''Xœuf basic ORM extensions for Open Object (OpenERP) models.'''
@@ -15,6 +13,12 @@
 from __future__ import (division as _py3_division,
                         print_function as _py3_print,
                         absolute_import)
+
+from xoeuf.models import get_modelname as _get_modelname
+from xoutil.deprecation import deprecated
+
+get_modelname = deprecated('xoeuf.models.get_modelname')(_get_modelname)
+del _get_modelname, deprecated
 
 
 def guess_id(which, attr='id'):
@@ -26,11 +30,8 @@ def guess_id(which, attr='id'):
     TypeError.
 
     '''
-    try:
-        from openerp.osv.orm import browse_record
-    except ImportError:
-        from odoo.osv.orm import browse_record
-    from xoutil.collections import Mapping
+    from xoeuf.odoo.osv.orm import browse_record
+    from xoutil.future.collections import Mapping
     from xoutil.eight import integer_types
     if isinstance(which, integer_types):
         return which
@@ -54,55 +55,6 @@ def store_identity(self, cr, uid, ids, context=None):
 
     '''
     return ids
-
-
-def get_modelname(model):
-    '''Gets the ORM object's name for a model class/object.
-
-    Main usage::
-
-        self.pool[get_modelname(some_model_class)]
-
-    :param model: Either an object (i.e an instance bound to some database) or
-                  the any of the it's class definitions.
-
-    Examples::
-
-        from xoeuf.pool import database
-
-        # Lets assume that you have installed the accounting module in this
-        # database.
-
-        get_modelname(database.models.account_account)
-        'account.account'
-
-        # But in your add-on you'd probably want to access some other module
-
-        from openerp.addons.account.account import account_fiscalyear
-        get_modelname(account_fiscalyear)
-        'account.fiscalyear'
-
-    '''
-    from xoutil.eight import string_types
-    try:
-        from openerp.models import BaseModel
-    except ImportError:
-        from odoo.models import BaseModel
-    from xoeuf.models._proxy import ModelProxy
-    if isinstance(model, ModelProxy):
-        # Minor hack to support models imported using 'xoeuf.models' stuff
-        return model._ModelProxy__model
-    if not isinstance(model, BaseModel) and not issubclass(model, BaseModel):
-        msg = "Invalid argument '%s' for param 'model'" % model
-        raise TypeError(msg)
-    result = model._name
-    if not result:
-        # This is the case of a model class having no _name defined, but then
-        # it must have the _inherit and _name is regarded the same by OpenERP.
-        result = model._inherit
-    assert isinstance(result, string_types), ('Got an invalid name for %r' %
-                                              model)
-    return result
 
 
 # Making this a subclass of int allows to be reliably tested for equality in

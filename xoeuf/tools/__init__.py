@@ -1,37 +1,39 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # ---------------------------------------------------------------------
-# xoeuf.tools
-# ---------------------------------------------------------------------
-# Copyright (c) 2013-2017 Merchise Autrement [~º/~] and Contributors
+# Copyright (c) Merchise Autrement [~º/~] and Contributors
 # All rights reserved.
 #
-# This is free software; you can redistribute it and/or modify it under
-# the terms of the LICENCE attached in the distribution package.
+# This is free software; you can do what the LICENCE file allows you to.
 #
 
 '''Xœuf tools for Open Object (OpenERP) models.
 
 '''
+from __future__ import (division as _py3_division,
+                        print_function as _py3_print,
+                        absolute_import as _py3_abs_import)
 
-from datetime import datetime as _dt, date as _d
+from datetime import datetime as _dt, date as _d, time as _t
 
 try:
-    from odoo.tools import (
+    from xoeuf.odoo.tools import safe_eval, float_round  # noqa: reexport
+except ImportError:
+    # This allows to generate the documentation without actually installing
+    # Odoo
+    pass
+
+
+try:
+    from xoeuf.odoo.tools import (
         DEFAULT_SERVER_DATE_FORMAT as _SVR_DATE_FMT,
-        DEFAULT_SERVER_DATETIME_FORMAT as _SVR_DATETIME_FMT
+        DEFAULT_SERVER_DATETIME_FORMAT as _SVR_DATETIME_FMT,
     )
 except ImportError:
-    # Odoo < 10.0
-    try:
-        from openerp.tools import (
-            DEFAULT_SERVER_DATE_FORMAT as _SVR_DATE_FMT,
-            DEFAULT_SERVER_DATETIME_FORMAT as _SVR_DATETIME_FMT
-        )
-    except ImportError:
-        # This allows to generate the documentation without actually
-        # installing Odoo
-        _SVR_DATE_FMT = '%Y-%m-%d'
-        _SVR_DATETIME_FMT = '%Y-%m-%d %H:%M:%S'
+    # This allows to generate the documentation without actually installing
+    # Odoo
+    _SVR_DATE_FMT = '%Y-%m-%d'
+    _SVR_DATETIME_FMT = '%Y-%m-%d %H:%M:%S'
 
 import pytz
 
@@ -40,7 +42,7 @@ utc = pytz.UTC
 _SVR_DATETIME_FMT2 = _SVR_DATETIME_FMT + '.%f'
 
 try:
-    from xoutil.datetime import strip_tzinfo  # migrate
+    from xoutil.future.datetime import without_tzinfo as strip_tzinfo  # noqa: migrate
 except ImportError:
     def strip_tzinfo(dt):
         '''Return the given datetime value with tzinfo removed.
@@ -51,19 +53,19 @@ except ImportError:
 
 
 def localize_datetime(self, datetime_value=None, from_tz='UTC', to_tz='UTC'):
-    """Convert datetime value (assumed)in from_tz timezone to to_tz timezone.
+    """Convert datetime value from a timezone to another.
 
-    If datetime is None then context today is used.
+    We assume `datetime_value` is expressed in the timezone given in
+    `from_tz`, i.e is a naive datetime.
 
-    If from_tz or to_tz is None then user timezone is used.
+    If `datetime_value` is None then context today is used.
 
-    If from_tz is equal to_tz datetime_value is returned.
+    If `from_tz` or `to_tz` is None then user timezone is used.
+
+    If `from_tz` is the same as `to_tz`, return `datetime_value`.
 
     """
-    try:
-        from openerp import fields
-    except ImportError:
-        from odoo import fields
+    from xoeuf.odoo import fields
     if not from_tz:
         from_tz = self.env.user.tz or 'UTC'
     if not to_tz:
@@ -92,6 +94,8 @@ def date2str(d):
     if not isinstance(d, _d):
         d = normalize_datetime(d)
     return d.strftime(_SVR_DATE_FMT)
+
+
 normalize_datestr = date2str
 
 
@@ -106,6 +110,8 @@ def dt2str(dt):
     if not isinstance(dt, _dt):
         dt = normalize_datetime(dt)
     return dt.strftime(_SVR_DATETIME_FMT)
+
+
 normalize_datetimestr = dt2str
 
 
@@ -118,12 +124,16 @@ def str2dt(s):
         # when you save a .now() directly via the ORM.  It seems to not
         # sanitize properly the datetimes.
         return _dt.strptime(s, _SVR_DATETIME_FMT2)
+
+
 parse_datetime = str2dt
 
 
 def str2date(s):
     'Convert a string to a date-time using `OpenERP` default date format.'
     return _dt.strptime(s, _SVR_DATE_FMT)
+
+
 parse_date = str2date
 
 
@@ -273,3 +283,83 @@ def localtime_as_remotetime(dt_UTC, from_tz=utc, as_tz=utc):
     local = from_tz.normalize(dt_UTC)
     faked = as_tz.localize(strip_tzinfo(local))
     return strip_tzinfo(pytz.UTC.normalize(faked))
+
+
+def get_time_from_float(value):
+    """Get time tuple from a float value.
+
+    :param value: float value to convert to time tuple
+    :return: time value)
+
+    """
+    hours, minutes = divmod(value * 60, 60)
+    minutes, seconds = divmod(minutes * 60, 60)
+    return _t(hour=int(hours), minute=int(minutes), second=int(seconds))
+
+
+def get_time_string(time_value, up_24=True, include_seconds=False):
+    """ Get a human friendly representation of time
+
+    :param time_value: time value
+    :param up_24: True for military time format
+    :param include_seconds: True to include seconds value in result
+    :return string time formatted like `13:01 PM`
+
+    For instance, having ``now`` value like::
+
+       >>> import datetime
+       >>> now = datetime.time(hour=13, minute=24, second=14)
+
+    Then
+
+       >>> get_time_string(now)
+       '13:24'
+
+       >>> get_time_string(now, include_seconds=True)
+       '13:24:14'
+
+       >>> get_time_string(now, up_24=False)
+       '01:24 PM'
+
+       >>> get_time_string(now, up_24=False, include_seconds=True)
+       '01:24:14 PM'
+
+    """
+    if up_24:
+        result = time_value.strftime('%T' if include_seconds else '%R')
+    else:
+        result = time_value.strftime('%r' if include_seconds else '%I:%M %p')
+    return result
+
+
+def get_time_string_from_float(value, up_24=True, include_seconds=False):
+    """ Get a human friendly representation of time from a float value.
+
+    :param value: float value that represent a time value.
+    :param up_24: True for military time format
+    :param include_seconds: True to include seconds value in result
+    :return string time formatted like `13:01 PM`
+
+    For instance, having ``now`` value like::
+
+       >>> value = 13.404
+
+    Then
+
+       >>> get_time_string_from_float(value)
+       '13:24'
+
+       >>> get_time_string_from_float(value, include_seconds=True)
+       '13:24:14'
+
+       >>> get_time_string_from_float(value, up_24=False)
+       '01:24 PM'
+
+       >>> get_time_string_from_float(value, False, True)
+       '01:24:14 PM'
+    """
+    return get_time_string(
+        get_time_from_float(value),
+        up_24=up_24,
+        include_seconds=include_seconds
+    )

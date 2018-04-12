@@ -1,13 +1,10 @@
 #!/usr/bin/env python
-# -*- encoding: utf-8 -*-
+# -*- coding: utf-8 -*-
 # ---------------------------------------------------------------------
-# xoeuf.cli
-# ---------------------------------------------------------------------
-# Copyright (c) 2013-2017 Merchise Autrement [~º/~] and Contributors
+# Copyright (c) Merchise Autrement [~º/~] and Contributors
 # All rights reserved.
 #
-# This is free software; you can redistribute it and/or modify it under
-# the terms of the LICENCE attached in the distribution package.
+# This is free software; you can do what the LICENCE file allows you to.
 #
 
 from __future__ import (division as _py3_division,
@@ -40,16 +37,11 @@ class CommandsProxy(object):
         res = getattr(cls, name, None)
         if not res:
             try:
+                # TODO: which version is that? do we support it?
                 from openerp.cli import commands
             except ImportError:
-                try:
-                    from openerp.cli.command import commands
-                except ImportError:
-                    from odoo.cli.command import commands
-            try:
-                from openerp.modules.module import initialize_sys_path
-            except ImportError:
-                from odoo.modules.module import initialize_sys_path
+                from xoeuf.odoo.cli.command import commands
+            from xoeuf.odoo.modules.module import initialize_sys_path
 
             cls._discover_addons_path()
             initialize_sys_path()
@@ -64,18 +56,11 @@ class CommandsProxy(object):
         prefix = '--addons-path='
         addons_path = next((a for a in args if a.startswith(prefix)), None)
         if addons_path:
-            try:
-                from openerp.tools import config
-            except ImportError:
-                from odoo.tools import config
+            from xoeuf.odoo.tools import config
             config.parse_config([addons_path])
 
 
-try:
-    from xoutil.eight.meta import metaclass
-except ImportError:
-    from xoutil.objects import metaclass
-
+from xoutil.eight.meta import metaclass
 from xoutil.cli import Command as BaseCommand
 
 BaseCommand.register(CommandsProxy)

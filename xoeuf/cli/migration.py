@@ -1,16 +1,11 @@
 #!/usr/bin/env python
-# -*- encoding: utf-8 -*-
+# -*- coding: utf-8 -*-
 # ---------------------------------------------------------------------
-# migration
-# ---------------------------------------------------------------------
-# Copyright (c) 2016-2017 Merchise Autrement [~º/~] and Contributors
+# Copyright (c) Merchise Autrement [~º/~] and Contributors
 # All rights reserved.
 #
-# This is free software; you can redistribute it and/or modify it under the
-# terms of the LICENCE attached (see LICENCE file) in the distribution
-# package.
+# This is free software; you can do what the LICENCE file allows you to.
 #
-# Created on 2016-07-14
 
 from __future__ import (division as _py3_division,
                         print_function as _py3_print,
@@ -22,15 +17,9 @@ import os
 import pprint
 import textwrap
 
-try:
-    from openerp import SUPERUSER_ID
-    from openerp.fields import date, Date
-    from openerp.modules.module import get_module_path
-except ImportError:
-    from odoo import SUPERUSER_ID
-    from odoo.fields import date, Date
-    from odoo.modules.module import get_module_path
-
+from xoeuf.odoo import SUPERUSER_ID
+from xoeuf.odoo.fields import date, Date
+from xoeuf.odoo.modules.module import get_module_path
 
 from . import Command
 

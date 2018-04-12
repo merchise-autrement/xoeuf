@@ -1,15 +1,11 @@
-# -*- encoding: utf-8 -*-
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 # ---------------------------------------------------------------------
-# xoeuf.cli.secure
-# ---------------------------------------------------------------------
-# Copyright (c) 2014-2017 Merchise Autrement [~º/~] and Contributors
+# Copyright (c) Merchise Autrement [~º/~] and Contributors
 # All rights reserved.
 #
-# This is free software; you can redistribute it and/or modify it under the
-# terms of the LICENCE attached (see LICENCE file) in the distribution
-# package.
+# This is free software; you can do what the LICENCE file allows you to.
 #
-# Created on 2014-12-04
 
 '''Secures a DB by:
 
@@ -38,7 +34,7 @@ class Secure(Command):
 
         def path(extensions=None):
             '''A type-builder for file arguments.'''
-            from xoutil.types import is_collection
+            from xoutil.future.types import is_collection
             from os.path import abspath, isfile, splitext
             if extensions and not is_collection(extensions):
                 extensions = (extensions, )
@@ -85,8 +81,17 @@ class Secure(Command):
 
     @classmethod
     def database_factory(cls, database):
-        from xoeuf.osv.registry import Registry
-        return Registry(database)
+        from xoeuf.odoo import api, SUPERUSER_ID
+        # TODO: Homogenize 'get' in a compatibility module.
+        try:
+            from xoeuf.odoo.modules.registry import RegistryManager
+            get = RegistryManager.get
+        except ImportError:
+            from xoeuf.odoo.modules.registry import Registry
+            get = Registry.get
+        db = get(database)
+        env = api.Environment(db.cursor(), SUPERUSER_ID, {})
+        return env['res.users']
 
     def run(self, args=None):
         from xoeuf.security import reset_all_passwords
@@ -96,8 +101,9 @@ class Secure(Command):
         level = options.security_level
         if conffile:
             self.read_conffile(conffile)
-        db = options.database
-        reset_all_passwords(db, security_level=level)
+        self = options.database
+        with self.env.cr:
+            reset_all_passwords(self, security_level=level)
 
     def read_conffile(self, filename):
         import os
@@ -121,16 +127,14 @@ class Secure(Command):
             with open(filename, 'rb') as fh:
                 return exec_(compile(fh.read(), filename, 'exec'), cfg, cfg)
         except Exception:
-            import traceback, sys
+            import traceback
+            import sys
             print("Failed to read config file: %s" % filename)
             traceback.print_exc()
             sys.exit(1)
 
     @staticmethod
     def load_config_from_inifile(filename):
-        try:
-            from openerp.tools import config
-        except ImportError:
-            from odoo.tools import config
+        from xoeuf.odoo.tools import config
         config.rcfile = filename
         config.load()

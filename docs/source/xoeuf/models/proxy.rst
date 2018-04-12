@@ -2,7 +2,7 @@
  `xoeuf.models.proxy`:mod: -- High-level importer for Odoo's models
 ====================================================================
 
-.. automodule:: xoeuf.models.proxy
+.. module:: xoeuf.models.proxy
 
 .. warning:: In the previous release this was named `xoeuf.models`, however
    that's now a package that contains a lot more, and the `ModelProxy`:class:
@@ -38,7 +38,7 @@ Example::
   >>> Partner.search([])  # doctest: +ELLIPSIS
   Traceback (...)
   ...
-  AttributeError: search
+  RuntimeError: ...
 
 
   >>> from xoeuf.pool import mercurio as db
@@ -68,3 +68,18 @@ Internals
       stack looking a local 'self', which must be a instance of an Odoo
       model.  We use the 'self' to get access to the model registry and the
       execution environment to fetch the model this proxy stands for.
+
+   .. attribute:: _instances_
+
+      All the *possible* instances of this model.
+
+      The result is an object that allows for containment tests.  The
+      containment test would be equivalent to an `isinstance` check.
+
+      Example::
+
+        from xoeuf.models.proxy import SomeModel
+        record in SomeModel._instances_
+
+      .. warning:: This may shadow an attribute '_instances_' in the proxied
+                   model.

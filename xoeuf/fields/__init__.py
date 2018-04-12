@@ -1,20 +1,23 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # ---------------------------------------------------------------------
-# __init__
-# ---------------------------------------------------------------------
-# Copyright (c) 2016-2017 Merchise Autrement [~º/~] and Contributors
+# Copyright (c) Merchise Autrement [~º/~] and Contributors
 # All rights reserved.
 #
-# This is free software; you can redistribute it and/or modify it under the
-# terms of the LICENCE attached (see LICENCE file) in the distribution
-# package.
+# This is free software; you can do what the LICENCE file allows you to.
 #
-# Created on 2016-11-15
 
 from __future__ import (division as _py3_division,
                         print_function as _py3_print,
                         absolute_import as _py3_abs_import)
 
 
+from xoeuf.odoo.fields import *          # noqa: reexport
+
 from .datetime import LocalizedDatetime  # noqa: reexport
+from .properties import Property         # noqa: reexport
+from .monetary import Monetary           # noqa: reexport
+from .timespan import TimeSpan           # noqa: reexport
+from .enumeration import Enumeration     # noqa: reexport
+from .timezone import TimezoneSelection  # noqa: reexport
+from .timedelta import TimeDelta         # noqa: reexport

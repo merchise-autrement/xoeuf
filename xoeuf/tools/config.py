@@ -1,13 +1,10 @@
 #!/usr/bin/env python
-# -*- encoding: utf-8 -*-
+# -*- coding: utf-8 -*-
 # ---------------------------------------------------------------------
-# xoeuf.tools.config
-# ---------------------------------------------------------------------
-# Copyright (c) 2013-2017 Merchise Autrement [~º/~] and Contributors
+# Copyright (c) Merchise Autrement [~º/~] and Contributors
 # All rights reserved.
 #
-# This is free software; you can redistribute it and/or modify it under
-# the terms of the LICENCE attached in the distribution package.
+# This is free software; you can do what the LICENCE file allows you to.
 #
 
 '''Xœuf Configuration Service.
@@ -32,7 +29,7 @@ from __future__ import (division as _py3_division,
                         absolute_import as _py3_abs_import)
 
 from collections import MutableMapping
-from xoutil.objects import metaclass
+from xoutil.eight.meta import metaclass
 
 
 DEFAULT_COMMAND = str('server')
@@ -44,10 +41,7 @@ class MetaOptions(type):
 
     def __new__(cls, name, bases, attrs):
         if cls.__singleton__ is None:
-            try:
-                from openerp.tools import config
-            except ImportError:
-                from odoo.tools import config
+            from xoeuf.odoo.tools import config
             attrs['__new__'] = None     # can't be instantiated!
             attrs['wrapped'] = config
             self = super(MetaOptions, cls).__new__(cls, name, bases, attrs)
@@ -128,7 +122,7 @@ class MetaOptions(type):
             raise KeyError('read only option "%s"!' % option)
 
     def __getattr__(self, name):
-        from xoutil import Unset
+        from xoutil.symbols import Unset
         res = self.wrapped.options.get(name, Unset)
         if res is not Unset:
             return res
@@ -137,7 +131,7 @@ class MetaOptions(type):
             raise AttributeError(msg % (self.__name__, name))
 
     def __setattr__(self, name, value):
-        if not name in self.__dict__ and name in self.wrapped.options:
+        if name not in self.__dict__ and name in self.wrapped.options:
             self[name] = value
         else:
             super(MetaOptions, self).__setattr__(name, value)
@@ -149,7 +143,7 @@ class MetaOptions(type):
 
         '''
         if _SECTION_SEP in option:
-            from xoutil import Unset
+            from xoutil.symbols import Unset
             section, option = option.split(_SECTION_SEP)
             misc = self.wrapped.misc.get(section, Unset)
             return default if misc is Unset else misc.get(option, default)
@@ -180,7 +174,7 @@ class MetaOptions(type):
         '''
         count = len(args)
         if count <= 1:
-            from xoutil import Unset
+            from xoutil.symbols import Unset
             default = Unset if count == 0 else args[0]
             if _SECTION_SEP in option:
                 section, option = option.split(_SECTION_SEP)
@@ -245,7 +239,7 @@ class MetaOptions(type):
         '''
         count = len(args)
         if count <= 1:
-            from xoutil import Unset
+            from xoutil.symbols import Unset
             default = Unset if count == 0 else args[0]
             if _SECTION_SEP in option:
                 default = None if count == 0 else args[0]

@@ -1,16 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # ---------------------------------------------------------------------
-# _proxy
-# ---------------------------------------------------------------------
-# Copyright (c) 2016-2017 Merchise Autrement [~º/~] and Contributors
+# Copyright (c) Merchise Autrement [~º/~] and Contributors
 # All rights reserved.
 #
-# This is free software; you can redistribute it and/or modify it under the
-# terms of the LICENCE attached (see LICENCE file) in the distribution
-# package.
+# This is free software; you can do what the LICENCE file allows you to.
 #
-# Created on 2016-11-10
 
 '''Implementation for 'xoeuf.models.proxy'.
 
@@ -22,25 +17,59 @@ from __future__ import (division as _py3_division,
 
 
 import re
+from xoutil.objects import memoized_property
 
 try:
-    import odoo.models as models
+    from xoeuf.odoo import models
 except ImportError:
-    # Odoo < 10.0
-    try:
-        import openerp.models as models
-    except ImportError:
-        # So that we can generate the docs easily
-        pass
+    # So that we can generate the docs easily
+    pass
 
 
 class ModelProxy(object):
+    @memoized_property
+    def _instances_(self):
+        '''All the *possible* instances of this model.
+
+        The result is an object that allows for containment tests.  The
+        containment test would be equivalent to an `isinstance` check.
+
+        Example::
+
+           from xoeuf.models.proxy import SomeModel
+           record in SomeModel._instances_
+
+        .. warning:: This may shadow an attribute '_instances_' in the proxied
+           model.
+
+        '''
+        model = self.__model
+
+        class Instances(object):
+            def __contains__(_, who):
+                from xoeuf import models
+                return isinstance(who, models.BaseModel) and who._name == model
+
+        return Instances()
+
     def __init__(self, name):
         self.__model = _get_model(name)
         self.__env = None
 
     @property
+    def _proxy_request(self):
+        try:
+            from xoeuf.odoo.http import request
+            if request.env:  # An HTTP request may not be bound to a single DB.
+                return request
+        except RuntimeError:
+            pass
+        return None
+
+    @property
     def _this(self):
+        if self._proxy_request:
+            return self._proxy_request.env
         import sys
         f = sys._getframe(1)
         try:
@@ -57,23 +86,25 @@ class ModelProxy(object):
                     this = this.browse(cr, uid, context=context)
                 f = f.f_back
                 tries -= 1
-            return this
+            return this.env if this is not None else None
         finally:
             f = None
 
     def __dir__(self):
-        this = self._this
-        if this is not None:
-            return dir(this)
-        else:
-            return dir(models.BaseModel)
+        return dir(models.BaseModel)
 
     def __getattr__(self, attr):
         this = self._this
         if this is not None:
-            return getattr(this.env[self.__model], attr)
+            return getattr(this[self.__model], attr)
         else:
-            raise AttributeError(attr)
+            raise RuntimeError(
+                'Cannot find attribute %r in proxy model. This is most '
+                'likely due to an invalid call site.' % attr
+            )
+
+    def __repr__(self):
+        return '<ModelProxy: %r>' % self.__model
 
 
 def _get_model(name):
@@ -92,3 +123,6 @@ def _get_model(name):
 
 
 UPPERS = re.compile('[A-Z]')
+
+
+del memoized_property

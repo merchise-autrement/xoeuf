@@ -1,12 +1,10 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # ---------------------------------------------------------------------
-# xoeuf.osv.improve
-# ---------------------------------------------------------------------
-# Copyright (c) 2013-2017 Merchise Autrement [~º/~] and Contributors
+# Copyright (c) Merchise Autrement [~º/~] and Contributors
 # All rights reserved.
 #
-# This is free software; you can redistribute it and/or modify it under
-# the terms of the LICENCE attached in the distribution package.
+# This is free software; you can do what the LICENCE file allows you to.
 #
 
 '''Xœuf extensions for Open Object (OpenERP) models.
@@ -46,11 +44,8 @@ def integrate_extensions():
 
     '''
     from types import FunctionType
-    try:
-        from odoo.models import BaseModel
-    except ImportError:
-        from openerp.models import BaseModel
-    from xoeuf.osv import model_extensions
+    from xoeuf.odoo.models import BaseModel
+    from xoeuf.models import extensions as model_extensions
     from xoeuf.api import guess as adapt
 
     def fixname(name):

@@ -1,15 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # ---------------------------------------------------------------------
-# xoeuf.release
-# ---------------------------------------------------------------------
-# Copyright (c) 2013-2017 Merchise Autrement [~º/~] and Contributors
+# Copyright (c) Merchise Autrement [~º/~] and Contributors
 # All rights reserved.
 #
-# This is free software; you can redistribute it and/or modify it under
-# the terms of the LICENCE attached in the distribution package.
+# This is free software; you can do what the LICENCE file allows you to.
 #
-
 
 from __future__ import (division as _py3_division,
                         print_function as _py3_print,
@@ -28,9 +24,9 @@ def dev_tag_installed():
             return version[match.start():]
         else:
             return None
-    except:
+    except Exception:
         return None
 
 
-VERSION = '0.7.1'
+VERSION = '0.29.0'
 RELEASE_TAG = dev_tag_installed() or ''
