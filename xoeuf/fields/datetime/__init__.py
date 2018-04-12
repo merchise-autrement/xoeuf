@@ -13,10 +13,7 @@ from __future__ import (division as _py3_division,
 
 from xoeuf.odoo.release import version_info as ODOO_VERSION_INFO
 
-# XXX: Next pattern is not consistent with v9
-if ODOO_VERSION_INFO[0] == 8:
-    from ._dt8 import LocalizedDatetime  # noqa: reexport
-elif ODOO_VERSION_INFO[0] >= 9:
+if ODOO_VERSION_INFO[0] >= 10:
     from ._dt10 import LocalizedDatetime  # noqa: reexport
 else:
     assert False
