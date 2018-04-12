@@ -28,7 +28,7 @@ class Monetary(Base):
         from xoutil.dim.currencies import currency as Currency
         value = super(Monetary, self).convert_to_cache(value, record, validate=validate)
         # FIXME:  Ensure to resolve currency for compute and or related.
-        if self.concrete:
+        if self.concrete and record[self.currency_field].name:
             currency = Currency(record[self.currency_field].name)
             return value * currency
         else:
