@@ -8,11 +8,14 @@ Beta releases (series 0.X)
 Unreleased.  Release 0.29.0
 ---------------------------
 
+- Add attribute `concrete` to `xoeuf.fields.Monetary`:class:.  MR `!22`_.
+
 - Drop support for Odoo 8 and 9.
 
   Odoo 8 is not supported by Odoo SA any more.  We don't have the resources to
   support Odoo 9.  We support only Odoo 10 and Odoo 11.
 
+.. _!22: https://gitlab.lahavane.com/mercurio/xoeuf/merge_requests/22
 
 
 2018-03-02. Release 0.28.0

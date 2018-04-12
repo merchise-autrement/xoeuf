@@ -15,6 +15,16 @@ from xoeuf.odoo.fields import Monetary as Base
 
 
 class Monetary(Base):
+    '''A monetary field.
+
+    This is the same as Odoo's original `odoo.fields.Monetary`:class:, with an
+    additional attribute:
+
+    :param concrete: If set to True record-set will return the value as a
+                     `concrete monetary value`_.  Which means you can only
+                     operate it with commensurable values.
+
+    '''
     _slots = {
         'concrete': False,
     }
