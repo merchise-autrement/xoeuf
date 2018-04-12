@@ -24,12 +24,14 @@ class Monetary(Base):
         'concrete': False,
     }
 
-    def convert_to_cache(self, value, record, validate=True):
+    # Putting the concrete quantity in the cache (i.e implementing the
+    # convert_to_cache) may lead to unwanted type errors (TypeError:
+    # incomparable quantities: 0.0::{EUR}/{} and 0) when rounding the value in
+    # the cache.  So the best approach is just to override the __get__ of the
+    # descriptor.
+    def __get__(self, instance, owner):
         from xoutil.dim.currencies import currency as Currency
-        value = super(Monetary, self).convert_to_cache(value, record, validate=validate)
-        # FIXME:  Ensure to resolve currency for compute and or related.
-        if self.concrete and record[self.currency_field].name:
-            currency = Currency(record[self.currency_field].name)
-            return value * currency
-        else:
-            return value
+        result = super(Monetary, self).__get__(instance, owner)
+        if instance and self.concrete:
+            result *= Currency(instance[self.currency_field].name)
+        return result
