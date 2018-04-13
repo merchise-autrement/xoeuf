@@ -5,10 +5,11 @@
 Beta releases (series 0.X)
 ==========================
 
-Unreleased.  Release 0.30.0
----------------------------
+2018-04-13. Release 0.29.1
+--------------------------
 
-Nothing yet.
+No user visible changes.  Just packages and CI related.  That made CI fail to
+build and publish 0.29.0.
 
 
 2018-04-13.  Release 0.29.0
