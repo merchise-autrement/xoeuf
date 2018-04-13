@@ -96,9 +96,8 @@ del BaseCommand
 
 
 # TODO: Loader?
-from . import mailgate as _
 from . import migration
 from . import shell as _shell
 from . import secure as _secure
 from . import addons as _addons
-del _, _shell, _secure, _addons, migration
+del _shell, _secure, _addons, migration
