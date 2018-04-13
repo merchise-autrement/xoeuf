@@ -37,7 +37,7 @@ class LocalizedDatetime(fields.Datetime):
     Upon reading, we assume the user's timezone is properly set.
 
     The datetime column will be actually saved in UTC as all datetimes in
-    Odoo.   But upon reading we convert to a properly shifted datetime so that
+    Odoo.  But upon reading we convert to a properly shifted datetime so that
     is presented to the user in the saved time zone.
 
     .. note:: At the time this field is read-only, not searchable, and
