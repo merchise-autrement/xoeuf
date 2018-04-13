@@ -97,7 +97,6 @@ del BaseCommand
 
 # TODO: Loader?
 from . import migration
-from . import shell as _shell
 from . import secure as _secure
 from . import addons as _addons
-del _shell, _secure, _addons, migration
+del _secure, _addons, migration
