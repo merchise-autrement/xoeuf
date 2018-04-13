@@ -5,7 +5,7 @@
 Beta releases (series 0.X)
 ==========================
 
-Unreleased.  Release 0.29.0
+2018-04-13.  Release 0.29.0
 ---------------------------
 
 - Remove the command 'shell'.  Since Odoo has its own shell now, and we
