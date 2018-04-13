@@ -61,7 +61,7 @@ setup(name=project_name,
           'celery>=4.1.0,<5',
       ],
       extra_requires={
-          'odoo': ['odoo==8.0,==10.0', ],
+          'odoo': ['odoo==10.0,==11.0', ],
           'test': ['hypothesis>=3.7.0,<4', ],
       },
       entry_points="""
