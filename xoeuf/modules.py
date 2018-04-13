@@ -178,15 +178,9 @@ def patch_modules():
 def _get_registry(db_name):
     '''Helper method to get the registry for a `db_name`.'''
     from xoutil.eight import string_types
-    # TODO: Homogenize 'get_registry' in a compatibility module
-    try:
-        from odoo.modules.registry import Registry
-        get_registry = Registry
-    except ImportError:
-        from openerp.modules.registry import Registry, RegistryManager
-        get_registry = RegistryManager.get
+    from odoo.modules.registry import Registry
     if isinstance(db_name, string_types):
-        db = get_registry(db_name)
+        db = Registry(db_name)
     elif isinstance(db_name, Registry):
         db = db_name
     else:
@@ -206,7 +200,7 @@ def get_dangling_modules(db):
     any of the addons paths (not even externally installed).
 
     :param db: Either the name of the database to load or a `registry
-               <xoeuf.osv.registry.Registry>`:class:.
+               <xoeuf.odoo.modules.registry.Registry>`:class:.
 
     :return: A record-set with dangling modules.
 

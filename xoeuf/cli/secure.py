@@ -82,14 +82,8 @@ class Secure(Command):
     @classmethod
     def database_factory(cls, database):
         from xoeuf.odoo import api, SUPERUSER_ID
-        # TODO: Homogenize 'get' in a compatibility module.
-        try:
-            from xoeuf.odoo.modules.registry import RegistryManager
-            get = RegistryManager.get
-        except ImportError:
-            from xoeuf.odoo.modules.registry import Registry
-            get = Registry.get
-        db = get(database)
+        from xoeuf.odoo.modules.registry import Registry
+        db = Registry(database)
         env = api.Environment(db.cursor(), SUPERUSER_ID, {})
         return env['res.users']
 

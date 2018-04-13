@@ -8,6 +8,22 @@ Beta releases (series 0.X)
 Unreleased.  Release 0.29.0
 ---------------------------
 
+- Remove the command 'shell'.  Since Odoo has its own shell now, and we
+  already updated our shell to be the same as its, there's no point in keeping
+  our copy of 'shell'.
+
+- Remove the ``xoeuf.pool`` module.  Its main purpose was to be used in our
+  shell.
+
+- Remove the ``xoeuf.osv.registry`` module.  It was there mainly to support
+  ``xoeuf.pool``.  Other modules now use Odoo's registry
+  (``odoo.modules.registry``) directly.
+
+- Remove the command 'mailgate'.  We no longer use it.  It's best to use a
+  proven Inbox server (e.g dovecot) to safely store the emails.  Calling
+  'mailgate' directly from the MTA may lead to lost of emails, if any error
+  happens in the Python code.
+
 - Add attribute `concrete` to `xoeuf.fields.Monetary`:class:.  MR `!22`_.
 
 - Drop support for Odoo 8 and 9.
