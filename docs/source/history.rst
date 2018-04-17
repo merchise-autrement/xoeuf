@@ -5,6 +5,13 @@
 Beta releases (series 0.X)
 ==========================
 
+2018-04-17. Release 0.30.0
+--------------------------
+
+No user visible changes.  Requires xoutil 2.0 when installed in Python 3 and
+xoutil 1.9 for Python 2.
+
+
 2018-04-13. Release 0.29.1
 --------------------------
 
