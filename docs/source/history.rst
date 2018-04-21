@@ -5,6 +5,22 @@
 Beta releases (series 0.X)
 ==========================
 
+2018-04-21. Release 0.31.0
+--------------------------
+
+Revert the requirement of xoutil 2 when installed in Python 3.  Just allow any
+'xoutil>=1.9.0' and require it to be less than xoutil 2 when not in Python 3.
+
+Roughly::
+
+  'xoutil>=1.9.0,<2.0; python_version < "3.4"'
+  'xoutil>=1.9.0; python_version >= "3.4"'
+
+
+Packages that need to support Python 2 but also want to use xoeuf's latest
+version wouldn't be able to do so otherwise.
+
+
 2018-04-17. Release 0.30.0
 --------------------------
 
