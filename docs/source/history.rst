@@ -8,7 +8,11 @@ Beta releases (series 0.X)
 Unreleased. Release 0.32.0
 --------------------------
 
-Nothing yet.
+- Make model proxy modules more resilient to introspection.  Some tools might
+  try to get the ``__file__`` attribute to generate tracebacks.
+
+  When getting ``__file__`` or ``__module__`` they are not proxied to the
+  underlying model object.
 
 
 2018-04-21. Release 0.31.0
