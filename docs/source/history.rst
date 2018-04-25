@@ -5,7 +5,7 @@
 Beta releases (series 0.X)
 ==========================
 
-Unreleased. Release 0.32.0
+2018-04-25. Release 0.32.0
 --------------------------
 
 - Make model proxy modules more resilient to introspection.  Some tools might
