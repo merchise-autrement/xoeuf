@@ -94,6 +94,8 @@ class ModelProxy(object):
         return dir(models.BaseModel)
 
     def __getattr__(self, attr):
+        if attr in MODULE_ATTRS:
+            return globals()[attr]
         this = self._this
         if this is not None:
             return getattr(this[self.__model], attr)
@@ -123,6 +125,11 @@ def _get_model(name):
 
 
 UPPERS = re.compile('[A-Z]')
+
+
+# Attributes which others might think all modules should have and that
+# shouldn't be delegated to the underlying model.
+MODULE_ATTRS = ('__file__', '__module__', )
 
 
 del memoized_property
