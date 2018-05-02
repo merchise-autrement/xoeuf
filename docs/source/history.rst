@@ -5,7 +5,7 @@
 Beta releases (series 0.X)
 ==========================
 
-Unreleased. Release 0.33.0
+2018-05-02. Release 0.33.0
 --------------------------
 
 - Add `api.from_active_ids`:func:.
