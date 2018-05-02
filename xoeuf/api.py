@@ -98,3 +98,39 @@ def mimic(original):
         return decorator
     else:
         return getattr(_odoo_api, decorator)
+
+
+def from_active_ids(f):
+    '''A `multi` that ensures `self` comes from the active_ids in the context.
+
+    The context key 'active_model' must be set and match the recordset's
+    model.  Otherwise nothing is ensured: `f` with the same recordset.
+
+    If 'active_model' matches the recordset's, and 'active_ids' is not empty,
+    run `f` with the recordset of active ids.
+
+    `f` is automatically decorated with `api.multi`:func:.
+
+    The expected use is in methods from a server action linked to an
+    ir.value.  In those cases `self` is normally the first selected record,
+    but you want it to be run with all selected records.
+
+    '''
+    from functools import wraps
+
+    @multi  # noqa
+    @wraps(f)
+    def inner(self):
+        model = self._name
+        active_model = self.env.context.get('active_model')
+        if active_model == model:
+            active_ids = self.env.context.get('active_ids', ())
+            if active_ids:
+                this = self.browse(active_ids)
+            else:
+                this = self
+            return f(this)
+        else:
+            return f(self)
+
+    return inner
