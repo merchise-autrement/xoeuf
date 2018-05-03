@@ -1,5 +1,6 @@
 ---
 stages:
+  - pre-check
   - test
   - check
   - build
@@ -8,7 +9,7 @@ stages:
 
 check code smells:
   script: merchise_lint2
-  stage: test
+  stage: pre-check
   tags:
     - merchise-lint
   only:
