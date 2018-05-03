@@ -100,11 +100,13 @@ def mimic(original):
         return getattr(_odoo_api, decorator)
 
 
-def from_active_ids(f):
+@_xdecorator
+def from_active_ids(f, leak_context=True):
     '''A `multi` that ensures `self` comes from the active_ids in the context.
 
     The context key 'active_model' must be set and match the recordset's
-    model.  Otherwise nothing is ensured: `f` with the same recordset.
+    model.  If the 'active_model' key does not match the recordset's model,
+    call `f` with the given recordset, i.e act like `api.multi`:func:.
 
     If 'active_model' matches the recordset's, and 'active_ids' is not empty,
     run `f` with the recordset of active ids.
@@ -115,12 +117,20 @@ def from_active_ids(f):
     ir.value.  In those cases `self` is normally the first selected record,
     but you want it to be run with all selected records.
 
+    If `leak_context` is False (the default is True), `f` will run a recordset
+    without 'active_model'.  This allows to call methods of the same model
+    which are decorated with `from_active_ids` but without *leaking* the
+    'active_model'.  Technically we set the 'active_model' key to None.
+
+    .. versionchanged:: 0.34.0 Add the `leak_context` argument.  And allow `f`
+       to take arguments (other than `self`).
+
     '''
     from functools import wraps
 
     @multi  # noqa
     @wraps(f)
-    def inner(self):
+    def inner(self, *args, **kwargs):
         model = self._name
         active_model = self.env.context.get('active_model')
         if active_model == model:
@@ -129,8 +139,11 @@ def from_active_ids(f):
                 this = self.browse(active_ids)
             else:
                 this = self
-            return f(this)
         else:
-            return f(self)
+            this = self
+        if leak_context:
+            return f(this, *args, **kwargs)
+        else:
+            return f(this.with_context(active_model=None), *args, **kwargs)
 
     return inner

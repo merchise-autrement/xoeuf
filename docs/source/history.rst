@@ -8,7 +8,8 @@ Beta releases (series 0.X)
 Unreleased. Release 0.34.0
 --------------------------
 
-Nothing yet.
+- Improve the decorator `api.from_active_ids`:func: to have `leak_context`
+  argument and, also, allow the decorated method to take arguments.
 
 
 2018-05-02. Release 0.33.0
