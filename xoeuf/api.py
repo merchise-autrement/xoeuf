@@ -7,10 +7,7 @@
 # This is free software; you can do what the LICENCE file allows you to.
 #
 
-'''Odoo API bridge.
-
-Eases the task of writing modules which are compatible with both Odoo and
-OpenERP.
+'''Odoo API Extensons.
 
 '''
 
