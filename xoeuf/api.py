@@ -51,6 +51,9 @@ def take_one(func, index=0, warn=True, strict=False):
 
     The arguments are now ignored.
 
+    .. deprecated:: This function was deprecated some time ago.  It' will be
+       removed before the 1.0 release.
+
     '''
     return requires_singleton(func)
 
@@ -102,7 +105,7 @@ def mimic(original):
 
 @_xdecorator
 def from_active_ids(f, leak_context=True):
-    '''A `multi` that ensures `self` comes from the active_ids in the context.
+    '''Decorator that ensures `self` comes from 'active_ids' in the context.
 
     The context key 'active_model' must be set and match the recordset's
     model.  If the 'active_model' key does not match the recordset's model,

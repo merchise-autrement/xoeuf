@@ -13,7 +13,13 @@
    When Odoo is available (i.e is importable [#odoo-v-openerp]_) this is the
    same `openerp.api.Enviroment`:class: class.
 
-.. autofunction:: take_one
+.. autofunction:: take_one(func, index=0, warn=True, strict=False)
+
+.. autofunction:: requires_singleton
+
+.. autofunction:: mimic
+
+.. autofunction:: from_active_ids(f, leak_context=True)
 
 
 
