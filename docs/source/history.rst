@@ -8,7 +8,9 @@ Beta releases (series 0.X)
 Unreleased. Release 0.35.0
 --------------------------
 
-Nothing yet.
+- Change the default of `leak_context` in `xoeuf.api.from_active_ids`:func:.
+  Also `~xoeuf.api.from_active_ids`:func: does not change the value
+  'active_model' in the context.
 
 
 2018-05-03. Release 0.34.0
