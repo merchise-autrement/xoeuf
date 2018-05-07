@@ -16,14 +16,15 @@ Unreleased. Release 0.35.0
 2018-05-03. Release 0.34.0
 --------------------------
 
-- Improve the decorator `api.from_active_ids`:func: to have `leak_context`
-  argument and, also, allow the decorated method to take arguments.
+- Improve the decorator `~xoeuf.api.from_active_ids`:func: to have
+  `leak_context` argument and, also, allow the decorated method to take
+  arguments.
 
 
 2018-05-02. Release 0.33.0
 --------------------------
 
-- Add `api.from_active_ids`:func:.
+- Add `xoeuf.api.from_active_ids`:func:.
 
 
 2018-04-25. Release 0.32.0
