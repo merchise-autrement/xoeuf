@@ -101,7 +101,7 @@ def mimic(original):
 
 
 @_xdecorator
-def from_active_ids(f, leak_context=True):
+def from_active_ids(f, leak_context=False):
     '''Decorator that ensures `self` comes from 'active_ids' in the context.
 
     The context key 'active_model' must be set and match the recordset's
@@ -117,33 +117,49 @@ def from_active_ids(f, leak_context=True):
     ir.value.  In those cases `self` is normally the first selected record,
     but you want it to be run with all selected records.
 
-    If `leak_context` is False (the default is True), `f` will run a recordset
-    without 'active_model'.  This allows to call methods of the same model
-    which are decorated with `from_active_ids` but without *leaking* the
-    'active_model'.  Technically we set the 'active_model' key to None.
+    If `leak_context` is False (the default), calls to other methods decorated
+    with `from_active_ids`:func: won't take the ids from the 'active_ids'.
 
     .. versionchanged:: 0.34.0 Add the `leak_context` argument.  And allow `f`
        to take arguments (other than `self`).
 
+    .. versionchanged:: 0.35.0 The `leak_context` defaults to False, and it
+       does not change the 'active_model' key in the context.
+
     '''
     from functools import wraps
+    from xoutil.context import Context
 
     @multi  # noqa
     @wraps(f)
     def inner(self, *args, **kwargs):
         model = self._name
-        active_model = self.env.context.get('active_model')
-        if active_model == model:
-            active_ids = self.env.context.get('active_ids', ())
-            if active_ids:
-                this = self.browse(active_ids)
+        if _SKIP_ACTIVE_IDS in Context:
+            this = self
+        else:
+            active_model = self.env.context.get('active_model')
+            if active_model == model:
+                active_ids = self.env.context.get('active_ids', ())
+                if active_ids:
+                    this = self.browse(active_ids)
+                else:
+                    this = self
             else:
                 this = self
-        else:
-            this = self
-        if leak_context:
+        with leaking_context(leak_context):
             return f(this, *args, **kwargs)
-        else:
-            return f(this.with_context(active_model=None), *args, **kwargs)
 
     return inner
+
+
+_SKIP_ACTIVE_IDS = object()
+_DONT_SKIP_ACTIVE_IDS = object()
+
+
+def leaking_context(leak=False):
+    from xoutil.context import Context
+
+    if not leak:
+        return Context(_SKIP_ACTIVE_IDS)
+    else:
+        return Context(_DONT_SKIP_ACTIVE_IDS)

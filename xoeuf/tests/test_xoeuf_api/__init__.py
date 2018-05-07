@@ -17,11 +17,11 @@ from xoeuf import api, models
 class APIModel(models.Model):
     _name = 'xoeuf.tests.test_api.model'
 
-    @api.from_active_ids
+    @api.from_active_ids(leak_context=True)
     def return_self_ids(self):
         return list(self.ids)
 
-    @api.from_active_ids(leak_context=False)
+    @api.from_active_ids
     def return_ids_and_call_method(self, ids, methodname):
         return list(self.ids), getattr(self.browse(ids), methodname)()
 
