@@ -5,7 +5,7 @@
 Beta releases (series 0.X)
 ==========================
 
-Unreleased. Release 0.35.0
+2018-05-07. Release 0.35.0
 --------------------------
 
 - Change the default of `leak_context` in `xoeuf.api.from_active_ids`:func:.
