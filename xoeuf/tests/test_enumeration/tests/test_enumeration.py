@@ -16,9 +16,11 @@ import contextlib
 from hypothesis import strategies as s, given
 from xoeuf.odoo.tests.common import TransactionCase
 
-from ..models import COLORS
+from ..models import COLORS, Pax, CARS
 
 colors = s.sampled_from(COLORS.__members__.values())
+cars = s.sampled_from(CARS.__members__.values())
+paxs = s.sampled_from(Pax.__members__.values())
 
 
 class TestEnum(TransactionCase):
@@ -27,15 +29,19 @@ class TestEnum(TransactionCase):
         self.EnumModel = self.env['test.enum.model']
 
     def test_can_set_valid_integers(self):
-        obj = self.EnumModel.create({'color': 1})
+        with force_ready(self.env.registry):
+            obj = self.EnumModel.create({'color': 1, 'car': CARS.FORD, 'pax': 1})
         id = obj.id
         self.EnumModel.invalidate_cache()
         obj = self.EnumModel.browse(id)
         assert obj.color == COLORS.Red, '%r == %r' % (obj.color, COLORS.Red)
+        assert obj.car is CARS.FORD
+        assert obj.pax == 1
 
     @given(colors)
     def test_can_set_valid_values(self, color):
-        obj = self.EnumModel.create({'color': color})
+        with force_ready(self.env.registry):
+            obj = self.EnumModel.create({'color': color})
         id = obj.id
         self.EnumModel.invalidate_cache()
         obj = self.EnumModel.browse(id)
@@ -43,7 +49,8 @@ class TestEnum(TransactionCase):
 
     @given(colors)
     def test_can_set_valid_values_as_integers_and_get_values(self, color):
-        obj = self.EnumModel.create({'color': int(color)})
+        with force_ready(self.env.registry):
+            obj = self.EnumModel.create({'color': int(color)})
         id = obj.id
         self.EnumModel.invalidate_cache()
         obj = self.EnumModel.browse(id)
@@ -57,15 +64,22 @@ class TestEnum(TransactionCase):
             self.EnumModel.create({'color': 10})
 
     def test_cannot_write_invalid_integers(self):
-        obj = self.EnumModel.create({'color': 1})
+        with force_ready(self.env.registry):
+            obj = self.EnumModel.create({'color': 1})
+            with self.assertRaises(ValueError):
+                obj.write({'color': 10})
+
+    def test_cannot_write_invalid_values(self):
+        obj = self.EnumModel.create({'car': CARS.FORD})
         with force_ready(self.env.registry), self.assertRaises(ValueError):
-            obj.write({'color': 10})
+            obj.write({'car': 'any other brand'})
 
 
 @contextlib.contextmanager
 def force_ready(registry):
+    ready = registry.ready
     registry.ready = True
     try:
         yield
     finally:
-        registry.ready = False
+        registry.ready = ready

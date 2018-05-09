@@ -11,9 +11,12 @@ from __future__ import (division as _py3_division,
                         print_function as _py3_print,
                         absolute_import as _py3_abs_import)
 
+from collections import namedtuple
 from xoeuf import signals
 
 __all__ = ['Enumeration']
+
+Member = namedtuple('Member', ('name', 'value'))
 
 
 def Enumeration(enumclass, *args, **kwargs):
@@ -22,9 +25,20 @@ def Enumeration(enumclass, *args, **kwargs):
     The `enumclass` argument must be either an `enumeration class` or a
     fully qualified name of an enumeration class.
 
-    At the DB level the enumeration will be an integer.  This requires that
-    the members of provided enumeration class are instances of `int` (probably
-    via a subclass).
+    The column in the DB will be either of type INTEGER or a CHAR: If **all**
+    values of the enumeration are integers (instances of `int`, possibly by
+    subclassing), the DB column will be a integer.  Otherwise, it will be a
+    char with the *name* of the enumeration's key.
+
+    .. warning:: In a future release we might drop the INTEGER/CHAR
+       variation.
+
+       This is to avoid possible mistakes: you create an enumeration with
+       integers and afterwards you change to other types; that would require a
+       migration step in the DB to convert old integer values to names.
+
+    .. note:: Even in Python 2, we test for instances of `int`.  So values of
+       type `long` won't be considered integers.
 
     Enumeration classes are required to:
 
@@ -36,67 +50,121 @@ def Enumeration(enumclass, *args, **kwargs):
 
     Those rules imply::
 
-       >>> all(getattr(Enumclass, name) is value and isinstance(value, int)
-       ...     for name, value in Enumclass.__members__.items())
+       >>> all(getattr(enumclass, name) is value
+       ...     for name, value in enumclass.__members__.items())
 
-    .. note:: These requirements are compatible with Python 3.4's
-       `enum.IntEnum`:class:
+    These requirements are compatible with Python 3.4's `enum.Enum`:class:
+    However, we don't require that values are instances of the enumeration
+    class.
 
-       Notice, however, that we don't require that members are instances of
-       the enumeration class.  But it won't hurt.
+    .. versionchanged:: 0.36.0 A new generalized enumeration field.  Maintains
+       DB compatibility (does not need migrations), but do require changes in
+       the code.
 
-    .. warning:: The returned field is a subclass of
-                 `xoeuf.fields.Integer`:class: and it's a new API field.
+    .. warning:: To avoid mistakes in the final 1.0 release (or some releases
+       before that) the column DB will always be a CHAR representing the
+       member's name.
 
     '''
     from xoeuf import fields
-    from xoutil.objects import classproperty
+    from xoutil.objects import import_object, classproperty
 
-    class EnumeratedField(fields.Integer, EnumerationField):
+    enumclass = import_object(enumclass)
+    members_integers = all(
+        isinstance(value, int)
+        for value in enumclass.__members__.values()
+    )
+    Base = fields.Integer if members_integers else fields.Char
+
+    class EnumeratedField(Base, _EnumeratedField):
         @classproperty
-        def klass(cls):
-            from xoutil.objects import import_object
-            return import_object(enumclass)
-
-        @classproperty
-        def members_by_value(cls):
-            klass = cls.klass
-            return {v: k for k, v in klass.__members__.items()}
-
-        @classmethod
-        def get_member(cls, value):
-            # `value` is most likely an integer, but since we require
-            # members to be subclasses of `int` they should compare equal.
-            try:
-                return next(v for v in cls.members_by_value if v == value)
-            except StopIteration:
-                raise ValueError('Invalid member of enumeration: %r' % value)
-
-        def convert_to_cache(self, value, record, validate=True):
-            value = super(EnumeratedField, self).convert_to_cache(
-                value, record, validate=validate
-            )
-            return self.get_member(value)
+        def members(cls):
+            return enumclass.__members__
 
         def convert_to_read(self, value, record, use_name_get=True):
-            # None should be False in read.
-            return self.get_member(value) if value is not None else False
+            if value is not None and value is not False:
+                return self.get_member_by_value(value).value
+            else:
+                return value
+
+        if Base is fields.Integer:
+            def convert_to_write(self, value, record):
+                if value:
+                    return self.get_member_by_value(value).value
+                else:
+                    return value
+
+            def convert_to_record(self, value, record, validate=True):
+                if value:
+                    return self.get_member_by_value(value).value
+                elif value == 0:
+                    # Odoo converts NULL to 0 for Integers, we try to find a
+                    # 0-member, and return False if not found.
+                    try:
+                        return self.get_member_by_value(value).value
+                    except ValueError:
+                        return False
+                return value
+        else:
+            def convert_to_write(self, value, record):
+                if value is not None and value is not False:
+                    member = self.get_member_by_value(value)
+                    return member.name
+                else:
+                    return value
+
+            def convert_to_record(self, value, record, validate=True):
+                if value is not None and value is not False:
+                    return self.get_member_by_name(value).value
+                return value
 
     return EnumeratedField(*args, **kwargs)
 
 
-class EnumerationField(object):
-    '''A base clase for enumerated fields.
+class _EnumeratedField(object):
+    @classmethod
+    def get_member_by_value(cls, value):
+        '''Find the enumclass's member that is equal to `value`.'''
+        try:
+            return next(
+                Member(k, v)
+                for k, v in cls.members.items()
+                if v == value
+            )
+        except StopIteration:
+            raise ValueError(
+                'Invalid member %r of enumeration %r' % (value, cls.members)
+            )
 
-    '''
-    pass
+    @classmethod
+    def get_member_by_name(cls, name):
+        '''Find the enumclass's member by name'''
+        try:
+            return Member(name, cls.members[name])
+        except (AttributeError, KeyError):
+            raise ValueError(
+                'Invalid key %r of enumeration %r' % (name, cls.members)
+            )
 
 
 @signals.receiver([signals.pre_create, signals.pre_write], framework=True)
-def _check_enumeration_value(sender, signal, values=None, **kwargs):
-    for fieldname, value in values.items():
+def _select_db_value(sender, signal, values=None, **kwargs):
+    # I expect the clients of Enumeration fields to use `create` and `write`,
+    # without regard of how those values will be actually stored in the DB.
+    # Yet Odoo sends those values right through psycopg2 throat.  So this
+    # pre-writer signals serves the dual purpose of validating the value and
+    # changing that value to it's DB counterpart.
+    #
+    # If the `value` is not a member of the field, raise a ValueError
+    from xoeuf.odoo import fields
+
+    # Notice we iterate over a copy of the dict because we're possibly
+    # changing `values` in the loop.
+    for fieldname, value in dict(values).items():
         field = sender._fields.get(fieldname, None)
-        if isinstance(field, EnumerationField):
-            # The following raises a ValueError if the value is not a member
-            # of the enumeration class
-            field.get_member(value)
+        if isinstance(field, _EnumeratedField):
+            member = field.get_member_by_value(value)
+            if isinstance(field, fields.Integer):
+                values[fieldname] = int(member.value)
+            else:
+                values[fieldname] = member.name
