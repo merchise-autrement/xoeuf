@@ -33,11 +33,7 @@ orm_creator = get_creator
 def get_treeview_action(self, **options):
     '''Return the tree view action for `self`.
 
-    There are two possible signatures:
-
-    - ``get_treeview_action(recordset, **options)``
-
-    If the recordset is a singleton, return the view type 'form' so that it's
+    If the `self` is a singleton, return the view type 'form' so that it's
     easier to see the full object.
 
     :rtype: An action `dict` you can return to the web client.
