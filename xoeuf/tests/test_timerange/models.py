@@ -19,7 +19,7 @@ class TestTimeRange(models.Model):
 
     time_value = fields.Float()
     range_value = fields.TimeRange(
-        t_field='time_value',
+        time_field='time_value',
         selection=[
             ('morning', 'Morning', '6:00', '11:59'),
             ('noon', 'Noon', '12:00', '13:59'),
