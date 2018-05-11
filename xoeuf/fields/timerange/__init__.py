@@ -14,7 +14,7 @@ from datetime import datetime, time
 from functools import partial
 from xoutil.eight import string_types
 
-from odoo.fields import Selection, Datetime, Float
+from odoo.fields import Selection, Datetime, Float, Default as DEFAULT
 
 from xoeuf.tools import normalize_datetime, get_time_from_float
 
@@ -73,24 +73,26 @@ class TimeRange(Selection):
         'readonly': True,
     }
 
-    def __init__(self, time_field, selection, **kwargs):
+    def __init__(self, time_field, selection=DEFAULT, *args, **kwargs):
+        from xoutil.symbols import Unset
         kwargs = dict(
             dict(copy=False, readonly=True),
             **kwargs
         )
         super(TimeRange, self).__init__(
-            time_field=time_field,
+            time_field=time_field or Unset,
             selection=selection,
+            *args,
             **kwargs
         )
+        self.time_field = time_field or Unset
 
     def new(self, **kwargs):
         # Pass original args to the new one.  This ensures that the
         # t_field and selection are present.  In odoo/models.py, Odoo calls
         # this `new()` without arguments to duplicate the fields from parent
         # classes.
-        kwargs = dict(self.args, **kwargs)
-        return super(TimeRange, self).new(**kwargs)
+        return type(self)(self.time_field, **kwargs)
 
     def _setup_regular_base(self, model):
         super(TimeRange, self)._setup_regular_base(model)
