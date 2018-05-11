@@ -18,30 +18,33 @@ from odoo.fields import Selection, Datetime, Float
 from xoeuf.tools import normalize_datetime, get_time_from_float
 from xoeuf.odoo.tools import pycompat
 
-from .utils import TimeRange as TimeRangeObject
+from .utils import TimeRange as _TimeRangeObject
 
 
-Default = object()  # default value for __init__() methods
+class TimeField(_TimeRangeObject):
+    def __init__(self, start, end, name):
+        super(TimeField, self).__init__(start, end)
+        self.name = name
 
 
 class TimeRangeSelector(object):
-    ranges = list()
-
     def __init__(self, choices=[]):
-        self.ranges = [TimeRangeObject(c[2], c[3]) for c in choices]
+        self.ranges = [TimeField(c[2], c[3], c[0]) for c in choices]
 
     def get_range(self, _time=time.min):
         if isinstance(_time, datetime):
-            _time = time.time()
-        for _range in self.ranges:
-            if _time in _range:
-                return _range
-        else:
-            return None
+            _time = _time.time()
+        return next(
+            (_range for _range in self.ranges if _time in _range),
+            None
+        )
 
 
+# TODO: This is not actually a Selection.  In a selection the user is allowed
+# to select a value from a collection.  This is kind of computation of a set
+# from a given classifier.
 class TimeRange(Selection):
-    """A timerange field
+    """A timerange field.
 
     A field calculated from two elements, the field that contains the time of day
     represented either by a 'datetime' or a 'float' and the list of possible
@@ -49,7 +52,7 @@ class TimeRange(Selection):
 
     :param t_field: The name of the column that contains the day time.
 
-    :param selection: specifies the possible values for this field.
+    :param selection: The possible ranges for this field.
         It is given as either a list of tuples
         (``value``, ``string``,``start``,``end``), or a model method, or a
         method name.
@@ -66,26 +69,24 @@ class TimeRange(Selection):
     type = 'timerange'
 
     _slots = {
-        't_field': None,
+        'time_field': None,
         'readonly': True,
     }
 
-    def __init__(self, t_field=Default, selection=Default, string=Default, **kwargs):
-        # Include readonly=True if is not include in kwargs
+    def __init__(self, time_field, selection, **kwargs):
         kwargs = dict(
             dict(copy=False, readonly=True),
             **kwargs
         )
         super(TimeRange, self).__init__(
-            t_field=t_field,
+            time_field=time_field,
             selection=selection,
-            string=string,
             **kwargs
         )
 
     def new(self, **kwargs):
         # Pass original args to the new one.  This ensures that the
-        # tzone_field and dt_field are present.  In odoo/models.py, Odoo calls
+        # t_field and selection are present.  In odoo/models.py, Odoo calls
         # this `new()` without arguments to duplicate the fields from parent
         # classes.
         kwargs = dict(self.args, **kwargs)
@@ -93,13 +94,11 @@ class TimeRange(Selection):
 
     def _setup_regular_base(self, model):
         super(TimeRange, self)._setup_regular_base(model)
-        t_field = self.t_field
-        if not t_field:
-            raise TypeError('TimeRange requires the surrogates fields')
-        field = model._fields[t_field]
+        time_field = self.time_field
+        field = model._fields[time_field]
         if not isinstance(field, (Datetime, Float)):
             raise TypeError(
-                'Type of t_field must be Datetime or Float, '
+                'Type of time_field must be Datetime or Float, '
                 'instead of %s.' % type(field)
             )
 
@@ -108,7 +107,7 @@ class TimeRange(Selection):
         # with a timerange. In such a case, we don't override the
         # compute method.
         super(TimeRange, self)._setup_regular_full(env)
-        self.depends = (self.t_field,)
+        self.depends = (self.time_field,)
         self.compute = self._compute
 
     def _description_selection(self, env):
@@ -141,11 +140,11 @@ class TimeRange(Selection):
         return [value for value, _, _, _ in selection]
 
     def _compute(self, records):
-        t_field = self.t_field
+        time_field = self.time_field
         env = records.env
-        field = records._fields[t_field]
+        field = records._fields[time_field]
         for item in records:
-            t_value = getattr(item, t_field)
+            t_value = getattr(item, time_field)
             if isinstance(field, Datetime):
                 dt = normalize_datetime(t_value)
                 _time = dt.time()
