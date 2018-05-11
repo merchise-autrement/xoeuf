@@ -18,12 +18,7 @@ import logging
 logger = logging.getLogger(__name__)
 del logging
 
-# TODO: @manu, "Odoo 10+" comment implies that next pattern doesn't include
-# all versions.
-try:
-    from openerp import api, models
-except ImportError:  # Odoo 10+
-    from odoo import api, models
+from xoeuf.odoo import api, models
 
 
 class HookDefinition(object):

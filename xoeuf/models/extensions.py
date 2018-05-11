@@ -17,7 +17,6 @@ Operators name has the format ``operator__<name>`` and are converted to
 
 '''
 
-
 from __future__ import (division as _py3_division,
                         print_function as _py3_print,
                         absolute_import)
