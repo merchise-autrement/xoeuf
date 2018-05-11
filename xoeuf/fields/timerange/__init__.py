@@ -6,70 +6,35 @@
 #
 # This is free software; you can do what the LICENCE file allows you to.
 #
-
-
 from __future__ import (division as _py3_division,
                         print_function as _py3_print,
                         absolute_import as _py3_abs_import)
 
 from datetime import datetime, time
-from odoo.fields import Selection, Datetime, Float
-from xoeuf.tools import normalize_datetime, get_time_string, get_time_from_float
-from xoeuf.odoo.tools import pycompat
 from functools import partial
 
-Default = object()                      # default value for __init__() methods
+from odoo.fields import Selection, Datetime, Float
+
+from xoeuf.tools import normalize_datetime, get_time_from_float
+from xoeuf.odoo.tools import pycompat
+
+from .utils import TimeRange as TimeRangeObject
 
 
-def get_time_from_string(value):
-    if isinstance(value, time):
-        return value
-    if isinstance(value, str):
-        try:
-            return datetime.strptime(value, '%H:%M').time()
-        except ValueError:
-            raise ValueError(
-                "Incorrect time value. The format 'hour:minutes' is expected."
-            )
-    else:
-        return None
-
-
-class TimeRangeField(object):
-    name = str()
-    start = time()
-    end = time()
-
-    def __init__(self, name, start, end):
-        self.name = name
-        self.start = get_time_from_string(start)
-        self.end = get_time_from_string(end)
-        if self.start > self.end:
-            raise ValueError('Init must be less than end.')
-
-    def is_in_range(self, value):
-        return self.start <= value <= self.end
-
-    def __repr__(self):
-        start, end = self.start, self.end
-        return 'TimeRange(%r[%r-%r])' % (
-            self.name,
-            get_time_string(start) if start else None,
-            get_time_string(end) if end else None
-        )
+Default = object()  # default value for __init__() methods
 
 
 class TimeRangeSelector(object):
     ranges = list()
 
     def __init__(self, choices=[]):
-        self.ranges = [TimeRangeField(c[0], c[2], c[3]) for c in choices]
+        self.ranges = [TimeRangeObject(c[2], c[3]) for c in choices]
 
     def get_range(self, _time=time.min):
         if isinstance(_time, datetime):
             _time = time.time()
         for _range in self.ranges:
-            if _range.is_in_range(_time):
+            if _time in _range:
                 return _range
         else:
             return None
