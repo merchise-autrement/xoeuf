@@ -12,11 +12,11 @@ from __future__ import (division as _py3_division,
 
 from datetime import datetime, time
 from functools import partial
+from xoutil.eight import string_types
 
 from odoo.fields import Selection, Datetime, Float
 
 from xoeuf.tools import normalize_datetime, get_time_from_float
-from xoeuf.odoo.tools import pycompat
 
 from .utils import TimeRange as _TimeRangeObject
 
@@ -115,7 +115,7 @@ class TimeRange(Selection):
             are translated according to context language
         """
         selection = self.selection
-        if isinstance(selection, pycompat.string_types):
+        if isinstance(selection, string_types):
             return getattr(env[self.model_name], selection)()
         if callable(selection):
             return selection(env[self.model_name])
@@ -133,7 +133,7 @@ class TimeRange(Selection):
     def get_values(self, env):
         """ return a list of the possible values """
         selection = self.selection
-        if isinstance(selection, pycompat.string_types):
+        if isinstance(selection, string_types):
             selection = getattr(env[self.model_name], selection)()
         elif callable(selection):
             selection = selection(env[self.model_name])
