@@ -1,4 +1,9 @@
+include *.cfg
+include *.ini
+
+recursive-include docs *.rst *.txt Makefile *.py
+recursive-include xoeuf *.py *.txt *.rst
+
 graft docs/
 prune docs/build
 prune .tox
-recursive-include xoeuf *.py *.txt *.rst
