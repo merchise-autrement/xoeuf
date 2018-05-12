@@ -44,7 +44,9 @@ except ImportError:
         def __set__(self, instance, value):
             if value in (None, False):
                 if not self.nullable:
-                    raise ValueError('Setting None to a non nullable attribute')
+                    raise ValueError(
+                        'Setting None to a non nullable attribute %r' % self.name
+                    )
             elif isinstance(value, string_types):
                 if '.' in value:
                     fmt = '%H:%M:%S.%f'
