@@ -12,7 +12,7 @@ from __future__ import (division as _py3_division,
 
 import pytest
 from hypothesis import strategies, given
-from datetime import datetime, time
+from datetime import datetime
 
 formats = strategies.sampled_from(
     ('%H:%M', '%H:%M:%S', '%H:%M:%S.%f')
