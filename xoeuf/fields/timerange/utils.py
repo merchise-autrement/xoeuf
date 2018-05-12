@@ -91,8 +91,8 @@ except ImportError:
         def __repr__(self):
             start, end = self.start, self.end
             return 'TimeRange(%r, %r)' % (
-                self._format_time(start) if start else None,
-                self._format_time(end) if end else None
+                self._format_time(start),
+                self._format_time(end)
             )
 
         @staticmethod
