@@ -53,6 +53,33 @@ run all Odoo 11 tests:
   only:
     - branches
 
+.run_tox_tests: &run_tox_tests
+  stage: test
+  script:
+    - export CWD=`pwd`
+    - export ODOO_URI=file://$HOME/src/$ODOO_WORKTREE
+    - cd ~/src/$ODOO_WORKTREE
+    - git pull
+    - cd $CWD
+    - tox -e system-$ODOO_WORKTREE-unit
+  tags:
+    - tox
+    - xoeuf-tester
+
+run tox Odoo 10 tests:
+  <<: *run_tox_tests
+  variables:
+    ODOO_WORKTREE: odoo10
+  only:
+    - branches
+
+run tox Odoo 11 tests:
+  <<: *run_tox_tests
+  variables:
+    ODOO_WORKTREE: odoo11
+  only:
+    - branches
+
 check signature of tag:
   stage: check
   script:
