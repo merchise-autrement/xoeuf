@@ -13,13 +13,20 @@ from __future__ import (division as _py3_division,
 import pytest
 from hypothesis import strategies, given
 
+formats = strategies.sampled_from(
+    ('%H:%M', '%H:%M:%S', '%H:%M:%S.%f')
+)
 
-@given(strategies.times(), strategies.times())
-def test_timerange(t1, t2):
+
+@given(strategies.times(), strategies.times(), formats)
+def test_timerange(t1, t2, fmt):
     from xoeuf.fields.timerange.utils import TimeRange
     start = min(t1, t2)
     end = max(t1, t2)
-    TimeRange(start, end.strftime('%H:%M'))
+
+    timerange = TimeRange(start, end.strftime(fmt))
+    assert eval(repr(timerange)) == timerange
+
     if start != end:
         with pytest.raises(ValueError):
             TimeRange(end, start)

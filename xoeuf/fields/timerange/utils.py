@@ -20,13 +20,15 @@ except ImportError:
         '''A descriptor for a `datetime.time`:class:.
 
         You may set either `datetime.time`:class: values or strings with the
-        HH:MM format.
+        'HH:MM[:SS[.µs]]' format.
 
         `name` is the attribute name.  This is the key in the instance's
         __dict__.
 
         If `nullable` is True (the default).  You may also set, None or False
         (Odoo).
+
+        .. note:: tzinfo is not supported.
 
         '''
         def __init__(self, name, nullable=True):
@@ -44,7 +46,13 @@ except ImportError:
                 if not self.nullable:
                     raise ValueError('Setting None to a non nullable attribute')
             elif isinstance(value, string_types):
-                value = datetime.strptime(value, '%H:%M').time()
+                if '.' in value:
+                    fmt = '%H:%M:%S.%f'
+                elif len(value) > len('99:99'):
+                    fmt = '%H:%M:%S'
+                else:
+                    fmt = '%H:%M'
+                value = datetime.strptime(value, fmt).time()
             elif not isinstance(value, time):
                 raise TypeError(
                     'Either time or str expected. Got %r' % type(value).__name__
@@ -81,9 +89,20 @@ except ImportError:
         def __repr__(self):
             start, end = self.start, self.end
             return 'TimeRange(%r, %r)' % (
-                start.strftime('%H:%M') if start else None,
-                end.strftime('%H:%M') if end else None
+                self._format_time(start) if start else None,
+                self._format_time(end) if end else None
             )
+
+        @staticmethod
+        def _format_time(time):
+            from xoutil.string import cut_suffix
+            return cut_suffix(time.isoformat(), ':00')
+
+        def __eq__(self, other):
+            if isinstance(other, TimeRange):
+                return self.start == other.start and self.end == other.end
+            else:
+                return NotImplemented
 
         # TODO: All others operators like __and__, __lshift__, and the empty
         # timerange, which is only needed to make __and__ closed.
