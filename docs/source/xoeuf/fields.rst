@@ -61,7 +61,7 @@ We don't backport all fields from later Odoo versions to earlier ones, though.
       del _set_result
 
 
-.. autoclass:: Monetary
+.. autoclass:: Monetary(string=None, currency_field='currency_id', **kwargs)
 
 .. autofunction:: TimeSpan
 
@@ -69,4 +69,4 @@ We don't backport all fields from later Odoo versions to earlier ones, though.
 
 .. autofunction:: TimezoneSelection
 
-.. autoclass:: TimeDelta
+.. autoclass:: TimeDelta(string=None, digits=None, **kwargs)
