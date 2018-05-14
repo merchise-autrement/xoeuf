@@ -5,7 +5,7 @@
 Beta releases (series 0.X)
 ==========================
 
-Unreleased. Release 0.36.0
+2018-05-14. Release 0.36.0
 --------------------------
 
 - `xoeuf.fields.Enumeration`:class: was generalized to support any kind of
