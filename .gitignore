@@ -15,6 +15,8 @@ parts/
 
 build/
 dist/
+.cache/
+.hypothesis/
 
 # Python Coverage files generate by nose
 .coverage

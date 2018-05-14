@@ -8,7 +8,11 @@ Beta releases (series 0.X)
 Unreleased. Release 0.36.0
 --------------------------
 
-Nothing yet.
+- `xoeuf.fields.Enumeration`:class: was generalized to support any kind of
+  enumeration.
+
+  The integer DB representation will still works: if all the members of the
+  enumeration class are integers the DB representation will the integer.
 
 
 2018-05-07. Release 0.35.0
