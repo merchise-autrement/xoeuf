@@ -156,4 +156,7 @@ class TimeRange(Selection):
 
     def _compute_selection(self, time_value, env):
         selections = self._description_selection(env)
-        return TimeRangeSelector(selections).get_range(time_value)
+        _range = TimeRangeSelector(selections).get_range(time_value)
+        if _range:
+            return _range.name
+        return False
