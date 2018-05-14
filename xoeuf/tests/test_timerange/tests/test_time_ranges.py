@@ -14,7 +14,7 @@ from __future__ import (division as _py3_division,
 from odoo.tests.common import TransactionCase
 
 Hours = {
-    '3:30': 3.5,
+    '15:30': 15.5,
     '12:00': 12,
     '9:45': 9.75
 }
@@ -27,7 +27,7 @@ class TestTimeRange(TransactionCase):
 
     def test_compute_range(self):
         obj = self.Model.create(dict(
-            time_value=Hours['3:30']
+            time_value=Hours['15:30']
         ))
 
         self.assertEqual(obj.range_value, 'afternoon')
