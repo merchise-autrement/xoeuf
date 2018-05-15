@@ -132,6 +132,30 @@ class TimeRange(Selection):
         else:
             return selection
 
+    def _dict_selection(self, env):
+        """ return a dictionary value:translatable String """
+        selection = self.selection
+        if env.lang and isinstance(selection, list):
+            name = "%s,%s" % (self.model_name, self.name)
+            translate = partial(
+                env['ir.translation']._get_source,
+                name,
+                'selection',
+                env.lang
+            )
+            return {
+                value: translate(label) if label else label
+                for value, label, start, end in selection
+            }
+        if isinstance(selection, string_types):
+            selection = getattr(env[self.model_name], selection)()
+        if callable(selection):
+            selection = selection(env[self.model_name])
+        return {
+            value: label
+            for value, label, start, end in selection
+        }
+
     def get_values(self, env):
         """ return a list of the possible values """
         selection = self.selection
