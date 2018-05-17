@@ -48,3 +48,8 @@ def do_nothing_again(sender, signal, **kwargs):
 @signals.wrapper(signals.write_wrapper, sender='test_signals.signaling_model')
 def wrap_nothing(sender, wrapping, *args, **kwargs):
     yield
+
+
+@signals.receiver(signals.pre_search, sender='test_signals.signaling_model')
+def do_nothing_again_when_searching(sender, signal, **kwargs):
+    pass

@@ -426,6 +426,23 @@ def _make_model_id(sender):
 pre_fields_view_get = Signal('pre_fields_view_get')
 post_fields_view_get = Signal('post_fields_view_get')
 
+pre_search = Signal('pre_search', '''
+Signal sent when the 'search' method is to be invoked.
+
+Arguments:
+
+:param sender: The recordset where the 'search' was called.
+
+:keyword query: The domain (argument `args` in Odoo's search method).
+                This will be `list`:class: that can be modified in place, to
+                customize the search.
+
+:keyword pos_args:  The rest of the positional arguments (if any).
+
+:keyword kw_args: The rest of the keyword arguments (if any).
+
+''')
+
 pre_create = Signal('pre_create', '''
 Signal sent when the 'create' method is to be invoked.
 
@@ -529,6 +546,7 @@ super_fields_view_get = models.Model.fields_view_get
 super_create = models.BaseModel.create
 super_write = models.BaseModel.write
 super_unlink = models.BaseModel.unlink
+super_search = models.BaseModel.search
 
 
 @api.model
@@ -600,7 +618,16 @@ def _write_for_wrappers(self, vals):
     return write_wrapper.perform(_write_for_signals, self, vals)
 
 
+@api.model
+@api.returns(*super_search._returns)
+def _search_for_signals(self, args, *pos_args, **kw_args):
+    query = list(args)
+    pre_search.send(self, query=query, pos_args=pos_args, kw_args=kw_args)
+    return super_search(self, query, *pos_args, **kw_args)
+
+
 models.Model.fields_view_get = _fvg_for_signals
 models.BaseModel.create = _create_for_signals
 models.BaseModel.unlink = _unlink_for_signals
 models.BaseModel.write = _write_for_wrappers
+models.BaseModel.search = _search_for_signals
