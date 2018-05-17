@@ -24,6 +24,9 @@ paxs = s.sampled_from(Pax.__members__.values())
 
 
 class TestEnum(TransactionCase):
+    at_install = False
+    post_install = not at_install
+
     def setUp(self):
         super(TestEnum, self).setUp()
         self.EnumModel = self.env['test.enum.model']
@@ -73,6 +76,36 @@ class TestEnum(TransactionCase):
         obj = self.EnumModel.create({'car': CARS.FORD})
         with force_ready(self.env.registry), self.assertRaises(ValueError):
             obj.write({'car': 'any other brand'})
+
+    def test_search_non_integer(self):
+        with force_ready(self.env.registry):
+            obj = self.EnumModel.create({'car': CARS.FORD})
+            self.EnumModel.invalidate_cache()
+            self.assertEqual(
+                self.EnumModel.search([('car', '=', CARS.FORD)]),
+                obj
+            )
+            self.assertEqual(
+                self.EnumModel.search([('car', '=', CARS.CHEV)], count=True),
+                0
+            )
+            self.assertEqual(
+                self.EnumModel.search([('car', 'in', (CARS.FORD, CARS.CHEV))]),
+                obj
+            )
+            with self.assertRaises(ValueError):
+                self.EnumModel.search([('car', '=', 1)])
+
+    def test_search_integer(self):
+        with force_ready(self.env.registry):
+            obj = self.EnumModel.create({'color': COLORS.Red})
+            self.EnumModel.invalidate_cache()
+            self.assertEqual(
+                self.EnumModel.search([('color', '=', 1)]),
+                obj
+            )
+            with self.assertRaises(ValueError):
+                self.EnumModel.search([('color', '=', 10)])
 
 
 @contextlib.contextmanager

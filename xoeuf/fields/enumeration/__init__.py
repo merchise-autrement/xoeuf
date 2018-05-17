@@ -12,6 +12,8 @@ from __future__ import (division as _py3_division,
                         absolute_import as _py3_abs_import)
 
 from collections import namedtuple
+from xoutil.eight import string_types
+
 from xoeuf import signals
 
 __all__ = ['Enumeration']
@@ -156,15 +158,39 @@ def _select_db_value(sender, signal, values=None, **kwargs):
     # changing that value to it's DB counterpart.
     #
     # If the `value` is not a member of the field, raise a ValueError
-    from xoeuf.odoo import fields
-
+    #
     # Notice we iterate over a copy of the dict because we're possibly
     # changing `values` in the loop.
     for fieldname, value in dict(values).items():
         field = sender._fields.get(fieldname, None)
-        if isinstance(field, _EnumeratedField):
-            member = field.get_member_by_value(value)
-            if isinstance(field, fields.Integer):
-                values[fieldname] = int(member.value)
-            else:
-                values[fieldname] = member.name
+        values[fieldname] = _get_db_value(field, value)
+
+
+@signals.receiver(signals.pre_search, framework=True)
+def _rewrite_db_values(sender, signal, query=None, **kwargs):
+    for index, query_part in enumerate(query):
+        if not isinstance(query_part, string_types):
+            fieldname, operator, operands = query_part
+            field = sender._fields.get(fieldname, None)
+            if isinstance(field, _EnumeratedField):
+                if operator in ('=', '!='):
+                    values = _get_db_value(field, operands)
+                elif operator in ('in', 'not in'):
+                    values = [_get_db_value(field, o) for o in operands]
+                else:
+                    raise TypeError(
+                        'Unsupported operator %r for an enumeration field' % operator
+                    )
+                query[index] = (fieldname, operator, values)
+
+
+def _get_db_value(field, value):
+    from xoeuf.odoo import fields
+    if isinstance(field, _EnumeratedField):
+        member = field.get_member_by_value(value)
+        if isinstance(field, fields.Integer):
+            return int(member.value)
+        else:
+            return member.name
+    else:
+        return value
