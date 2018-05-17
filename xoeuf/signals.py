@@ -19,6 +19,7 @@ logger = logging.getLogger(__name__)
 del logging
 
 from xoeuf.odoo import api, models
+from xoutil.objects import temp_attributes
 
 
 class HookDefinition(object):
@@ -253,7 +254,8 @@ class Hook(object):
         if module and env:
             mm = env['ir.module.module'].sudo()
             query = [('state', '=', 'installed'), ('name', '=', module)]
-            return bool(mm.search(query))
+            with _no_signalling(pre_search):
+                return bool(mm.search(query))
         else:
             return True
 
@@ -331,6 +333,16 @@ def wrapper(wrapping, **kwargs):
     return receiver(wrapping, **kwargs)
 
 
+def _no_signalling(signal):
+    '''Context manager that temporarily stop the signal from being called.
+
+    Basically, we disconnect all receivers from `signal` within the scope of
+    the context manager.
+
+    '''
+    return temp_attributes(signal, {'hooks': []})
+
+
 def mock_replace(hook, func, **replacement_attrs):
     '''Mock a hook.
 
@@ -389,7 +401,8 @@ def mock_replace(hook, func, **replacement_attrs):
         if module and env:
             mm = env['ir.module.module'].sudo()
             query = [('state', '=', 'installed'), ('name', '=', module)]
-            return bool(mm.search(query))
+            with _no_signalling(pre_search):
+                return bool(mm.search(query))
         else:
             return True
 
