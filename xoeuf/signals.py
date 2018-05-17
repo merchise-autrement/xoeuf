@@ -254,7 +254,7 @@ class Hook(object):
         if module and env:
             mm = env['ir.module.module'].sudo()
             query = [('state', '=', 'installed'), ('name', '=', module)]
-            with _no_signalling(pre_search):
+            with _no_signalling(pre_search), _no_signalling(post_search):
                 return bool(mm.search(query))
         else:
             return True
@@ -401,7 +401,7 @@ def mock_replace(hook, func, **replacement_attrs):
         if module and env:
             mm = env['ir.module.module'].sudo()
             query = [('state', '=', 'installed'), ('name', '=', module)]
-            with _no_signalling(pre_search):
+            with _no_signalling(pre_search), _no_signalling(post_search):
                 return bool(mm.search(query))
         else:
             return True
@@ -448,13 +448,35 @@ Arguments:
 
 :keyword query: The domain (argument `args` in Odoo's search method).
                 This will be `list`:class: that can be modified in place, to
-                customize the search.
+                customize the search.  But notice that the order in which the
+                receivers are called is not defined.
 
 :keyword pos_args:  The rest of the positional arguments (if any).
 
 :keyword kw_args: The rest of the keyword arguments (if any).
 
 ''')
+
+
+post_search = Signal('post_search', '''
+Signal sent after the 'search' method was invoked.
+
+Arguments:
+
+:param sender: The recordset where the 'search' was called.
+
+:keyword query: The domain (argument `args` in Odoo's search method).
+                This will be `list`:class: that can be modified in place, to
+                customize the search.
+
+:keyword pos_args:  The rest of the positional arguments (if any).
+
+:keyword kw_args: The rest of the keyword arguments (if any).
+
+:keyword result: The result of the actual 'search'.
+
+''')
+
 
 pre_create = Signal('pre_create', '''
 Signal sent when the 'create' method is to be invoked.
@@ -636,7 +658,9 @@ def _write_for_wrappers(self, vals):
 def _search_for_signals(self, args, *pos_args, **kw_args):
     query = list(args)
     pre_search.send(self, query=query, pos_args=pos_args, kw_args=kw_args)
-    return super_search(self, query, *pos_args, **kw_args)
+    result = super_search(self, query, *pos_args, **kw_args)
+    post_search.safe_send(self, query=query, pos_args=pos_args, kw_args=kw_args, result=result)
+    return result
 
 
 models.Model.fields_view_get = _fvg_for_signals
