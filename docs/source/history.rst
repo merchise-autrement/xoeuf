@@ -5,7 +5,7 @@
 Beta releases (series 0.X)
 ==========================
 
-Unreleased.  Release 0.37.0
+2018-05-17.  Release 0.37.0
 ---------------------------
 
 - Add `xoeuf.fields.One2one`:class:
