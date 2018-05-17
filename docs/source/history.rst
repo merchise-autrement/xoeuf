@@ -10,6 +10,12 @@ Unreleased.  Release 0.37.0
 
 - Add `xoeuf.fields.One2one`:class:
 
+- Add `xoeuf.signals.pre_search`:object: and
+  `xoeuf.signals.post_search`:object:.
+
+- Allow to search over fields defined with an `enumeration
+  <xoeuf.fields.Enumeration>`:class:
+
 
 2018-05-14. Release 0.36.0
 --------------------------
