@@ -659,7 +659,8 @@ def _search_for_signals(self, args, *pos_args, **kw_args):
     query = list(args)
     pre_search.send(self, query=query, pos_args=pos_args, kw_args=kw_args)
     result = super_search(self, query, *pos_args, **kw_args)
-    post_search.safe_send(self, query=query, pos_args=pos_args, kw_args=kw_args, result=result)
+    post_search.safe_send(self, query=query, pos_args=pos_args, kw_args=kw_args,
+                          result=result)
     return result
 
 
