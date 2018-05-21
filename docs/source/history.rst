@@ -9,7 +9,7 @@ Unreleased.  Release 0.38.0
 ---------------------------
 
 - Refactor `xoeuf.fields.Enumeration`:class: to reduce overhead in models not
-  using it.
+  using it.  No visible changes in the API.
 
 
 2018-05-17.  Release 0.37.0
