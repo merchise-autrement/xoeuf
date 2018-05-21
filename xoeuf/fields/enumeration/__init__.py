@@ -14,7 +14,7 @@ from __future__ import (division as _py3_division,
 from collections import namedtuple
 from xoutil.eight import string_types
 
-from xoeuf import signals
+from xoeuf import models, api
 
 __all__ = ['Enumeration']
 
@@ -83,6 +83,21 @@ def Enumeration(enumclass, *args, **kwargs):
         def members(cls):
             return enumclass.__members__
 
+        def setup_full(self, model):
+            # Injects a new class in the model MRO, so that we can guarantee
+            # the expectation about the methods create, write and search.
+            #
+            # The alternative would be to implement pre_save and pre_search
+            # receivers.  But that would run for ALL models regardless of the
+            # presence of Enumeration fields.  Also, we need to rewrite the
+            # argument in the 'search' method, and signals are designed for
+            # such use case (although they work at the moment).
+            #
+            cls = type(model)
+            if EnumerationAdapter not in cls.__bases__:
+                cls.__bases__ = (EnumerationAdapter, ) + cls.__bases__
+            return super(EnumeratedField, self).setup_full(model)
+
         def convert_to_read(self, value, record, use_name_get=True):
             if value is not None and value is not False:
                 return self.get_member_by_value(value).value
@@ -123,6 +138,54 @@ def Enumeration(enumclass, *args, **kwargs):
     return EnumeratedField(*args, **kwargs)
 
 
+class EnumerationAdapter(object):
+    'Adapt the create/write/search method to Enumeration fields.'
+    # See the note in setup_full above.
+
+    # Odoo 11 requires all bases to have these attributes.  See
+    # odoo/models.py, method _build_model_attributes in lines 515-555 (at the
+    # time of writing).
+    _table = None
+    _description = None
+    _sequence = None
+    _inherits = _depends = {}
+    _sql_constraints = []
+    _constraints = []
+
+    @api.model
+    @api.returns(*models.BaseModel.search._returns)
+    def search(self, args, *pos_args, **kwargs):
+        for index, query_part in enumerate(args):
+            if not isinstance(query_part, string_types):
+                fieldname, operator, operands = query_part
+                field = self._fields.get(fieldname, None)
+                if isinstance(field, _EnumeratedField):
+                    if operator in ('=', '!='):
+                        values = _get_db_value(field, operands)
+                    elif operator in ('in', 'not in'):
+                        values = [_get_db_value(field, o) for o in operands]
+                    else:
+                        raise TypeError(
+                            'Unsupported operator %r for an enumeration field' % operator
+                        )
+                    args[index] = (fieldname, operator, values)
+        return super(EnumerationAdapter, self).search(args, *pos_args, **kwargs)
+
+    @api.model
+    def create(self, values):
+        for fieldname, value in dict(values).items():
+            field = self._fields.get(fieldname, None)
+            values[fieldname] = _get_db_value(field, value)
+        return super(EnumerationAdapter, self).create(values)
+
+    @api.multi
+    def write(self, values):
+        for fieldname, value in dict(values).items():
+            field = self._fields.get(fieldname, None)
+            values[fieldname] = _get_db_value(field, value)
+        return super(EnumerationAdapter, self).write(values)
+
+
 class _EnumeratedField(object):
     @classmethod
     def get_member_by_value(cls, value):
@@ -147,41 +210,6 @@ class _EnumeratedField(object):
             raise ValueError(
                 'Invalid key %r of enumeration %r' % (name, cls.members)
             )
-
-
-@signals.receiver([signals.pre_create, signals.pre_write], framework=True)
-def _select_db_value(sender, signal, values=None, **kwargs):
-    # I expect the clients of Enumeration fields to use `create` and `write`,
-    # without regard of how those values will be actually stored in the DB.
-    # Yet Odoo sends those values right through psycopg2 throat.  So this
-    # pre-writer signals serves the dual purpose of validating the value and
-    # changing that value to it's DB counterpart.
-    #
-    # If the `value` is not a member of the field, raise a ValueError
-    #
-    # Notice we iterate over a copy of the dict because we're possibly
-    # changing `values` in the loop.
-    for fieldname, value in dict(values).items():
-        field = sender._fields.get(fieldname, None)
-        values[fieldname] = _get_db_value(field, value)
-
-
-@signals.receiver(signals.pre_search, framework=True)
-def _rewrite_db_values(sender, signal, query=None, **kwargs):
-    for index, query_part in enumerate(query):
-        if not isinstance(query_part, string_types):
-            fieldname, operator, operands = query_part
-            field = sender._fields.get(fieldname, None)
-            if isinstance(field, _EnumeratedField):
-                if operator in ('=', '!='):
-                    values = _get_db_value(field, operands)
-                elif operator in ('in', 'not in'):
-                    values = [_get_db_value(field, o) for o in operands]
-                else:
-                    raise TypeError(
-                        'Unsupported operator %r for an enumeration field' % operator
-                    )
-                query[index] = (fieldname, operator, values)
 
 
 def _get_db_value(field, value):
