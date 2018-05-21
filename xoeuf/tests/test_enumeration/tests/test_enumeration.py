@@ -96,6 +96,11 @@ class TestEnum(TransactionCase):
             with self.assertRaises(ValueError):
                 self.EnumModel.search([('car', '=', 1)])
 
+    def test_performance(self):
+        from xoeuf.fields.enumeration import EnumerationAdapter
+        self.assertIn(EnumerationAdapter, type(self.EnumModel).mro())
+        self.assertNotIn(EnumerationAdapter, type(self.env['res.partner']).mro())
+
     def test_search_integer(self):
         with force_ready(self.env.registry):
             obj = self.EnumModel.create({'color': COLORS.Red})
