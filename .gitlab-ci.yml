@@ -158,6 +158,8 @@ build documentation:
     - tags
 
 publish in our rtd:
+  variables:
+    GIT_STRATEGY: none
   stage: publish
   script:
     - scp $CI_PROJECT_NAME-$CI_COMMIT_SHA.tar.bz2 rtd@docs.lahavane.com:.
