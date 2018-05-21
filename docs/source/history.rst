@@ -8,7 +8,8 @@ Beta releases (series 0.X)
 Unreleased.  Release 0.38.0
 ---------------------------
 
-Nothing yet.
+- Refactor `xoeuf.fields.Enumeration`:class: to reduce overhead in models not
+  using it.
 
 
 2018-05-17.  Release 0.37.0

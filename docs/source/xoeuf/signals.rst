@@ -263,6 +263,44 @@ Signals
    :keyword result:  The result from the unlink method.
 
 
+.. object:: pre_search
+
+   Signal sent when the 'search' method is to be invoked.
+
+   Arguments:
+
+   :param sender: The recordset where the 'search' was called.
+
+   :keyword query: The domain (argument `args` in Odoo's search method).
+                   This will be `list`:class: that can be modified in place, to
+                   customize the search.  But notice that the order in which the
+                   receivers are called is not defined.
+
+   :keyword pos_args:  The rest of the positional arguments (if any).
+
+   :keyword kw_args: The rest of the keyword arguments (if any).
+
+
+.. object:: post_search
+
+   Signal sent after the 'search' method was invoked.
+
+   Arguments:
+
+   :param sender: The recordset where the 'search' was called.
+
+   :keyword query: The domain (argument `args` in Odoo's search method).
+                   This will be `list`:class: that can be modified in place, to
+                   customize the search.
+
+   :keyword pos_args:  The rest of the positional arguments (if any).
+
+   :keyword kw_args: The rest of the keyword arguments (if any).
+
+   :keyword result: The result of the actual 'search'.
+
+
+
 Wrappings
 =========
 
