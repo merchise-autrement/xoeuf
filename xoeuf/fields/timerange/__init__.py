@@ -94,8 +94,8 @@ class TimeRange(Selection):
         # classes.
         return type(self)(self.time_field, **kwargs)
 
-    def _setup_regular_base(self, model):
-        super(TimeRange, self)._setup_regular_base(model)
+    def setup_full(self, model):
+        super(TimeRange, self).setup_full(model)
         time_field = self.time_field
         field = model._fields[time_field]
         if not isinstance(field, (Datetime, Float)):
