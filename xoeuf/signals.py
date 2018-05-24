@@ -352,6 +352,9 @@ def mock_replace(hook, func, **replacement_attrs):
           # do things that should trigger post_create
           assert mock.called
 
+    If the `receiver` is not connected to the  to `hook` it will still return
+    a mock, that should never be called.
+
     '''
     import contextlib
     from xoutil.symbols import Undefined

@@ -20,22 +20,17 @@ class SignalingModel(models.Model):
 
 
 @signals.receiver(signals.post_save, sender='test_signals.signaling_model')
-def do_nothing(sender, signal, **kwargs):
-    pass
-
-
-@signals.receiver(signals.post_save, sender='test_signals.signaling_model')
-def do_nothing2(sender, signal, **kwargs):
+def post_save_receiver(sender, signal, **kwargs):
     pass
 
 
 @signals.receiver(signals.post_save)
-def do_nothing3(sender, signal, **kwargs):
+def post_save_receiver_all_models(sender, signal, **kwargs):
     pass
 
 
 @signals.receiver(signals.pre_save, sender='test_signals.signaling_model')
-def do_nothing_again(sender, signal, **kwargs):
+def pre_save_receiver(sender, signal, **kwargs):
     pass
 
 
@@ -45,5 +40,5 @@ def wrap_nothing(sender, wrapping, *args, **kwargs):
 
 
 @signals.receiver(signals.pre_search, sender='test_signals.signaling_model')
-def do_nothing_again_when_searching(sender, signal, **kwargs):
+def pre_search_receiver(sender, signal, **kwargs):
     pass
