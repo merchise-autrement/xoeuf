@@ -5,7 +5,7 @@
 Beta releases (series 0.X)
 ==========================
 
-Unreleased.  Release 0.39.0
+2018-05-24.  Release 0.39.0
 ---------------------------
 
 - Fix bug in `xoeuf.signals.pre_fields_view_get`:obj: and
