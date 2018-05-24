@@ -8,7 +8,9 @@ Beta releases (series 0.X)
 Unreleased.  Release 0.39.0
 ---------------------------
 
-Nothing yet.
+- Fix bug in `xoeuf.signals.pre_fields_view_get`:obj: and
+  `xoeuf.signals.post_fields_view_get`:obj:, which by-passed
+  ``fields_view_get`` in abstract models.
 
 
 2018-05-21.  Release 0.38.0
@@ -23,8 +25,7 @@ Nothing yet.
 
 - Add `xoeuf.fields.One2one`:class:
 
-- Add `xoeuf.signals.pre_search`:object: and
-  `xoeuf.signals.post_search`:object:.
+- Add `xoeuf.signals.pre_search`:obj: and `xoeuf.signals.post_search`:obj:.
 
 - Allow to search over fields defined with an `enumeration
   <xoeuf.fields.Enumeration>`:class:
