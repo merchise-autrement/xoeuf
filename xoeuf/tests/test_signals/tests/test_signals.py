@@ -17,12 +17,14 @@ from xoeuf.signals import (
     post_create,
     pre_create,
     write_wrapper,
+    pre_fields_view_get,
 )
 from xoeuf.odoo.addons.test_signals.models import (
     post_save_receiver,
     post_save_receiver_all_models,
     pre_save_receiver,
     wrap_nothing,
+    pre_fvg_receiver,
 )
 
 
@@ -73,3 +75,10 @@ class TestXoeufSignals(TransactionCase):
             partner.email = 'a@b.c'
             self.assertFalse(mock.called)
             self.assertTrue(mock_all.called)
+
+    def test_fvg_in_abstract_models(self):
+        who = self.Model.create(dict(name='My name'))
+        with mock_replace(pre_fields_view_get, pre_fvg_receiver) as mock:
+            result = who.fields_view_get()
+            self.assertTrue(mock.called)
+            self.assertIn('fgv-is-present', result['arch'])
