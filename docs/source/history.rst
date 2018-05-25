@@ -5,6 +5,13 @@
 Beta releases (series 0.X)
 ==========================
 
+2018-05-25. Release 0.40.0
+--------------------------
+
+- Fix issue with XMLRPC clients when calling 'search'.  The signals were
+  masking the 'search' signature.
+
+
 2018-05-24.  Release 0.39.0
 ---------------------------
 
