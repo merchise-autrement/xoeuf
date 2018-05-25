@@ -454,9 +454,8 @@ Arguments:
                 customize the search.  But notice that the order in which the
                 receivers are called is not defined.
 
-:keyword pos_args:  The rest of the positional arguments (if any).
-
-:keyword kw_args: The rest of the keyword arguments (if any).
+:keyword kw_args: The rest of the arguments to 'search'.  We make it a dict as
+                  if called by keyword.
 
 ''')
 
@@ -472,9 +471,8 @@ Arguments:
                 This will be `list`:class: that can be modified in place, to
                 customize the search.
 
-:keyword pos_args:  The rest of the positional arguments (if any).
-
-:keyword kw_args: The rest of the keyword arguments (if any).
+:keyword kw_args: The rest of the arguments to 'search'.  We make it a dict as
+                  if called by keyword.
 
 :keyword result: The result of the actual 'search'.
 
@@ -640,12 +638,12 @@ def _write_for_wrappers(self, vals):
 
 @api.model
 @api.returns(*super_search._returns)
-def _search_for_signals(self, args, *pos_args, **kw_args):
+def _search_for_signals(self, args, offset=0, limit=None, order=None, count=False):
     query = list(args)
-    pre_search.send(self, query=query, pos_args=pos_args, kw_args=kw_args)
-    result = super_search(self, query, *pos_args, **kw_args)
-    post_search.safe_send(self, query=query, pos_args=pos_args, kw_args=kw_args,
-                          result=result)
+    kw_args = dict(offset=offset, limit=limit, order=order, count=count)
+    pre_search.send(self, query=query, kw_args=kw_args)
+    result = super_search(self, query, **kw_args)
+    post_search.safe_send(self, query=query, kw_args=kw_args, result=result)
     return result
 
 
