@@ -11,6 +11,8 @@ from __future__ import (division as _py3_division,
                         print_function as _py3_print,
                         absolute_import as _py3_abs_import)
 
+from xoutil.future.codecs import safe_decode
+
 from xoeuf.odoo.tests.common import TransactionCase
 from xoeuf.signals import (
     mock_replace,
@@ -81,4 +83,4 @@ class TestXoeufSignals(TransactionCase):
         with mock_replace(pre_fields_view_get, pre_fvg_receiver) as mock:
             result = who.fields_view_get()
             self.assertTrue(mock.called)
-            self.assertIn('fgv-is-present', result['arch'])
+            self.assertIn('fgv-is-present', safe_decode(result['arch'], 'utf-8'))
