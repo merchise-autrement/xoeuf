@@ -8,9 +8,6 @@ python:
   - 3.6
 
 env:
-  - TOX_ENV=odoo8-unit
-    ODOO_URI=https://github.com/merchise-autrement/odoo.git
-
   - TOX_ENV=odoo10-unit
     ODOO_URI=https://github.com/merchise-autrement/odoo.git
 
@@ -19,10 +16,6 @@ env:
 
 matrix:
   exclude:
-
-    - env: TOX_ENV=odoo8-unit
-      python: 3.6
-
     - env: TOX_ENV=odoo10-unit
       python: 3.6
 
