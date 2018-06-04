@@ -5,6 +5,13 @@
 Beta releases (series 0.X)
 ==========================
 
+2018-06-04. Release 0.41.0
+--------------------------
+
+- Don't force value to `int`:class: in `xoeuf.fields.Enumeration`:class:.
+  This allows customized `create` to get the *real* value from the
+  enumeration (and it will be an integer anyways).
+
 2018-05-25. Release 0.40.0
 --------------------------
 
