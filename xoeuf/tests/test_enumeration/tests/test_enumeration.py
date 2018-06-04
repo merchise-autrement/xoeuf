@@ -16,11 +16,12 @@ import contextlib
 from hypothesis import strategies as s, given
 from xoeuf.odoo.tests.common import TransactionCase
 
-from ..models import COLORS, Pax, CARS
+from ..models import COLORS, Pax, CARS, WORK_TYPE
 
 colors = s.sampled_from(COLORS.__members__.values())
 cars = s.sampled_from(CARS.__members__.values())
 paxs = s.sampled_from(Pax.__members__.values())
+wtypes = s.sampled_from(WORK_TYPE.__members__.values())
 
 
 class TestEnum(TransactionCase):
@@ -111,6 +112,12 @@ class TestEnum(TransactionCase):
             )
             with self.assertRaises(ValueError):
                 self.EnumModel.search([('color', '=', 10)])
+
+    @given(wtypes)
+    def test_intsubclasses_values(self, work_type):
+        from xoeuf.fields.enumeration import _get_db_value
+        value = _get_db_value(self.EnumModel._fields['wtype'], work_type)
+        self.assertIs(value, work_type)
 
 
 @contextlib.contextmanager

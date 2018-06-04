@@ -217,7 +217,7 @@ def _get_db_value(field, value):
     if isinstance(field, _EnumeratedField):
         member = field.get_member_by_value(value)
         if isinstance(field, fields.Integer):
-            return int(member.value)
+            return member.value
         else:
             return member.name
     else:

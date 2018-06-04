@@ -32,8 +32,19 @@ class Pax(object):
     __members__ = {'single': single, 'double': double}
 
 
+class WorkType(int):
+    pass
+
+
+class WORK_TYPE(object):
+    easy = WorkType(0)
+    hard = WorkType(1)
+    __members__ = {'easy': easy, 'hard': hard}
+
+
 class Model(models.Model):
     _name = 'test.enum.model'
     color = fields.Enumeration(COLORS)
     car = fields.Enumeration(CARS)
     pax = fields.Enumeration(Pax)
+    wtype = fields.Enumeration(WORK_TYPE, default=WORK_TYPE.hard)
