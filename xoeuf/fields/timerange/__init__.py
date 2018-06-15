@@ -46,6 +46,9 @@ class TimeRangeSelector(object):
 class TimeRange(Selection):
     """A timerange field.
 
+    .. warning:: This field is still experimental and may heavily changed or
+       removed.
+
     A field calculated from two elements, the field that contains the time of day
     represented either by a 'datetime' or a 'float' and the list of possible
     values of time ranges in a day.
