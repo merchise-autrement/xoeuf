@@ -13,6 +13,8 @@ Unreleased.  Release 0.42.0
 - Allow to use the all ORM human symbols
   (`~xoeuf.osv.orm.CREATE_RELATED`:func:, etc) in XML files.
 
+- Add experimental field `xoeuf.fields.TimeRange`:class:.
+
 2018-06-04. Release 0.41.0
 --------------------------
 

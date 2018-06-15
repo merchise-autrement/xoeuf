@@ -72,3 +72,5 @@ We don't backport all fields from later Odoo versions to earlier ones, though.
 .. autoclass:: TimeDelta(string=None, digits=None, **kwargs)
 
 .. autoclass:: One2one
+
+.. autoclass:: TimeRange(time_field, selection, *args, **kwargs)
