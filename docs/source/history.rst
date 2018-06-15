@@ -5,7 +5,7 @@
 Beta releases (series 0.X)
 ==========================
 
-Unreleased.  Release 0.42.0
+2018-06-15.  Release 0.42.0
 ---------------------------
 
 - Create the utility `xoeuf.tools.add_symbols_to_xmls`:func:.
