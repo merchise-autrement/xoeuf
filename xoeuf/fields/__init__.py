@@ -22,3 +22,4 @@ from .enumeration import Enumeration     # noqa: reexport
 from .timezone import TimezoneSelection  # noqa: reexport
 from .timedelta import TimeDelta         # noqa: reexport
 from .one2one import One2one             # noqa: reexport
+from .timerange import TimeRange         # noqa: reexport
