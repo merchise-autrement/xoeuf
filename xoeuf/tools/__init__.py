@@ -377,6 +377,8 @@ def add_symbols_to_xmls(**symbols):
     We keep a global dict of symbols, and only replace the `safe_eval`
     function once and update the global dict
 
+    .. versionadded:: 0.42.0
+
     '''
     _SAFE_EVAL_SYMBOLS.update(symbols)
 
