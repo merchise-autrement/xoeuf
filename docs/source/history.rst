@@ -8,6 +8,8 @@ Beta releases (series 0.X)
 Unreleased.  Release 0.42.0
 ---------------------------
 
+- Create the utility `xoeuf.tools.add_symbols_to_xmls`:func:.
+
 - Allow to use the all ORM human symbols
   (`~xoeuf.osv.orm.CREATE_RELATED`:func:, etc) in XML files.
 

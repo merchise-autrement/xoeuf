@@ -4,4 +4,4 @@
 
 .. automodule:: xoeuf.tools
    :members: normalize_datestr, normalize_datetimestr, parse_datetime,
-	     parse_date, normalize_date, normalize_datetime
+	     parse_date, normalize_date, normalize_datetime, add_symbols_to_xmls

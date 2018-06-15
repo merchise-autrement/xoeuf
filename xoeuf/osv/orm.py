@@ -14,7 +14,9 @@ from __future__ import (division as _py3_division,
                         print_function as _py3_print,
                         absolute_import)
 
+from xoeuf.tools import add_symbols_to_xmls
 from xoeuf.models import get_modelname as _get_modelname
+
 from xoutil.deprecation import deprecated
 
 get_modelname = deprecated('xoeuf.models.get_modelname')(_get_modelname)
@@ -109,22 +111,12 @@ UNLINKALL_RELATED = _Command(5, lambda: (5, ))
 REPLACEWITH_RELATED = _Command(6, lambda *ids: (6, 0, list(ids)))
 
 
-# HACK to make TERM_RELATIONSHIP_KIND available in XMLs.
-from xoeuf.odoo.tools import convert
-_safe_eval = convert.safe_eval
-
-
-def safe_eval(expr, ctx={}):
-    ctx.update(
-        CREATE_RELATED=CREATE_RELATED,
-        UPDATE_RELATED=UPDATE_RELATED,
-        REMOVE_RELATED=REMOVE_RELATED,
-        FORGET_RELATED=FORGET_RELATED,
-        LINK_RELATED=LINK_RELATED,
-        UNLINKALL_RELATED=UNLINKALL_RELATED,
-        REPLACEWITH_RELATED=REPLACEWITH_RELATED,
-    )
-    return _safe_eval(expr, ctx)
-
-
-convert.safe_eval = safe_eval
+add_symbols_to_xmls(
+    CREATE_RELATED=CREATE_RELATED,
+    UPDATE_RELATED=UPDATE_RELATED,
+    REMOVE_RELATED=REMOVE_RELATED,
+    FORGET_RELATED=FORGET_RELATED,
+    LINK_RELATED=LINK_RELATED,
+    UNLINKALL_RELATED=UNLINKALL_RELATED,
+    REPLACEWITH_RELATED=REPLACEWITH_RELATED,
+)

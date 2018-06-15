@@ -363,3 +363,33 @@ def get_time_string_from_float(value, up_24=True, include_seconds=False):
         up_24=up_24,
         include_seconds=include_seconds
     )
+
+
+_SAFE_EVAL_SYMBOLS = {}
+
+
+def add_symbols_to_xmls(**symbols):
+    '''Allow to use the provided symbols in XMLs.
+
+    Technically this replaces the function `safe_eval` in module
+    `odoo.tools.convert` to include the symbols in the context.
+
+    We keep a global dict of symbols, and only replace the `safe_eval`
+    function once and update the global dict
+
+    '''
+    _SAFE_EVAL_SYMBOLS.update(symbols)
+
+
+# HACK to make TERM_RELATIONSHIP_KIND available in XMLs.
+from xoeuf.odoo.tools import convert
+_safe_eval = convert.safe_eval
+
+
+def custom_safe_eval(expr, ctx={}):
+    ctx = dict(ctx)
+    ctx.update(_SAFE_EVAL_SYMBOLS)
+    return _safe_eval(expr, ctx)
+
+
+convert.safe_eval = custom_safe_eval
