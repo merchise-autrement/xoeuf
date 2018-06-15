@@ -11,18 +11,23 @@ from __future__ import (division as _py3_division,
                         print_function as _py3_print,
                         absolute_import as _py3_abs_import)
 
-import contextlib
-from xoeuf.odoo.tests.common import TransactionCase
-from xoeuf.odoo.addons.test_signals.models import (
-    signals,  # this is the same implementation the models use.
-    do_nothing,
-    do_nothing2,
-    do_nothing3,
-    do_nothing_again,
-    wrap_nothing,
-)
+from xoutil.future.codecs import safe_decode
 
-from .tools import temp_attributes
+from xoeuf.odoo.tests.common import TransactionCase
+from xoeuf.signals import (
+    mock_replace,
+    post_create,
+    pre_create,
+    write_wrapper,
+    pre_fields_view_get,
+)
+from xoeuf.odoo.addons.test_signals.models import (
+    post_save_receiver,
+    post_save_receiver_all_models,
+    pre_save_receiver,
+    wrap_nothing,
+    pre_fvg_receiver,
+)
 
 
 class TestXoeufSignals(TransactionCase):
@@ -32,58 +37,50 @@ class TestXoeufSignals(TransactionCase):
     def setUp(self):
         super(TestXoeufSignals, self).setUp()
         self.Model = self.env['test_signals.signaling_model']
+        self._ready_before = self.env.registry.ready
+        self.env.registry.ready = True
 
-    @contextlib.contextmanager
-    def mocks(self, method):
-        def post_create(sender, signal, **kwargs):
-            return method(sender, signal, **kwargs)
-
-        def pre_create(sender, signal, **kwargs):
-            return method(sender, signal, **kwargs)
-
-        def wrapper(sender, wrapping, *args, **kwargs):
-            return method(sender, wrapping, *args, **kwargs)
-
-        mock = signals.mock_replace
-        with mock(signals.post_create, method, side_effect=post_create) as post, \
-             mock(signals.pre_create, method, side_effect=pre_create) as pre, \
-             mock(signals.write_wrapper, method,
-                  side_effect=wrapper) as wrap, \
-             temp_attributes(self.env.registry, dict(ready=True)):
-            yield post, pre, wrap
+    def tearDown(self):
+        self.env.registry.ready = self._ready_before
 
     def test_post_create(self):
-        with self.mocks(do_nothing) as (post, pre, _), \
-             self.mocks(do_nothing2) as (post2, pre2, _), \
-             self.mocks(do_nothing3) as (post3, pre3, _):
+        with mock_replace(post_create, post_save_receiver) as mock_post_create, \
+             mock_replace(pre_create, post_save_receiver) as mock_pre_create:
             self.Model.create(dict(name='My name'))
-            self.assertTrue(post.called)
-            self.assertTrue(post2.called)
-            self.assertTrue(post3.called)
-            self.assertFalse(pre.called)
-            self.assertFalse(pre2.called)
-            self.assertFalse(pre3.called)
+            self.assertTrue(mock_post_create.called)
+            self.assertFalse(mock_pre_create.called)
 
     def test_pre_create(self):
-        ready = self.env.registry.ready
-        with self.mocks(do_nothing_again) as (post, pre, _):
+        with mock_replace(post_create, pre_save_receiver) as mock_post_create, \
+             mock_replace(pre_create, pre_save_receiver) as mock_pre_create:
             self.Model.create(dict(name='My name'))
-            self.assertFalse(post.called)
-            self.assertTrue(pre.called)
-        self.assertEqual(ready, self.env.registry.ready)
+            self.assertFalse(mock_post_create.called)
+            self.assertTrue(mock_pre_create.called)
 
     def test_writer_wrap(self):
+        def wrapper(sender, signal, *args, **kwargs):
+            yield
+
         who = self.Model.create(dict(name='My name'))
-        with self.mocks(wrap_nothing) as (_, _p, wrap):
-            self.assertFalse(wrap.called)
+        with mock_replace(write_wrapper, wrap_nothing, side_effect=wrapper) as mock:
+            self.assertFalse(mock.called)
             who.write(dict(name='My new name'))
-            self.assertTrue(wrap.called)
-        with self.mocks(wrap_nothing) as (_, _p, wrap):
+            self.assertTrue(mock.called)
+        with mock_replace(write_wrapper, wrap_nothing, side_effect=wrapper) as mock:
             who.name = 'My new other name'
-            self.assertTrue(wrap.called)
+            self.assertTrue(mock.called)
 
     def test_not_called_for_partners(self):
-        with self.mocks(do_nothing) as (post, pre, wrap):
+        with mock_replace(post_create, post_save_receiver) as mock, \
+             mock_replace(post_create, post_save_receiver_all_models) as mock_all:
             partner = self.env['res.partner'].create(dict(name='Contact Info'))
             partner.email = 'a@b.c'
-            self.assertFalse(post.called and pre.called and wrap.called)
+            self.assertFalse(mock.called)
+            self.assertTrue(mock_all.called)
+
+    def test_fvg_in_abstract_models(self):
+        who = self.Model.create(dict(name='My name'))
+        with mock_replace(pre_fields_view_get, pre_fvg_receiver) as mock:
+            result = who.fields_view_get()
+            self.assertTrue(mock.called)
+            self.assertIn('fgv-is-present', safe_decode(result['arch'], 'utf-8'))

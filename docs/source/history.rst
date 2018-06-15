@@ -5,10 +5,32 @@
 Beta releases (series 0.X)
 ==========================
 
-Unreleased.  Release 0.39.0
+Unreleased.  Release 0.42.0
 ---------------------------
 
-Nothing yet.
+- Allow to use the all ORM human symbols
+  (`~xoeuf.osv.orm.CREATE_RELATED`:func:, etc) in XML files.
+
+2018-06-04. Release 0.41.0
+--------------------------
+
+- Don't force value to `int`:class: in `xoeuf.fields.Enumeration`:class:.
+  This allows customized `create` to get the *real* value from the
+  enumeration (and it will be an integer anyways).
+
+2018-05-25. Release 0.40.0
+--------------------------
+
+- Fix issue with XMLRPC clients when calling 'search'.  The signals were
+  masking the 'search' signature.
+
+
+2018-05-24.  Release 0.39.0
+---------------------------
+
+- Fix bug in `xoeuf.signals.pre_fields_view_get`:obj: and
+  `xoeuf.signals.post_fields_view_get`:obj:, which by-passed
+  ``fields_view_get`` in abstract models.
 
 
 2018-05-21.  Release 0.38.0
@@ -23,8 +45,7 @@ Nothing yet.
 
 - Add `xoeuf.fields.One2one`:class:
 
-- Add `xoeuf.signals.pre_search`:object: and
-  `xoeuf.signals.post_search`:object:.
+- Add `xoeuf.signals.pre_search`:obj: and `xoeuf.signals.post_search`:obj:.
 
 - Allow to search over fields defined with an `enumeration
   <xoeuf.fields.Enumeration>`:class:

@@ -7,12 +7,10 @@
 # This is free software; you can do what the LICENCE file allows you to.
 #
 
-{
-    'name': 'test_signals',
-    'author': 'Merchise Autrement [~º/~] and Contributors',
-    'description': 'Test for signals (as implemented in xoeuf)',
-    'depends': ['base', ],
-    'data': ['views/views.xml', ],
-    'installable': True,
-    'auto_install': False,
-}
+from xoeuf import models, fields
+
+
+class Node(models.Model):
+    _name = 'test_xoeuf_orm.node'
+    parent = fields.Many2one(_name)
+    children = fields.One2many(_name, 'parent')

@@ -352,6 +352,9 @@ def mock_replace(hook, func, **replacement_attrs):
           # do things that should trigger post_create
           assert mock.called
 
+    If the `receiver` is not connected to the  to `hook` it will still return
+    a mock, that should never be called.
+
     '''
     import contextlib
     from xoutil.symbols import Undefined
@@ -451,9 +454,8 @@ Arguments:
                 customize the search.  But notice that the order in which the
                 receivers are called is not defined.
 
-:keyword pos_args:  The rest of the positional arguments (if any).
-
-:keyword kw_args: The rest of the keyword arguments (if any).
+:keyword kw_args: The rest of the arguments to 'search'.  We make it a dict as
+                  if called by keyword.
 
 ''')
 
@@ -469,9 +471,8 @@ Arguments:
                 This will be `list`:class: that can be modified in place, to
                 customize the search.
 
-:keyword pos_args:  The rest of the positional arguments (if any).
-
-:keyword kw_args: The rest of the keyword arguments (if any).
+:keyword kw_args: The rest of the arguments to 'search'.  We make it a dict as
+                  if called by keyword.
 
 :keyword result: The result of the actual 'search'.
 
@@ -577,7 +578,7 @@ post_save = [post_create, post_write, post_unlink]
 
 
 # **************SIGNALS SEND****************
-super_fields_view_get = models.Model.fields_view_get
+super_fields_view_get = models.BaseModel.fields_view_get
 super_create = models.BaseModel.create
 super_write = models.BaseModel.write
 super_unlink = models.BaseModel.unlink
@@ -585,8 +586,8 @@ super_search = models.BaseModel.search
 
 
 @api.model
-def _api_model_fields_view_get(self, view_id=None, view_type='form',
-                               toolbar=False, submenu=False):
+def _fvg_for_signals(self, view_id=None, view_type='form',
+                     toolbar=False, submenu=False):
     kwargs = dict(
         view_id=view_id,
         view_type=view_type,
@@ -597,24 +598,6 @@ def _api_model_fields_view_get(self, view_id=None, view_type='form',
     result = super_fields_view_get(self, **kwargs)
     post_fields_view_get.safe_send(sender=self, result=result, **kwargs)
     return result
-
-
-if getattr(super_fields_view_get, '_api', None) is api.cr_uid_context:
-    @api.cr_uid_context
-    def _fvg_for_signals(self, cr, uid, view_id=None, view_type='form',
-                         context=None, toolbar=False, submenu=False):
-        from xoeuf import api
-        env = api.Environment(cr, uid, context or {})
-        self = env[self._name]
-        return _api_model_fields_view_get(
-            self,
-            view_id=view_id,
-            view_type=view_type,
-            toolbar=toolbar,
-            submenu=submenu
-        )
-else:
-    _fvg_for_signals = _api_model_fields_view_get
 
 
 @api.model
@@ -655,16 +638,16 @@ def _write_for_wrappers(self, vals):
 
 @api.model
 @api.returns(*super_search._returns)
-def _search_for_signals(self, args, *pos_args, **kw_args):
+def _search_for_signals(self, args, offset=0, limit=None, order=None, count=False):
     query = list(args)
-    pre_search.send(self, query=query, pos_args=pos_args, kw_args=kw_args)
-    result = super_search(self, query, *pos_args, **kw_args)
-    post_search.safe_send(self, query=query, pos_args=pos_args, kw_args=kw_args,
-                          result=result)
+    kw_args = dict(offset=offset, limit=limit, order=order, count=count)
+    pre_search.send(self, query=query, kw_args=kw_args)
+    result = super_search(self, query, **kw_args)
+    post_search.safe_send(self, query=query, kw_args=kw_args, result=result)
     return result
 
 
-models.Model.fields_view_get = _fvg_for_signals
+models.BaseModel.fields_view_get = _fvg_for_signals
 models.BaseModel.create = _create_for_signals
 models.BaseModel.unlink = _unlink_for_signals
 models.BaseModel.write = _write_for_wrappers

@@ -6,7 +6,8 @@ stages:
   - check
   - build
   - publish
-  - clean
+  - build doc
+  - publish doc
 
 check code smells:
   script: merchise_lint2
@@ -156,7 +157,7 @@ build documentation:
   variables:
     PYTHON: python3
     ODOO_WORKTREE: odoo11
-  stage: build
+  stage: build doc
   script:
     - export CWD=`pwd`
     - cd ~/src/$ODOO_WORKTREE
@@ -188,7 +189,7 @@ build documentation:
 publish in our rtd:
   variables:
     GIT_STRATEGY: none
-  stage: publish
+  stage: publish doc
   script:
     - scp $CI_PROJECT_NAME-$CI_COMMIT_SHA.tar.bz2 rtd@docs.lahavane.com:.
     - ssh rtd@docs.lahavane.com mkdir -p $CI_PROJECT_NAME/.$CI_COMMIT_SHA

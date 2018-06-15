@@ -1,0 +1,13 @@
+<odoo>
+  <data>
+    <record id="test_signal_model_view" model="ir.ui.view">
+      <field name="name">test_signal.model.view</field>
+      <field name="model">test_signals.signaling_model</field>
+      <field name="arch" type="xml">
+        <form>
+          <field name="name" />
+        </form>
+      </field>
+    </record>
+  </data>
+</odoo>

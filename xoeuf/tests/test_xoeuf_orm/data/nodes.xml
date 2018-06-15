@@ -1,0 +1,8 @@
+<odoo>
+  <data>
+    <record id="parent_node" model="test_xoeuf_orm.node">
+      <field name="children"
+             eval="[CREATE_RELATED(), CREATE_RELATED()]"/>
+    </record>
+  </data>
+</odoo>

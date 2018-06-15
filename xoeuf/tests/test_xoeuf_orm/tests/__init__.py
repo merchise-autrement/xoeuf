@@ -6,13 +6,8 @@
 #
 # This is free software; you can do what the LICENCE file allows you to.
 #
+from __future__ import (division as _py3_division,
+                        print_function as _py3_print,
+                        absolute_import as _py3_abs_import)
 
-{
-    'name': 'test_signals',
-    'author': 'Merchise Autrement [~º/~] and Contributors',
-    'description': 'Test for signals (as implemented in xoeuf)',
-    'depends': ['base', ],
-    'data': ['views/views.xml', ],
-    'installable': True,
-    'auto_install': False,
-}
+from . import test_nodes_xml  # noqa
