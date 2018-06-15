@@ -107,3 +107,24 @@ UNLINKALL_RELATED = _Command(5, lambda: (5, ))
 
 #: Returns a single command to replace all related with existing ids
 REPLACEWITH_RELATED = _Command(6, lambda *ids: (6, 0, list(ids)))
+
+
+# HACK to make TERM_RELATIONSHIP_KIND available in XMLs.
+from xoeuf.odoo.tools import convert
+_safe_eval = convert.safe_eval
+
+
+def safe_eval(expr, ctx={}):
+    ctx.update(
+        CREATE_RELATED=CREATE_RELATED,
+        UPDATE_RELATED=UPDATE_RELATED,
+        REMOVE_RELATED=REMOVE_RELATED,
+        FORGET_RELATED=FORGET_RELATED,
+        LINK_RELATED=LINK_RELATED,
+        UNLINKALL_RELATED=UNLINKALL_RELATED,
+        REPLACEWITH_RELATED=REPLACEWITH_RELATED,
+    )
+    return _safe_eval(expr, ctx)
+
+
+convert.safe_eval = safe_eval

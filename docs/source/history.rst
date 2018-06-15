@@ -5,6 +5,12 @@
 Beta releases (series 0.X)
 ==========================
 
+Unreleased.  Release 0.42.0
+---------------------------
+
+- Allow to use the all ORM human symbols
+  (`~xoeuf.osv.orm.CREATE_RELATED`:func:, etc) in XML files.
+
 2018-06-04. Release 0.41.0
 --------------------------
 
