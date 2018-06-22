@@ -8,7 +8,8 @@ Beta releases (series 0.X)
 Unreleased.  Release 0.43.0
 ---------------------------
 
-Nothing yet.
+- Ensure we always have the ``xoeuf.fields.Serialized``.  Odoo 11 moved it to
+  an addon.
 
 
 2018-06-15.  Release 0.42.0
