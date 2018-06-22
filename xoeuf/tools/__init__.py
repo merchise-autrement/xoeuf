@@ -15,6 +15,7 @@ from __future__ import (division as _py3_division,
                         absolute_import as _py3_abs_import)
 
 from datetime import datetime as _dt, date as _d, time as _t
+from xoutil.names import nameof
 
 try:
     from xoeuf.odoo.tools import safe_eval, float_round  # noqa: reexport
@@ -368,7 +369,7 @@ def get_time_string_from_float(value, up_24=True, include_seconds=False):
 _SAFE_EVAL_SYMBOLS = {}
 
 
-def add_symbols_to_xmls(**symbols):
+def add_symbols_to_xmls(*objs, **symbols):
     '''Allow to use the provided symbols in XMLs.
 
     Technically this replaces the function `safe_eval` in module
@@ -377,9 +378,18 @@ def add_symbols_to_xmls(**symbols):
     We keep a global dict of symbols, and only replace the `safe_eval`
     function once and update the global dict
 
+    :param objs: Objects to be made available under its `proper name
+                 <xoutil.names.nameof>`:func:.
+
+    :param symbols: Objects to be made available under the keyword argument.
+
     .. versionadded:: 0.42.0
 
+    .. versionchanged:: 0.43.0 Added the `objs` variable positional arguments.
+
     '''
+    if objs:
+        symbols.update({nameof(obj, inner=True, full=False) for obj in objs})
     _SAFE_EVAL_SYMBOLS.update(symbols)
 
 

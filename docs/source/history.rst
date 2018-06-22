@@ -11,6 +11,9 @@ Unreleased.  Release 0.43.0
 - Ensure we always have the ``xoeuf.fields.Serialized``.  Odoo 11 moved it to
   an addon.
 
+- Add variable positional arguments to
+  `xoeuf.tools.add_symbols_to_xmls`:func:.
+
 
 2018-06-15.  Release 0.42.0
 ---------------------------
