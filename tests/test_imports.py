@@ -15,3 +15,4 @@ from __future__ import (division as _py3_division,
 def test_imports():
     'Xoeuf is importable in Python 2 and 3'
     from xoeuf import fields, models, api  # noqa
+    from xoeuf.fields import Serialized    # noqa

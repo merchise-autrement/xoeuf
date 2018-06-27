@@ -28,4 +28,4 @@ from .timerange import TimeRange         # noqa: reexport
 try:
     Serialized  # noqa
 except NameError:
-    from xoeuf.odoo.addons.base_sparse_field.models.fields import Serialized # noqa
+    from odoo.addons.base_sparse_field.models.fields import Serialized # noqa
