@@ -9,7 +9,8 @@ Beta releases (series 0.X)
 ---------------------------
 
 - Don't re-export ``xoeuf.fields.Serialized``.  We cannot properly import it
-  from xoeuf, since it's now in an addon.
+  from xoeuf, since it's now in an addon.  This corrects a critical import
+  error introduced in 0.43.0, which makes it impossible to import.
 
 
 2018-06-22.  Release 0.43.0
