@@ -26,6 +26,6 @@ from .timerange import TimeRange         # noqa: reexport
 
 
 try:
-    del Serialized
+    del Serialized  # noqa
 except NameError:
     pass
