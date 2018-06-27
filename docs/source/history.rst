@@ -5,6 +5,13 @@
 Beta releases (series 0.X)
 ==========================
 
+2018-06-27.  Release 0.44.0
+---------------------------
+
+- Don't re-export ``xoeuf.fields.Serialized``.  We cannot properly import it
+  from xoeuf, since it's now in an addon.
+
+
 2018-06-22.  Release 0.43.0
 ---------------------------
 

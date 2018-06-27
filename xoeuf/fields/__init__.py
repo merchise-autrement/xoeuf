@@ -26,6 +26,6 @@ from .timerange import TimeRange         # noqa: reexport
 
 
 try:
-    Serialized  # noqa
+    del Serialized
 except NameError:
-    from odoo.addons.base_sparse_field.models.fields import Serialized # noqa
+    pass
