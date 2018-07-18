@@ -11,9 +11,9 @@ Beta releases (series 0.X)
 - Make ``xoeuf.osv.expression.Domain.simplified`` return a domain that is
   compatible with Odoo.
 
-  See `!9`_.
+  See `MR 9`_.
 
-.. _`9!`: https://gitlab.merchise.org/merchise/xoeuf/merge_requests/9
+.. _MR 9: https://gitlab.merchise.org/merchise/xoeuf/merge_requests/9
 
 
 2018-06-27.  Release 0.44.0
