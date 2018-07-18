@@ -5,7 +5,7 @@
 Beta releases (series 0.X)
 ==========================
 
-Unreleased.  Release 0.45.0
+2018-07-18.  Release 0.45.0
 ---------------------------
 
 - Make `~xoeuf.osv.expression.Domain.simplied`:prop: return a domain that is
