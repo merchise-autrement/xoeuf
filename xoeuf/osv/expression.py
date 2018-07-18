@@ -533,12 +533,16 @@ class DomainTree(object):
 
     def get_simplified_domain(self):
         if self.parent:
-            res = Domain(self.term for x in range(1, len(self.children) or 2))
+            res = Domain(
+                self.term.original for x in range(1, len(self.children) or 2)
+            )
         elif self.is_leaf:
-            res = Domain([self.term])
+            res = Domain([self.term.original])
         else:
             # Initials `&` aren't needed.
-            res = Domain([self.term] if self.term == this.OR_OPERATOR else [])
+            res = Domain(
+                [self.term.original] if self.term == this.OR_OPERATOR else []
+            )
         if not self.is_leaf:
             res.extend(
                 chain(
