@@ -106,6 +106,10 @@ class TestDomain(unittest.TestCase):
                 len(version),
                 msg="len(%r) > len(%r)" % (domain.simplified, version)
             )
+        self.assertTrue(
+            all(odoo_expr.is_leaf(term) or odoo_expr.is_operator(term)
+                for term in domain.simplified)
+        )
 
     @given(domains())
     def test_simplified_idempotency(self, domain):
