@@ -35,8 +35,7 @@ class LocalizedDatetime(fields.Datetime):
     Odoo.  But upon reading we convert to a properly shifted datetime so that
     is presented to the user in the saved time zone.
 
-    .. note:: At the time this field is read-only, not searchable, and
-              non-storable.
+    .. note:: At the time this field is not searchable, and non-storable.
 
     '''
 
