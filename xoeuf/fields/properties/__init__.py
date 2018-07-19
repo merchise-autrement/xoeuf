@@ -39,9 +39,10 @@ class Property(Base):
          getters.  But, then, we cannot communicate which widget can manage
          the value of a Property.
 
-    The getter, setter and deleter functions receive (and thus we required it)
-    a singleton recordset instance.  The onsetup functions receive the field
-    instance, and the model on which the field is being setup.
+    The `getter`, `setter` and `deleter` functions receive (and thus we
+    required it) a singleton recordset instance.  The `onsetup` function
+    receive the field instance, and the model on which the field is being
+    setup.
 
     Usage::
 
