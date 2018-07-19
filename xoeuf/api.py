@@ -42,26 +42,6 @@ def contextual(func):
     return inner
 
 
-@_xdecorator
-def take_one(func, index=0, warn=True, strict=False):
-    '''Same as `requires_singleton()`.
-
-    The arguments are now ignored.
-
-    .. deprecated:: This function was deprecated some time ago.  It' will be
-       removed before the 1.0 release.
-
-    '''
-    return requires_singleton(func)
-
-
-_MSG = ("{funcname} is now deprecated and it will be removed. "
-        "Use `{replacement}` directly and let the method raise "
-        "`expected singleton` exception.")
-take_one = deprecated('`api.requires_singleton()`', msg=_MSG)(take_one)
-del _MSG, deprecated
-
-
 def requires_singleton(f):
     '''An idiomatic alias for `api.multi()`.
 
