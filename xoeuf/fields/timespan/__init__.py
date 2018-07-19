@@ -16,7 +16,7 @@ def TimeSpan(start_date_field, end_date_field):
     '''Create a time span `property <xoeuf.fields.Property>`:class:.
 
     A time span `property <xoeuf.fields.Property>`:class: is stored in the DB
-    as two separate Date fields.  It's never actually stored in the DB a
+    as two separate Date fields.  It's never actually stored in the DB as a
     single value.  You cannot search for this property.
 
     :param start_date_field: The name of the field which holds the start date
@@ -26,7 +26,6 @@ def TimeSpan(start_date_field, end_date_field):
 
     .. note:: None of those fields are created automatically.  You must create
               them.
-
 
     Example::
 

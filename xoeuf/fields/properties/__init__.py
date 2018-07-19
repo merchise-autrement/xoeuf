@@ -22,15 +22,15 @@ class Property(Base):
 
     .. warning:: This is a kind of hack.
 
-       Normal Python `properties <property>` are not copied through Odoo
-       inheritance mechanisms.  This `Property` is a Field and Odoo accounts
-       for it.  But, it is NOT an actual ORM field in the sense that it
-       never interacts with the DB.  Therefore:
+       Normal Python `properties <property>`:class: are not copied through
+       Odoo inheritance mechanisms.  This `Property` is a Field and Odoo
+       accounts for it.  But, it is NOT an actual ORM field in the sense that
+       it never interacts with the DB.  Therefore:
 
-       - You MUST NEVER use `write()` or `create()` on these type of fields.
-         You may update the value via the `setter` (i.e assign it).
+       - You MUST NEVER use ``write()`` or ``create()`` on these type of
+         fields.  You may update the value via the `setter` (i.e assign it).
 
-       - You cannot `search()` for this type of fields.
+       - You cannot ``search()`` for this type of fields.
 
        - You cannot use Property fields in views.
 

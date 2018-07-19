@@ -21,8 +21,9 @@ class Monetary(Base):
     additional attribute:
 
     :param concrete: If set to True record-set will return the value as a
-                     `concrete monetary value`_.  Which means you can only
-                     operate it with commensurable values.
+                     `concrete monetary value <xoutil.dim.currencies>`:mod:.
+                     Which means you can only operate it with commensurable
+                     monetary values.
 
     '''
     _slots = {
