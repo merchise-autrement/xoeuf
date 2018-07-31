@@ -22,6 +22,7 @@ import re
 from xoutil.future.functools import lru_cache
 from xoutil.modules import customize
 from xoutil.modules import modulemethod
+from xoutil.string import cut_prefix
 
 # In Odoo 10, they allow to import from both 'odoo' and 'openerp'
 _ADDONS_NAMESPACE = re.compile(
@@ -264,4 +265,29 @@ def is_object_installed(self, object):
         return False
 
 
-del re, logging, sys, OdooHook
+def get_caller_addon(depth=0):
+    '''Guess the caller addon.
+
+    :param depth: Skip that many levels in the call stack.
+
+    Technically, we look in the globals of the *calling* stack frame for the
+    ``__name__`` and, its matches the format with 'oddo.addons.<addon>.*',
+    return the addon name; otherwise, return None.
+
+    '''
+    frame = sys._getframe(1 + depth)
+    try:
+        module = frame.f_globals['__name__']
+        if module.startswith('odoo.addons.'):
+            module = cut_prefix(module, 'odoo.addons.')
+            return module.split('.', 1)[0]
+        elif module.startswith('openerp.addons.'):
+            module = cut_prefix(module, 'openerp.addons.')
+            return module.split('.', 1)[0]
+        else:
+            return None
+    finally:
+        del frame
+
+
+del re, logging, OdooHook

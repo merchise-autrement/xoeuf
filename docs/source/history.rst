@@ -5,6 +5,12 @@
 Beta releases (series 0.X)
 ==========================
 
+Unreleased.  Release 0.46.0
+---------------------------
+
+- Add `xoeuf.modules.get_caller_addon`:func:.
+
+
 2018-07-18.  Release 0.45.0
 ---------------------------
 
