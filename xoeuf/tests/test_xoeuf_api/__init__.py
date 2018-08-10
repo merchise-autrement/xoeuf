@@ -11,7 +11,7 @@ from __future__ import (division as _py3_division,
                         print_function as _py3_print,
                         absolute_import as _py3_abs_import)
 
-from xoeuf import api, models
+from xoeuf import api, fields, models
 
 
 class APIModel(models.Model):
@@ -28,3 +28,19 @@ class APIModel(models.Model):
     @api.from_active_ids(leak_context=True)
     def leaked_return_ids_and_call_method(self, ids, methodname):
         return list(self.ids), getattr(self.browse(ids), methodname)()
+
+
+class Users(models.Model):
+    _inherit = 'res.users'
+
+    text_field = fields.Char()
+
+    # 'name' and 'partner_id.name' are the same think.
+    @api.onupdate('partner_id', 'name', 'partner_id.name')
+    def update_text_field(self):
+        for record in self:
+            record.text_field = record.get_text_field()
+
+    @api.requires_singleton
+    def get_text_field(self):
+        return 's2 %s' % self.name
