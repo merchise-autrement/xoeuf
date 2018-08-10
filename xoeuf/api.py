@@ -142,3 +142,33 @@ def leaking_context(leak=False):
         return Context(_SKIP_ACTIVE_IDS)
     else:
         return Context(_DONT_SKIP_ACTIVE_IDS)
+
+
+def onupdate(*args):
+    """ Return a decorator that specifies the field dependencies of a
+        updater method. Each argument must be a string that consists in a
+        dot-separated sequence of field names::
+
+            @api.onupdate('partner_id.name', 'partner_id.is_company')
+            def update_pname(self):
+                for record in self:
+                    if record.partner_id.is_company:
+                        record.pname = (record.partner_id.name or "").upper()
+                    else:
+                        record.pname = record.partner_id.name
+
+        One may also pass a single function as argument. In that case, the
+        dependencies are given by calling the function with the field's model.
+
+        .. note:: ``@onupdate`` is very similar to ``@constraint`` but with
+           just one key differences: It allow dot-separated fields in
+           arguments.
+
+    """
+    if args and callable(args[0]):
+        args = args[0]
+    elif any('id' in arg.split('.') for arg in args):
+        raise NotImplementedError(
+            "Updater method cannot depend on field 'id'."
+        )
+    return _odoo_api.attrsetter('_onupdates', args)
