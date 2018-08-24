@@ -165,6 +165,8 @@ def onupdate(*args):
     .. note:: ``@onupdate`` is very similar to ``@constraint`` but with just
        one key difference: It allow dot-separated fields in arguments.
 
+    .. versionadded: 0.46.0
+
     """
     if args and callable(args[0]):
         args = args[0]

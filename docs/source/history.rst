@@ -10,6 +10,8 @@ Unreleased.  Release 0.46.0
 
 - Add `xoeuf.modules.get_caller_addon`:func:.
 
+- Add `xoeuf.api.onupdate`:func:.
+
 - Remove deprecated decorator ``xoeuf.api.take_one``.
 
 
