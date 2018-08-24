@@ -145,24 +145,25 @@ def leaking_context(leak=False):
 
 
 def onupdate(*args):
-    """ Return a decorator that specifies the field dependencies of a
-        updater method. Each argument must be a string that consists in a
-        dot-separated sequence of field names::
+    """A decorator to trigger updates on dependencies.
 
-            @api.onupdate('partner_id.name', 'partner_id.is_company')
-            def update_pname(self):
-                for record in self:
-                    if record.partner_id.is_company:
-                        record.pname = (record.partner_id.name or "").upper()
-                    else:
-                        record.pname = record.partner_id.name
+    Return a decorator that specifies the field dependencies of an updater
+    method.  Each argument must be a string that consists in a dot-separated
+    sequence of field names::
 
-        One may also pass a single function as argument. In that case, the
-        dependencies are given by calling the function with the field's model.
+        @api.onupdate('partner_id.name', 'partner_id.is_company')
+        def update_pname(self):
+            for record in self:
+                if record.partner_id.is_company:
+                    record.pname = (record.partner_id.name or "").upper()
+                else:
+                    record.pname = record.partner_id.name
 
-        .. note:: ``@onupdate`` is very similar to ``@constraint`` but with
-           just one key differences: It allow dot-separated fields in
-           arguments.
+    One may also pass a single function as argument. In that case, the
+    dependencies are given by calling the function with the field's model.
+
+    .. note:: ``@onupdate`` is very similar to ``@constraint`` but with just
+       one key difference: It allow dot-separated fields in arguments.
 
     """
     if args and callable(args[0]):
