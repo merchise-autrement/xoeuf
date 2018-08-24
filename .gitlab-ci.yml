@@ -167,6 +167,7 @@ build documentation:
     - rm -rf ~/virtualenvs/$CI_PROJECT_NAME-$ODOO_WORKTREE || true
     - virtualenv -p `which $PYTHON` ~/virtualenvs/$CI_PROJECT_NAME-$ODOO_WORKTREE
     - source ~/virtualenvs/$CI_PROJECT_NAME-$ODOO_WORKTREE/bin/activate
+    - pip install 'futures<3'
     - pip install -r requirements.txt
     - pip install -U "six>=1.9.0" "decorator>=4.0,<4.2" "hypothesis>=3.24"
     - pip install -e .
