@@ -10,6 +10,8 @@ Unreleased.  Release 0.46.0
 
 - Add `xoeuf.modules.get_caller_addon`:func:.
 
+- Remove deprecated decorator ``xoeuf.api.take_one``.
+
 
 2018-07-18.  Release 0.45.0
 ---------------------------
@@ -413,7 +415,7 @@ build and publish 0.29.0.
   .. note:: `xoeuf.fields.Monetary`:class: is actually a float in Odoo 8, in
      Odoo 9 and Odoo 10 it's an alias to Odoo's own field.
 
-- Remove `xoeuf.api.take_one`:func: and provide an idiomatic
+- Deprecate ``xoeuf.api.take_one`` and provide an idiomatic
   `xoeuf.api.requires_singleton`:func:.
 
 - Add imports hooks to import from either `odoo` or `openerp` according to the
@@ -443,7 +445,7 @@ build and publish 0.29.0.
 - Allow the new API in `xoeuf.osv.model_extensions.get_writer`:func: and
   `xoeuf.osv.model_extensions.get_creator`:func:.
 
-- Added `xoeuf.api.take_one`:func:.
+- Added ``xoeuf.api.take_one``.
 
 
 2015-01-21. Release 0.5.0
