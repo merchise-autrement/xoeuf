@@ -11,7 +11,7 @@ from __future__ import (division as _py3_division,
                         print_function as _py3_print,
                         absolute_import as _py3_abs_import)
 
-from xoeuf.odoo.tests.common import TransactionCase
+from odoo.tests.common import TransactionCase
 
 
 class TestFromActiveIds(TransactionCase):
@@ -45,3 +45,32 @@ class TestFromActiveIds(TransactionCase):
         res, res2 = this.leaked_return_ids_and_call_method((5, 6), 'return_self_ids')
         self.assertEqual(res, [1, 2, 3, 4])
         self.assertEqual(res2, res)
+
+    def test_onupdate(self):
+        user = self.env.user
+        text_field = 'text_field'
+
+        # No onupdate method should be called
+        user.text_field = text_field
+        self.assertEqual(user.text_field, text_field)
+
+        # ``update_text_field`` must be called
+        user.name = 'john doe'
+        self.assertNotEqual(user.text_field, text_field)
+        self.assertEqual(user.text_field, user.get_text_field())
+
+        # No onupdate method should be called
+        text_field = user.text_field
+        user.login = 'jane doe'
+        self.assertEqual(user.text_field, text_field)
+
+        # ``update_text_field`` must be called
+        partner = user.partner_id
+        partner.name = 'Admin'
+        self.assertNotEqual(user.text_field, text_field)
+        self.assertEqual(user.text_field, user.get_text_field())
+
+        # No onupdate method should be called
+        text_field = user.text_field
+        partner.res = 'Administrador'
+        self.assertEqual(user.text_field, text_field)
