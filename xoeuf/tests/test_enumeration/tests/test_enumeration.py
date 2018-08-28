@@ -20,6 +20,7 @@ from xoeuf.odoo.tests.common import TransactionCase
 from ..models import COLORS, Pax, CARS, WORK_TYPE
 
 colors = s.sampled_from(COLORS.__members__.values())
+color_names = s.sampled_from(COLORS.__members__.keys())
 cars = s.sampled_from(CARS.__members__.values())
 paxs = s.sampled_from(Pax.__members__.values())
 wtypes = s.sampled_from(WORK_TYPE.__members__.values())
@@ -117,6 +118,56 @@ class TestEnum(TransactionCase):
             )
             with self.assertRaises(ValueError):
                 self.EnumModel.search([('color', '=', 10)])
+
+    def test_color2_computed_field_read(self):
+        with force_ready(self.env.registry):
+            obj = self.EnumModel.create({'color2': COLORS.Red})
+            self.assertEqual(obj.color2_name, 'Red')
+
+    @given(color_names)
+    def test_color2_computed_field_set_on_create(self, name):
+        with force_ready(self.env.registry):
+            obj = self.EnumModel.create({'color2_name': name})
+            self.assertEqual(obj.color2, COLORS.__members__[name])
+
+    @given(color_names)
+    def test_color2_computed_field_set_on_assignment(self, name):
+        with force_ready(self.env.registry):
+            obj = self.EnumModel.create({})
+            obj.color2_name = name
+            self.assertEqual(obj.color2, COLORS.__members__[name])
+
+    @given(color_names)
+    def test_color2_computed_field_set_on_write(self, name):
+        with force_ready(self.env.registry):
+            obj = self.EnumModel.create({})
+            obj.write({'color2_name': name})
+            self.assertEqual(obj.color2, COLORS.__members__[name])
+
+    def test_color_computed_field_read(self):
+        with force_ready(self.env.registry):
+            obj = self.EnumModel.create({'color': COLORS.Red})
+            self.assertEqual(obj.color_name, 'Red')
+
+    @given(color_names)
+    def test_color_computed_field_set_on_create(self, name):
+        with force_ready(self.env.registry):
+            obj = self.EnumModel.create({'color_name': name})
+            self.assertEqual(obj.color, COLORS.__members__[name])
+
+    @given(color_names)
+    def test_color_computed_field_set_on_assignment(self, name):
+        with force_ready(self.env.registry):
+            obj = self.EnumModel.create({})
+            obj.color_name = name
+            self.assertEqual(obj.color, COLORS.__members__[name])
+
+    @given(color_names)
+    def test_color_computed_field_set_on_write(self, name):
+        with force_ready(self.env.registry):
+            obj = self.EnumModel.create({})
+            obj.write({'color_name': name})
+            self.assertEqual(obj.color, COLORS.__members__[name])
 
     @given(wtypes)
     def test_intsubclasses_values(self, work_type):
