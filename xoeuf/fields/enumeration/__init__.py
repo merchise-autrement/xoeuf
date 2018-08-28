@@ -118,7 +118,7 @@ def Enumeration(enumclass, *args, **kwargs):
                 else:
                     return value
 
-            def convert_to_record(self, value, record, validate=True):
+            def convert_to_cache(self, value, record, validate=True):
                 if value:
                     return self.get_member_by_value(value).value
                 elif value == 0:
@@ -129,18 +129,33 @@ def Enumeration(enumclass, *args, **kwargs):
                     except ValueError:
                         return False
                 return value
+
         else:
             def convert_to_write(self, value, record):
                 if value is not None and value is not False:
-                    member = self.get_member_by_value(value)
-                    return member.name
-                else:
-                    return value
-
-            def convert_to_record(self, value, record, validate=True):
-                if value is not None and value is not False:
-                    return self.get_member_by_name(value).value
+                    if value in enumclass.__members__.values():
+                        member = self.get_member_by_value(value)
+                        # Our EnumerationAdapter takes care of doing the right
+                        # thing when writing to the DB, also convert_to_column
+                        # does.
+                        return member.value
                 return value
+
+            def convert_to_cache(self, value, record, validate=True):
+                if value not in enumclass.__members__.values():
+                    if value is not None and value is not False:
+                        return self.get_member_by_name(value).value
+                return value
+
+            def convert_to_column(self, value, record, values=None):
+                if value in enumclass.__members__.values():
+                    return Base.convert_to_column(
+                        self,
+                        self.get_member_by_value(value).name,
+                        record
+                    )
+                else:
+                    return Base.convert_to_column(self, value, record)
 
     return EnumeratedField(*args, **kwargs)
 

@@ -8,7 +8,13 @@ Beta releases (series 0.X)
 Unreleased. Release 0.47.0
 --------------------------
 
-Nothing yet.
+- Fix issues with Char based :class:`xoeuf.fields.Enumeration`:
+
+  - Putting a default value would break the whole model (creating the DB table
+    failed).
+
+  - When assigning an enumeration inside the inverse method of computed field,
+    it double-converted the value to str which raised a KeyError.
 
 
 2018-08-24.  Release 0.46.0
