@@ -14,6 +14,7 @@ from __future__ import (division as _py3_division,
 import contextlib
 
 from hypothesis import strategies as s, given
+from xoeuf import fields
 from xoeuf.odoo.tests.common import TransactionCase
 
 from ..models import COLORS, Pax, CARS, WORK_TYPE
@@ -31,6 +32,10 @@ class TestEnum(TransactionCase):
     def setUp(self):
         super(TestEnum, self).setUp()
         self.EnumModel = self.env['test.enum.model']
+
+    def test_column_type_force_char_columns(self):
+        self.assertIsInstance(self.EnumModel._fields['color'], fields.Integer)
+        self.assertIsInstance(self.EnumModel._fields['color2'], fields.Char)
 
     def test_can_set_valid_integers(self):
         with force_ready(self.env.registry):

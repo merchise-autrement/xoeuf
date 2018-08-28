@@ -48,3 +48,4 @@ class Model(models.Model):
     car = fields.Enumeration(CARS)
     pax = fields.Enumeration(Pax)
     wtype = fields.Enumeration(WORK_TYPE, default=WORK_TYPE.hard)
+    color2 = fields.Enumeration(COLORS, force_char_column=True)

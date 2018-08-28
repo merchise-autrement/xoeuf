@@ -29,8 +29,9 @@ def Enumeration(enumclass, *args, **kwargs):
 
     The column in the DB will be either of type INTEGER or a CHAR: If **all**
     values of the enumeration are integers (instances of `int`, possibly by
-    subclassing), the DB column will be a integer.  Otherwise, it will be a
-    char with the *name* of the enumeration's key.
+    subclassing), the DB column will be a integer unless you pass a keyword
+    argument 'force_char_column' set to True.  Otherwise, it will be a char
+    with the *name* of the enumeration's key.
 
     .. warning:: In a future release we might drop the INTEGER/CHAR
        variation.
@@ -67,15 +68,21 @@ def Enumeration(enumclass, *args, **kwargs):
        before that) the column DB will always be a CHAR representing the
        member's name.
 
+    .. versionchanged:: 0.47.0 Add keyword parameter 'force_char_column'.
+
     '''
     from xoeuf import fields
     from xoutil.objects import import_object, classproperty
 
+    force_char_column = kwargs.get('force_char_column', False)
     enumclass = import_object(enumclass)
-    members_integers = all(
-        isinstance(value, int)
-        for value in enumclass.__members__.values()
-    )
+    if force_char_column:
+        members_integers = False
+    else:
+        members_integers = all(
+            isinstance(value, int)
+            for value in enumclass.__members__.values()
+        )
     Base = fields.Integer if members_integers else fields.Char
 
     class EnumeratedField(Base, _EnumeratedField):
