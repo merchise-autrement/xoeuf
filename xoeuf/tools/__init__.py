@@ -46,6 +46,7 @@ try:
     from xoutil.future.datetime import without_tzinfo as strip_tzinfo  # noqa: migrate
 except ImportError:
     def strip_tzinfo(dt):
+        # type: (datetime) -> datetime
         '''Return the given datetime value with tzinfo removed.
 
         '''
@@ -86,6 +87,7 @@ def localize_datetime(self, datetime_value=None, from_tz='UTC', to_tz='UTC'):
 
 
 def date2str(d):
+    # type: (date) -> str
     '''Convert a date to a string using `OpenERP` default date format.
 
     If the argument is not a `datetime.date`:class:, normalize it first with
@@ -101,6 +103,7 @@ normalize_datestr = date2str
 
 
 def dt2str(dt):
+    # type: (datetime) -> str
     '''Convert a date-time to a string using `OpenERP` default datetime
     format.
 
@@ -117,6 +120,7 @@ normalize_datetimestr = dt2str
 
 
 def str2dt(s):
+    # type: (str) -> datetime
     'Convert a string to a date-time using `OpenERP` default datetime format.'
     try:
         return _dt.strptime(s, _SVR_DATETIME_FMT)
@@ -131,6 +135,7 @@ parse_datetime = str2dt
 
 
 def str2date(s):
+    # type: (str) -> date
     'Convert a string to a date-time using `OpenERP` default date format.'
     return _dt.strptime(s, _SVR_DATE_FMT)
 
@@ -139,6 +144,7 @@ parse_date = str2date
 
 
 def normalize_datetime(which):
+    # type: (Any) -> datetime
     '''Normalizes `which` to a datetime.
 
     If `which` is a `datetime`, we ensure it will yield a valid string
@@ -197,6 +203,7 @@ def normalize_datetime(which):
 
 
 def normalize_date(which):
+    # type: (Any) -> date
     '''Normalizes `which` to a date.
 
     If `which` is a `date` is returned unchanged.  If is a `datetime`, then
@@ -250,6 +257,7 @@ def normalize_date(which):
 
 
 def dt_as_timezone(dt, tz_name=None):
+    # type: (datetime, str) -> datetime
     """ Localize datetime in desired timezone.
 
     :param datetime dt: datetime
@@ -265,6 +273,7 @@ def dt_as_timezone(dt, tz_name=None):
 
 
 def localtime_as_remotetime(dt_UTC, from_tz=utc, as_tz=utc):
+    # type: (datetime, str, str) -> datetime
     """ Compute the datetime as the timezone source,
     then force to it the desired TZ and back to UTC.
 
@@ -290,7 +299,7 @@ def get_time_from_float(value):
     """Get time tuple from a float value.
 
     :param value: float value to convert to time tuple
-    :return: time value)
+    :return: time value.
 
     """
     hours, minutes = divmod(value * 60, 60)
