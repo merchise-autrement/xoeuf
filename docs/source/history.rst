@@ -5,7 +5,7 @@
 Beta releases (series 0.X)
 ==========================
 
-Unreleased. Release 0.47.0
+2018-08-28. Release 0.47.0
 --------------------------
 
 - Fix issues with Char based :class:`xoeuf.fields.Enumeration`:
