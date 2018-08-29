@@ -124,6 +124,11 @@ class TestEnum(TransactionCase):
             obj = self.EnumModel.create({'color2': COLORS.Red})
             self.assertEqual(obj.color2_name, 'Red')
 
+    def test_color3_default_value(self):
+        with force_ready(self.env.registry):
+            obj = self.EnumModel.create({})
+            self.assertEqual(obj.color3, COLORS.Red)
+
     @given(color_names)
     def test_color2_computed_field_set_on_create(self, name):
         with force_ready(self.env.registry):

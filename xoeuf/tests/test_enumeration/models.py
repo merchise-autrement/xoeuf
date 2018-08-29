@@ -64,6 +64,9 @@ class Model(models.Model):
         store=False,
     )
 
+    color3 = fields.Enumeration(COLORS, force_char_column=True,
+                                default=COLORS.Red)
+
     @api.multi
     @api.depends('color')
     def _compute_color_name(self):
