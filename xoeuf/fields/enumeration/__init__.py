@@ -194,6 +194,7 @@ class EnumerationAdapter(object):
         return super(EnumerationAdapter, self).search(args, *pos_args, **kwargs)
 
     @api.model
+    @api.returns('self', lambda value: value.id)
     def create(self, values):
         for fieldname, value in dict(values).items():
             field = self._fields.get(fieldname, None)

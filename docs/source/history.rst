@@ -16,6 +16,12 @@ Unreleased. Release 0.47.0
   - When assigning an enumeration inside the inverse method of computed field,
     it double-converted the value to str which raised a KeyError.
 
+  - The ``create`` method of the models using Enumeration field didn't have
+    the downgrade which means that any model using it would be hard to use in
+    the web client.
+
+    The web client would get the id as string: 'model(id, )'.
+
 
 2018-08-24.  Release 0.46.0
 ---------------------------
