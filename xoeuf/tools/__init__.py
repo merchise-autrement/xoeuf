@@ -288,11 +288,10 @@ def localtime_as_remotetime(dt_UTC, from_tz=utc, as_tz=utc):
         from_tz = pytz.timezone(from_tz)
     if not isinstance(as_tz, pytz.tzinfo.tzinfo):
         as_tz = pytz.timezone(as_tz)
-    if not dt_UTC.tzinfo:
-        dt_UTC = dt_as_timezone(dt_UTC)
-    local = from_tz.normalize(dt_UTC)
-    faked = as_tz.localize(strip_tzinfo(local))
-    return strip_tzinfo(pytz.UTC.normalize(faked))
+    ref = dt_UTC
+    diff = from_tz.utcoffset(ref)
+    diff -= as_tz.utcoffset(ref)
+    return dt_UTC + diff
 
 
 def get_time_from_float(value):
