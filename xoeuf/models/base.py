@@ -167,7 +167,10 @@ def execute_onupdate(self, fnames):
     """
     # group triggers by (model, path) to minimize the calls to search()
     triggers = defaultdict(set)
-    for fname in fnames:
+    # Take only the fields that are in the model. This is necessary because in
+    # some rare cases this method is called with fields that may not be in the
+    # model. (e.g. xopgi_object_merger).
+    for fname in set(fnames) & set(self._fields):
         mfield = self._fields[fname]
         # group triggers by model and path to reduce the number of search()
         for method, model_name, path in self._method_triggers[mfield]:
