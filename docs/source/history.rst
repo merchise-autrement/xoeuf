@@ -5,7 +5,7 @@
 Beta releases (series 0.X)
 ==========================
 
-Unreleased.  Release 0.48.0
+2018-09-19.  Release 0.48.0
 ---------------------------
 
 - Fix bug in the BaseModel that raises KeyError with unknown fields.
