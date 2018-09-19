@@ -167,8 +167,6 @@ def onupdate(*args):
 
     .. versionadded: 0.46.0
 
-    .. versionchanged:: 0.48.0 Ignore unknown fields.
-
     """
     if args and callable(args[0]):
         args = args[0]

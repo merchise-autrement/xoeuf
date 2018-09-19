@@ -78,4 +78,4 @@ class TestFromActiveIds(TransactionCase):
     def test_onupdate_validate_fields(self):
         user = self.env.user
         # Just check we don't raise an exception.
-        user._validate_fields('unknown_field_name_'+str(id(self)))
+        user._validate_fields('unknown_field_name_' + str(id(self)))

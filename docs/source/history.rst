@@ -8,8 +8,10 @@ Beta releases (series 0.X)
 Unreleased.  Release 0.48.0
 ---------------------------
 
-- `xoeuf.api.onupdate`:func: ignores the fields that don't belong to the
-  model.
+- Fix bug in the BaseModel that raises KeyError with unknown fields.
+
+  Introduced in 0.46.0, with the `~xoeuf.api.onupdate`:any: hack of
+  ``_validate_fields``.
 
 
 2018-08-28. Release 0.47.0
