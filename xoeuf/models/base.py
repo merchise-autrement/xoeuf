@@ -111,7 +111,6 @@ def resolve_deps(self, method):
     names.
     """
     result = []
-
     # add self's own dependencies
     for dotnames in method._onupdates:
         model, path = self, dotnames.split('.')
@@ -119,21 +118,18 @@ def resolve_deps(self, method):
             field = model._fields[fname]
             result.append((model, field, path[:i]))
             model = self.env.get(field.comodel_name)
-
     # add self's model dependencies
     for mname, fnames in self._depends.items():
         model = self.env[mname]
         for fname in fnames:
             field = model._fields[fname]
             result.append((model, field, None))
-
     # add indirect dependencies from the dependencies found above
     for model, field, path in list(result):
         for inv_field in model._field_inverses[field]:
             inv_model = self.env[inv_field.model_name]
             inv_path = None if path is None else path + [field.name]
             result.append((inv_model, inv_field, inv_path))
-
     return result
 
 
