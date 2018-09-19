@@ -74,3 +74,8 @@ class TestFromActiveIds(TransactionCase):
         text_field = user.text_field
         partner.res = 'Administrador'
         self.assertEqual(user.text_field, text_field)
+
+    def test_onupdate_validate_fields(self):
+        user = self.env.user
+        # Just check we don't raise an exception.
+        user._validate_fields('unknown_field_name_'+str(id(self)))

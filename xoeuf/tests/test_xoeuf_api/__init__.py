@@ -36,7 +36,7 @@ class Users(models.Model):
     text_field = fields.Char()
 
     # 'name' and 'partner_id.name' are the same think.
-    @api.onupdate('partner_id', 'name', 'partner_id.name')
+    @api.onupdate('partner_id', 'name', 'partner_id.name', 'unknown_fieldname')
     def update_text_field(self):
         for record in self:
             record.text_field = record.get_text_field()
