@@ -164,6 +164,8 @@ def execute_onupdate(self, fnames):
     This invalidates the cache, and prepares the recomputation of stored
     function fields (new-style fields only).
 
+    .. versionchanged:: 0.48.0 Ignore unknown fields.
+
     """
     # group triggers by (model, path) to minimize the calls to search()
     triggers = defaultdict(set)

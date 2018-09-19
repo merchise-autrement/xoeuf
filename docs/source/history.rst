@@ -8,7 +8,8 @@ Beta releases (series 0.X)
 Unreleased.  Release 0.48.0
 ---------------------------
 
-Nothing yet.
+- `xoeuf.api.onupdate`:func: ignores the fields that don't belong to the
+  model.
 
 
 2018-08-28. Release 0.47.0
