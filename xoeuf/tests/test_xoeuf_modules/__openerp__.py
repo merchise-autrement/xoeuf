@@ -10,7 +10,7 @@
 {
     'name': 'test_xoeuf_modules',
     'author': 'Merchise Autrement [~º/~] and Contributors',
-    'description': 'Test for the field.Enumeration extension',
+    'description': 'Test the module xoeuf.modules',
     'depends': ['base', ],
     'installable': True,
     'auto_install': False,
