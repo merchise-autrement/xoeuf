@@ -20,7 +20,11 @@ from xoeuf.modules import patch_modules
 patch_modules()
 
 
-class CommandsProxy(object):
+from xoutil.eight.meta import metaclass
+from xoutil.cli import Command as BaseCommand
+
+
+class CommandsProxy(BaseCommand):
     '''Define a proxy to register all OpenERP CLI commands to "xoutil.cli".
 
     '''
@@ -59,9 +63,6 @@ class CommandsProxy(object):
             from xoeuf.odoo.tools import config
             config.parse_config([addons_path])
 
-
-from xoutil.eight.meta import metaclass
-from xoutil.cli import Command as BaseCommand
 
 BaseCommand.register(CommandsProxy)
 BaseCommand.set_default_command(DEFAULT_COMMAND)
