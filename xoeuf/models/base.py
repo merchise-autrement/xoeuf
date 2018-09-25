@@ -27,6 +27,8 @@ def get_modelname(model):
     :param model: Either an object (i.e an instance bound to some database) or
                   the any of the it's class definitions.
 
+    .. deprecated:: 0.49.0 Calling with a `model proxy
+                    <xoeuf.models.proxy>`:mod:.
 
     '''
     from xoutil.eight import string_types
