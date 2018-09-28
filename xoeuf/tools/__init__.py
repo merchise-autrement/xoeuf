@@ -272,14 +272,15 @@ def dt_as_timezone(dt, tz_name=None):
     return tz.localize(strip_tzinfo(dt))
 
 
-def localtime_as_remotetime(dt_UTC, from_tz=utc, as_tz=utc):
-    # type: (datetime, str, str) -> datetime
+def localtime_as_remotetime(dt_UTC, from_tz=utc, as_tz=utc, ignore_dst=False):
+    # type: (datetime, str, str, bool) -> datetime
     """ Compute the datetime as the timezone source,
     then force to it the desired TZ and back to UTC.
 
    :param datetime dt_UTC: datetime in UTC
    :param string from_tz: timezone to compute the datetime
    :param string as_tz: timezone to localize the datetime
+   :param string ignore_dst: if is True we ignore Daylight saving time.
    :return: datetime in desired timezone
    """
 
@@ -288,11 +289,11 @@ def localtime_as_remotetime(dt_UTC, from_tz=utc, as_tz=utc):
         from_tz = pytz.timezone(from_tz)
     if not isinstance(as_tz, pytz.tzinfo.tzinfo):
         as_tz = pytz.timezone(as_tz)
-    if not dt_UTC.tzinfo:
-        dt_UTC = dt_as_timezone(dt_UTC)
-    local = from_tz.normalize(dt_UTC)
-    faked = as_tz.localize(strip_tzinfo(local))
-    return strip_tzinfo(pytz.UTC.normalize(faked))
+    # First year day is not in Daylight saving time.
+    ref = dt_UTC.replace(day=1, month=1) if ignore_dst else dt_UTC
+    diff = from_tz.utcoffset(ref)
+    diff -= as_tz.utcoffset(ref)
+    return dt_UTC + diff
 
 
 def get_time_from_float(value):
