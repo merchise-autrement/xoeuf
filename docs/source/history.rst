@@ -11,6 +11,8 @@ Unreleased.  Release 0.49.0
 - Deprecate using `~xoeuf.models.get_modelname`:func: with a model proxy as an
   argument.
 
+- Add parameter `ignore_dst` to `~xoeuf.tools.localtime_as_remotetime`:func:.
+
 
 2018-09-19.  Release 0.48.0
 ---------------------------
