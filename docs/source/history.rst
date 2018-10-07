@@ -13,6 +13,8 @@ Unreleased.  Release 0.49.0
 
 - Add parameter `ignore_dst` to `~xoeuf.tools.localtime_as_remotetime`:func:.
 
+- Fix bug with `xoeuf.fields.Enumeration`:class:\ : it was not possible to set
+  an enumeration to False or None.
 
 2018-09-19.  Release 0.48.0
 ---------------------------
