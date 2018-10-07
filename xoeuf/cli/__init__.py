@@ -64,7 +64,6 @@ class CommandsProxy(BaseCommand):
             config.parse_config([addons_path])
 
 
-BaseCommand.register(CommandsProxy)
 BaseCommand.set_default_command(DEFAULT_COMMAND)
 
 
