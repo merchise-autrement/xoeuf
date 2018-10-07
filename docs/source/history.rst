@@ -5,7 +5,7 @@
 Beta releases (series 0.X)
 ==========================
 
-Unreleased.  Release 0.49.0
+2018-10-07.  Release 0.49.0
 ---------------------------
 
 - Deprecate using `~xoeuf.models.get_modelname`:func: with a model proxy as an
