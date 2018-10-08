@@ -8,10 +8,15 @@ Beta releases (series 0.X)
 2018-10-08.  Release 0.49.1
 ---------------------------
 
-- No code changes.  A known bug in `xoeuf.fields.LocalizedDatetime`:class: was
-  preventing the CI pipeline to run and generated the docs.
+- No code changes.
+
+  A known bug in `xoeuf.fields.LocalizedDatetime`:class: was preventing the CI
+  pipeline to run and generated the docs.
 
   The bug remains marked as a known bug so the CI pipeline continues.
+
+  Also corrected the documentation of some functions that were not in the
+  documents but exist in the code.
 
 
 2018-10-07.  Release 0.49.0
