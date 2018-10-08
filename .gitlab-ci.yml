@@ -72,7 +72,6 @@ run all Odoo 12 tests:
     - export CWD=`pwd`
     - export ODOO_URI=file://$HOME/src/$ODOO_WORKTREE
     - cd ~/src/$ODOO_WORKTREE
-    - git pull
     - cd $CWD
     - tox -e system-$ODOO_WORKTREE-unit
   tags:
@@ -181,7 +180,6 @@ build documentation:
   script:
     - export CWD=`pwd`
     - cd ~/src/$ODOO_WORKTREE
-    - git pull
     - mkdir -p ~/virtualenvs
     - rm -rf ~/virtualenvs/$CI_PROJECT_NAME-$ODOO_WORKTREE || true
     - virtualenv -p `which $PYTHON` ~/virtualenvs/$CI_PROJECT_NAME-$ODOO_WORKTREE
