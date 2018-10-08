@@ -206,6 +206,7 @@ build documentation:
   only:
     - master
     - tags
+    - /^hotfix-/
 
 publish in our rtd:
   variables:
