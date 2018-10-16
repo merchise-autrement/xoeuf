@@ -72,18 +72,12 @@ def localize_datetime(self, datetime_value=None, from_tz='UTC', to_tz='UTC'):
         from_tz = self.env.user.tz or 'UTC'
     if not to_tz:
         to_tz = self.env.user.tz or 'UTC'
-    if datetime_value:
-        datetime_value = normalize_datetime(datetime_value)
-    elif from_tz != 'UTC':
-        datetime_value = normalize_datetime(fields.Date.context_today(self))
-    else:
-        datetime_value = normalize_datetime(fields.Datetime.now())
-    if from_tz == to_tz:
-        return datetime_value
-    from_tz = pytz.timezone(from_tz)
-    to_tz = pytz.timezone(to_tz)
-    local_timestamp = from_tz.localize(datetime_value, is_dst=False)
-    return strip_tzinfo(local_timestamp.astimezone(to_tz))
+    if not datetime_value:
+        if from_tz != 'UTC':
+            datetime_value = fields.Date.context_today(self)
+        else:
+            datetime_value = fields.Datetime.now()
+    return localtime_as_remotetime(datetime_value, from_tz, to_tz)
 
 
 def date2str(d):
@@ -283,7 +277,13 @@ def localtime_as_remotetime(dt_UTC, from_tz=utc, as_tz=utc, ignore_dst=False):
 
     :param string as_tz: timezone to localize the datetime
 
-    :param string ignore_dst: if is True we ignore Daylight saving time.
+    :param string ignore_dst: value used for time disambiguation. Is used just
+    when `dt_UTC` is an ambiguous or missing datetime value.
+
+    When clocks are moved back, we say that a fold is created in time.
+    When the clocks are moved forward, a gap is created. A local time that
+    falls in the fold is called ambiguous. A local time that falls in the
+    gap is called missing.
 
     :return: datetime in desired timezone
 
