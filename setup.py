@@ -52,6 +52,7 @@ setup(name=project_name,
       include_package_data=True,
       zip_safe=False,
       install_requires=[
+          'pytz',
           'decorator>=4.0,<4.2',
           'xoutil>=1.9.0,<2.0; python_version < "3.4"',
           'xoutil>=1.9.0,<2.1; python_version >= "3.4"',
