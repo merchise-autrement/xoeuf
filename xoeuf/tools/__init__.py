@@ -295,11 +295,10 @@ def localtime_as_remotetime(dt_UTC, from_tz=utc, as_tz=utc, ignore_dst=False):
         from_tz = pytz.timezone(from_tz)
     if not isinstance(as_tz, pytz.tzinfo.tzinfo):
         as_tz = pytz.timezone(as_tz)
-    # First year day is not in Daylight saving time.
-    ref = dt_UTC.replace(day=1, month=1) if ignore_dst else dt_UTC
-    diff = from_tz.utcoffset(ref)
-    diff -= as_tz.utcoffset(ref)
-    return dt_UTC + diff
+    if from_tz == as_tz:
+        return dt_UTC
+    local_timestamp = from_tz.localize(dt_UTC, is_dst=ignore_dst)
+    return strip_tzinfo(local_timestamp.astimezone(as_tz))
 
 
 def get_time_from_float(value):
