@@ -14,6 +14,7 @@ from __future__ import (division as _py3_division,
                         print_function as _py3_print,
                         absolute_import as _py3_abs_import)
 
+from typing import Union  # noqa
 from datetime import datetime as _dt, date as _d, time as _t
 from xoutil.names import nameof
 
@@ -267,18 +268,19 @@ def dt_as_timezone(dt, tz_name=None):
 
 
 def localtime_as_remotetime(dt_UTC, from_tz=utc, as_tz=utc, ignore_dst=False):
-    # type: (datetime, str, str, bool) -> datetime
+    # type: (datetime, Union[str, tzinfo], Union[str, tzinfo], bool) -> datetime
     """Compute the datetime as the timezone source, then force to it the desired
     TZ and back to UTC.
 
-    :param datetime dt_UTC: datetime in UTC
+    :param dt_UTC: datetime in UTC
 
-    :param string from_tz: timezone to compute the datetime
+    :param from_tz: timezone to compute the datetime
 
-    :param string as_tz: timezone to localize the datetime
+    :param as_tz: timezone to localize the datetime
 
-    :param string ignore_dst: value used for time disambiguation. Is used just
-    when `dt_UTC` is an ambiguous or missing datetime value.
+    :param ignore_dst: value used for time disambiguation. Is used just
+                       when `dt_UTC` is an ambiguous or missing datetime
+                       value.
 
     When clocks are moved back, we say that a fold is created in time.
     When the clocks are moved forward, a gap is created. A local time that
