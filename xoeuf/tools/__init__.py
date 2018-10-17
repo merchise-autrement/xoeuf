@@ -43,16 +43,15 @@ utc = pytz.UTC
 
 _SVR_DATETIME_FMT2 = _SVR_DATETIME_FMT + '.%f'
 
-try:
-    from xoutil.future.datetime import without_tzinfo as strip_tzinfo  # noqa: migrate
-except ImportError:
-    def strip_tzinfo(dt):
-        # type: (datetime) -> datetime
-        '''Return the given datetime value with tzinfo removed.
 
-        '''
-        from datetime import datetime  # noqa
-        return datetime(*(dt.timetuple()[:6] + (dt.microsecond, )))
+def strip_tzinfo(dt):
+    # type: (datetime) -> datetime
+    '''Return the given datetime value with tzinfo removed.
+
+    .. deprecated:: 0.50.0  Use the replace method of datetime.
+
+    '''
+    return dt.replace(tzinfo=None)
 
 
 def localize_datetime(self, datetime_value=None, from_tz='UTC', to_tz='UTC'):
@@ -264,7 +263,7 @@ def dt_as_timezone(dt, tz_name=None):
         tz = pytz.timezone(tz_name)
     else:
         tz = pytz.UTC
-    return tz.localize(strip_tzinfo(dt))
+    return tz.localize(dt.replace(tzinfo=None))
 
 
 def localtime_as_remotetime(dt_UTC, from_tz=utc, as_tz=utc, ignore_dst=False):
@@ -300,7 +299,7 @@ def localtime_as_remotetime(dt_UTC, from_tz=utc, as_tz=utc, ignore_dst=False):
     if from_tz == as_tz:
         return dt_UTC
     local_timestamp = from_tz.localize(dt_UTC, is_dst=ignore_dst)
-    return strip_tzinfo(local_timestamp.astimezone(as_tz))
+    return local_timestamp.astimezone(as_tz).replace(tzinfo=None)
 
 
 def get_time_from_float(value):
