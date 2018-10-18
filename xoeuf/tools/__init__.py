@@ -14,6 +14,7 @@ from __future__ import (division as _py3_division,
                         print_function as _py3_print,
                         absolute_import as _py3_abs_import)
 
+from typing import Union  # noqa
 from datetime import datetime as _dt, date as _d, time as _t
 from xoutil.names import nameof
 
@@ -42,16 +43,15 @@ utc = pytz.UTC
 
 _SVR_DATETIME_FMT2 = _SVR_DATETIME_FMT + '.%f'
 
-try:
-    from xoutil.future.datetime import without_tzinfo as strip_tzinfo  # noqa: migrate
-except ImportError:
-    def strip_tzinfo(dt):
-        # type: (datetime) -> datetime
-        '''Return the given datetime value with tzinfo removed.
 
-        '''
-        from datetime import datetime  # noqa
-        return datetime(*(dt.timetuple()[:6] + (dt.microsecond, )))
+def strip_tzinfo(dt):
+    # type: (datetime) -> datetime
+    '''Return the given datetime value with tzinfo removed.
+
+    .. deprecated:: 0.50.0  Use the replace method of datetime.
+
+    '''
+    return dt.replace(tzinfo=None)
 
 
 def localize_datetime(self, datetime_value=None, from_tz='UTC', to_tz='UTC'):
@@ -72,18 +72,12 @@ def localize_datetime(self, datetime_value=None, from_tz='UTC', to_tz='UTC'):
         from_tz = self.env.user.tz or 'UTC'
     if not to_tz:
         to_tz = self.env.user.tz or 'UTC'
-    if datetime_value:
-        datetime_value = normalize_datetime(datetime_value)
-    elif from_tz != 'UTC':
-        datetime_value = normalize_datetime(fields.Date.context_today(self))
-    else:
-        datetime_value = normalize_datetime(fields.Datetime.now())
-    if from_tz == to_tz:
-        return datetime_value
-    from_tz = pytz.timezone(from_tz)
-    to_tz = pytz.timezone(to_tz)
-    local_timestamp = from_tz.localize(datetime_value, is_dst=False)
-    return strip_tzinfo(local_timestamp.astimezone(to_tz))
+    if not datetime_value:
+        if from_tz != 'UTC':
+            datetime_value = fields.Date.context_today(self)
+        else:
+            datetime_value = fields.Datetime.now()
+    return localtime_as_remotetime(datetime_value, from_tz, to_tz)
 
 
 def date2str(d):
@@ -269,21 +263,28 @@ def dt_as_timezone(dt, tz_name=None):
         tz = pytz.timezone(tz_name)
     else:
         tz = pytz.UTC
-    return tz.localize(strip_tzinfo(dt))
+    return tz.localize(dt.replace(tzinfo=None))
 
 
 def localtime_as_remotetime(dt_UTC, from_tz=utc, as_tz=utc, ignore_dst=False):
-    # type: (datetime, str, str, bool) -> datetime
+    # type: (datetime, Union[str, tzinfo], Union[str, tzinfo], bool) -> datetime
     """Compute the datetime as the timezone source, then force to it the desired
     TZ and back to UTC.
 
-    :param datetime dt_UTC: datetime in UTC
+    :param dt_UTC: datetime in UTC
 
-    :param string from_tz: timezone to compute the datetime
+    :param from_tz: timezone to compute the datetime
 
-    :param string as_tz: timezone to localize the datetime
+    :param as_tz: timezone to localize the datetime
 
-    :param string ignore_dst: if is True we ignore Daylight saving time.
+    :param ignore_dst: value used for time disambiguation. Is used just
+                       when `dt_UTC` is an ambiguous or missing datetime
+                       value.
+
+    When clocks are moved back, we say that a fold is created in time.
+    When the clocks are moved forward, a gap is created. A local time that
+    falls in the fold is called ambiguous. A local time that falls in the
+    gap is called missing.
 
     :return: datetime in desired timezone
 
@@ -295,11 +296,10 @@ def localtime_as_remotetime(dt_UTC, from_tz=utc, as_tz=utc, ignore_dst=False):
         from_tz = pytz.timezone(from_tz)
     if not isinstance(as_tz, pytz.tzinfo.tzinfo):
         as_tz = pytz.timezone(as_tz)
-    # First year day is not in Daylight saving time.
-    ref = dt_UTC.replace(day=1, month=1) if ignore_dst else dt_UTC
-    diff = from_tz.utcoffset(ref)
-    diff -= as_tz.utcoffset(ref)
-    return dt_UTC + diff
+    if from_tz == as_tz:
+        return dt_UTC
+    local_timestamp = from_tz.localize(dt_UTC, is_dst=ignore_dst)
+    return local_timestamp.astimezone(as_tz).replace(tzinfo=None)
 
 
 def get_time_from_float(value):

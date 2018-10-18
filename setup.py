@@ -61,6 +61,7 @@ setup(name=project_name,
           'raven-sanitize-openerp',
           'enum34; python_version < "3.4"',
           'celery>=4.1.0,<5',
+          'typing;python_version<"3.5"',
       ],
       extra_requires={
           'odoo': [
