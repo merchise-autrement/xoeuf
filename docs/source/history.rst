@@ -8,7 +8,10 @@ Beta releases (series 0.X)
 Unreleased.  Release 0.50.0
 ---------------------------
 
-Nothing yet.
+- Reimplement `~xoeuf.tools.localtime_as_remotetime`:func: so that it takes
+  into account DST properly.  Reimplement
+  `~xoeuf.tools.localize_datetime`:func: in terms of
+  `~xoeuf.tools.localtime_as_remotetime`:func:.
 
 
 2018-10-08.  Release 0.49.1
