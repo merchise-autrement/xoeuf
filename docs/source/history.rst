@@ -5,7 +5,7 @@
 Beta releases (series 0.X)
 ==========================
 
-Unreleased.  Release 0.50.0
+2018-10-18.  Release 0.50.0
 ---------------------------
 
 - Reimplement `~xoeuf.tools.localtime_as_remotetime`:func: so that it takes
