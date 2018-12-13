@@ -11,12 +11,11 @@ from __future__ import (division as _py3_division,
                         print_function as _py3_print,
                         absolute_import as _py3_abs_import)
 
-import sys
 from collections import defaultdict
 from inspect import getmembers
 from xoeuf.odoo import api, models, tools
 from xoeuf.osv.expression import Domain
-from xoutil.string import cut_prefix
+from xoeuf.modules import get_caller_addon
 
 
 def get_modelname(model):
@@ -218,23 +217,6 @@ def _validate_fields(self, field_names):
 models.BaseModel._validate_fields = _validate_fields
 
 
-def _get_caller_addon(depth=None):
-    depth = depth if depth else 0
-    res = False
-    while depth < 5 and not res:
-        frame = sys._getframe(depth)
-        module = frame.f_globals['__name__']
-        if module.startswith('odoo.addons.'):
-            module = cut_prefix(module, 'odoo.addons.')
-            res = module.split('.', 1)[0]
-        elif module.startswith('openerp.addons.'):
-            module = cut_prefix(module, 'openerp.addons.')
-            res = module.split('.', 1)[0]
-        del frame
-        depth += 1
-    return res
-
-
 def ViewModel(name, model_name, table=None, mixins=None):
     if not table:
         table = model_name.replace('.', '_')
@@ -245,6 +227,6 @@ def ViewModel(name, model_name, table=None, mixins=None):
         _name = name
         _inherit = [model_name] + mixins
         _table = table
-        _module = _get_caller_addon()
+        _module = get_caller_addon(2)
 
     return Res
