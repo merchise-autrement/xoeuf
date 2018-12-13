@@ -17,6 +17,12 @@ TEST_MODEL_NAME = 'test_view_model.model'
 TEST_MODEL_NAME2 = 'test_view_model.model2'
 
 
+class ExampleMixin(models.AbstractModel):
+    _name = 'example.mixin'
+
+    is_example_mixin = True
+
+
 class Model(models.Model):
     _name = TEST_MODEL_NAME
 
@@ -27,7 +33,7 @@ class Model(models.Model):
 ViewModel1 = models.ViewModel(
     'view_model1',
     TEST_MODEL_NAME,
-    mixins=['format.address.mixin']
+    mixins=['example.mixin']
 )
 
 

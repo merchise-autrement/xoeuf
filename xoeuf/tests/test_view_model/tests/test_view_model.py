@@ -21,17 +21,14 @@ class TestViewModel(TransactionCase):
         self.assertEqual(self.env['view_model2']._module, 'test_view_model')
 
     def test_mixins(self):
-        view_model = lambda name: self.env[name]
-        self.assertTrue(
-            hasattr(view_model('view_model1'), '_fields_view_get_address')
+        is_example_mixin = lambda model_name: getattr(
+            self.env[model_name],
+            'is_example_mixin',
+            False
         )
-        self.assertFalse(
-            hasattr(view_model('view_model2'), '_fields_view_get_address')
-        )
-        self.assertFalse(hasattr(
-            view_model('test_view_model.model'),
-            '_fields_view_get_address'
-        ))
+        self.assertTrue(is_example_mixin('view_model1'))
+        self.assertFalse(is_example_mixin('view_model2'))
+        self.assertFalse(is_example_mixin('test_view_model.model'))
 
     def test_non_shared_extensions(self):
         view1 = self.env['view_model1']
