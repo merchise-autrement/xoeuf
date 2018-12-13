@@ -218,6 +218,19 @@ models.BaseModel._validate_fields = _validate_fields
 
 
 def ViewModel(name, model_name, table=None, mixins=None):
+    """ Create a ViewModel by a simplify way.
+
+    ViewModel: A model that inherit other by prototype mode and is
+               persisted in the same table as original model.
+
+    :param name: name for view model to define.
+    :param model_name: Name of the model to which the ModelView will be
+                       created.
+    :param table: attribute _table of model to which the ModelView will be
+                  created or None to get the default using odoo convention.
+    :param mixins: List of model names "mixins" that will inherit the
+                   ModelView or None to include no mixin.
+    """
     if not table:
         table = model_name.replace('.', '_')
     if not mixins:
