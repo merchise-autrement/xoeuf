@@ -174,8 +174,8 @@ publish_pypi:
 
 build documentation:
   variables:
-    PYTHON: python3
-    ODOO_WORKTREE: odoo11
+    PYTHON: python2
+    ODOO_WORKTREE: odoo10
   stage: build doc
   script:
     - export CWD=`pwd`
