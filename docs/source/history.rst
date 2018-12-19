@@ -8,7 +8,7 @@ Beta releases (series 0.X)
 Unreleased.  Release 0.51.0
 ---------------------------
 
-- Add argument `max_depth` to `~xoeuf.modules.get_caller_addon`:func
+- Add argument `max_depth` to `~xoeuf.modules.get_caller_addon`:func:
 
 
 2018-10-18.  Release 0.50.0
