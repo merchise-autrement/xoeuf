@@ -265,29 +265,30 @@ def is_object_installed(self, object):
         return False
 
 
-def get_caller_addon(depth=0):
+def get_caller_addon(depth=0, max_depth=5):
     '''Guess the caller addon.
 
     :param depth: Skip that many levels in the call stack.
+    :param max_depth: Max level to look in the call stack.
 
     Technically, we look in the globals of the *calling* stack frame for the
     ``__name__`` and, its matches the format with 'oddo.addons.<addon>.*',
-    return the addon name; otherwise, return None.
+    return the addon name; otherwise, go one level back until max_depth.
 
     '''
+    res = False
     frame = sys._getframe(1 + depth)
-    try:
+    while depth < max_depth and frame is not None and not res:
         module = frame.f_globals['__name__']
         if module.startswith('odoo.addons.'):
             module = cut_prefix(module, 'odoo.addons.')
-            return module.split('.', 1)[0]
+            res = module.split('.', 1)[0]
         elif module.startswith('openerp.addons.'):
             module = cut_prefix(module, 'openerp.addons.')
-            return module.split('.', 1)[0]
-        else:
-            return None
-    finally:
-        del frame
+            res = module.split('.', 1)[0]
+        depth += 1
+        frame = frame.f_back
+    return res
 
 
 del re, logging, OdooHook
