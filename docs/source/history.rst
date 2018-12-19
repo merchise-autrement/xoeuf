@@ -50,7 +50,7 @@ Unreleased.  Release 0.51.0
 
 - Fix bug in the BaseModel that raises KeyError with unknown fields.
 
-  Introduced in 0.46.0, with the `~xoeuf.api.onupdate`:any: hack of
+  Introduced in 0.46.0, with the `~xoeuf.api.onupdate`:func: hack of
   ``_validate_fields``.
 
 
