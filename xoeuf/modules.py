@@ -269,14 +269,18 @@ def get_caller_addon(depth=0, max_depth=5):
     '''Guess the caller addon.
 
     :param depth: Skip that many levels in the call stack.
+
     :param max_depth: Max level to look in the call stack.
 
     Technically, we look in the globals of the *calling* stack frame for the
     ``__name__`` and, its matches the format with 'oddo.addons.<addon>.*',
-    return the addon name; otherwise, go one level back until max_depth.
+    return the addon name; otherwise, look up in the frame stack until
+    `max_depth` is reached.  No addon name is found, return None.
+
+    .. versionchanged:: 0.51.0 Added `max_depth` argument.
 
     '''
-    res = False
+    res = None
     frame = sys._getframe(1 + depth)
     while depth < max_depth and frame is not None and not res:
         module = frame.f_globals['__name__']
