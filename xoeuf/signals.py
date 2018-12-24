@@ -15,11 +15,14 @@ from __future__ import (division as _py3_division,
                         absolute_import as _py3_abs_import)
 
 import logging
-logger = logging.getLogger(__name__)
-del logging
+from functools import wraps
 
 from xoeuf.odoo import api, models
 from xoutil.objects import temp_attributes
+
+
+logger = logging.getLogger(__name__)
+del logging
 
 
 class HookDefinition(object):
@@ -586,6 +589,7 @@ super_search = models.BaseModel.search
 
 
 @api.model
+@wraps(super_fields_view_get)
 def _fvg_for_signals(self, view_id=None, view_type='form',
                      toolbar=False, submenu=False):
     kwargs = dict(
@@ -602,6 +606,7 @@ def _fvg_for_signals(self, view_id=None, view_type='form',
 
 @api.model
 @api.returns('self', lambda value: value.id if value else value)
+@wraps(super_create)
 def _create_for_signals(self, vals):
     pre_create.send(sender=self, values=vals)
     res = super_create(self, vals)
@@ -610,6 +615,7 @@ def _create_for_signals(self, vals):
 
 
 @api.multi
+@wraps(super_write)
 def _write_for_signals(self, vals):
     pre_write.send(self, values=vals)
     res = super_write(self, vals)
@@ -632,12 +638,14 @@ Wraps the `write` method.
 
 
 @api.multi
+@wraps(_write_for_signals)
 def _write_for_wrappers(self, vals):
     return write_wrapper.perform(_write_for_signals, self, vals)
 
 
 @api.model
 @api.returns(*super_search._returns)
+@wraps(super_search)
 def _search_for_signals(self, args, offset=0, limit=None, order=None, count=False):
     query = list(args)
     kw_args = dict(offset=offset, limit=limit, order=order, count=count)
