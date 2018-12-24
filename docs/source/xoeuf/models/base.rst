@@ -3,4 +3,4 @@
 ==========================
 
 .. automodule:: xoeuf.models.base
-   :members: get_modelname
+   :members: get_modelname, ViewModel
