@@ -10,6 +10,8 @@ Unreleased.  Release 0.51.0
 
 - Add argument `max_depth` to `~xoeuf.modules.get_caller_addon`:func:
 
+- Add function `xoeuf.models.base.ViewModel`:class:.
+
 
 2018-10-18.  Release 0.50.0
 ---------------------------
