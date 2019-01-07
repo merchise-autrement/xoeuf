@@ -1,0 +1,7 @@
+<odoo>
+  <data>
+    <record model='test_xoeuf_models.foobar' id="record1">
+      <field name="name">Record 1</field>
+    </record>
+  </data>
+</odoo>
