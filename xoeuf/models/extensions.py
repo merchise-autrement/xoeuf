@@ -66,3 +66,20 @@ def get_treeview_action(self, **options):
         result['active_id'] = active_id
     result.update(options)
     return result
+
+
+def get_ref(self, xmlid, depth=1):
+    '''Get the XMLID in the caller's addon.
+
+    If `xmlid` is missing the addon, then will try to guess it from the
+    `calling addon <xoeuf.modules.get_caller_addon>`:func:.
+
+    `depth` is passed directly to `~xoeuf.modules.get_caller_addon`:func:.
+
+    '''
+    if '.' in xmlid:
+        return self.env.ref(xmlid)
+    else:
+        from xoeuf.modules import get_caller_addon
+        addon = get_caller_addon(depth=depth)
+        return self.env.ref(addon + '.' + xmlid)
