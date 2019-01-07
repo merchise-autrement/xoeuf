@@ -5,7 +5,7 @@
 Beta releases (series 0.X)
 ==========================
 
-Unreleased.  Release 0.52.0
+2019-01-07.  Release 0.52.0
 ---------------------------
 
 - Add function `xoeuf.models.extensions.get_ref`:func:.
