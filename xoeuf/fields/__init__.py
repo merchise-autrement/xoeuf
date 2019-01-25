@@ -23,6 +23,7 @@ from .timezone import TimezoneSelection  # noqa: reexport
 from .timedelta import TimeDelta         # noqa: reexport
 from .one2one import One2one             # noqa: reexport
 from .timerange import TimeRange         # noqa: reexport
+from .reference import TypedReference    # noqa: reexport
 
 
 try:
