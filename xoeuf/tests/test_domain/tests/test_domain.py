@@ -19,7 +19,7 @@ from xoeuf.osv import expression as expr
 from xoeuf.odoo.osv import expression as odoo_expr
 from xoeuf.osv.expression import Domain, DomainTree
 
-names = s.text(alphabet='abdefgh', min_size=1, average_size=3)
+names = s.text(alphabet='abdefgh', min_size=1, max_size=5)
 operators = s.sampled_from(['=', '!=', '<', '>', '<>'])
 
 # Logical connectors with the amount of terms it connects.  Notice that ''
@@ -36,11 +36,11 @@ def terms(draw, values=s.integers(min_value=-10, max_value=10)):
 
 
 @s.composite
-def domains(draw, min_size=1, average_size=4):
+def domains(draw, min_size=1, max_size=10):
     leaves = draw(s.lists(
         terms(),
         min_size=min_size,
-        average_size=average_size
+        max_size=max_size,
     ))
     result = []
     while leaves:
@@ -118,7 +118,7 @@ class TestDomain(unittest.TestCase):
             domain.simplified.simplified
         )
 
-    @given(s.lists(domains(), max_size=10, average_size=5))
+    @given(s.lists(domains(), min_size=2, max_size=10))
     def test_expr_replacement(self, domains):
         expr.AND(domains)
         odoo_expr.AND(domains)
