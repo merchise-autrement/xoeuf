@@ -13,7 +13,7 @@ from __future__ import (division as _py3_division,
 
 from xoutil.future.codecs import safe_decode
 
-from xoeuf.odoo.tests.common import TransactionCase
+from xoeuf.odoo.tests.common import TransactionCase, at_install, post_install
 from xoeuf.signals import (
     mock_replace,
     post_create,
@@ -30,10 +30,9 @@ from xoeuf.odoo.addons.test_signals.models import (
 )
 
 
+@at_install(False)
+@post_install(True)
 class TestXoeufSignals(TransactionCase):
-    at_install = False
-    post_install = not at_install
-
     def setUp(self):
         super(TestXoeufSignals, self).setUp()
         self.Model = self.env['test_signals.signaling_model']

@@ -20,6 +20,7 @@ from xoeuf import MAJOR_ODOO_VERSION
 from xoeuf.models.proxy import ResUsers as Users
 from xoeuf.odoo import SUPERUSER_ID
 from xoeuf.odoo.tests.common import TransactionCase, HttpCase
+from xoeuf.odoo.tests.common import at_install, post_install
 
 
 class TestModelProxy(TransactionCase):
@@ -40,10 +41,9 @@ class TestModelProxy(TransactionCase):
         this.assertNotIn(object(), Users._instances_)
 
 
+@at_install(False)
+@post_install(True)
 class TestHTTPModelProxy(HttpCase):
-    at_install = False
-    post_install = not at_install
-
     @staticmethod
     def getcode(response):
         if MAJOR_ODOO_VERSION < 11:

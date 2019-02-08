@@ -15,7 +15,7 @@ import contextlib
 
 from hypothesis import strategies as s, given
 from xoeuf import fields
-from xoeuf.odoo.tests.common import TransactionCase
+from xoeuf.odoo.tests.common import TransactionCase, at_install, post_install
 
 from ..models import COLORS, Pax, CARS, WORK_TYPE
 
@@ -26,10 +26,9 @@ paxs = s.sampled_from(list(Pax.__members__.values()))
 wtypes = s.sampled_from(list(WORK_TYPE.__members__.values()))
 
 
+@at_install(False)
+@post_install(True)
 class TestEnum(TransactionCase):
-    at_install = False
-    post_install = not at_install
-
     def setUp(self):
         super(TestEnum, self).setUp()
         self.EnumModel = self.env['test.enum.model']
