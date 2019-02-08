@@ -179,6 +179,9 @@ class EnumerationAdapter(object):
     _sql_constraints = []
     _constraints = []
 
+    # Odoo 12 requires this attribute.  See odoo/models.py, line 528
+    _inherit = None
+
     @api.model
     @api.returns(*models.BaseModel.search._returns)
     def search(self, args, *pos_args, **kwargs):
