@@ -61,7 +61,6 @@ run all Odoo 12 tests:
   variables:
     PYTHON: python3
     ODOO_WORKTREE: odoo12
-  allow_failure: true
   only:
     - branches
 
@@ -96,7 +95,6 @@ run tox Odoo 12 tests:
   <<: *run_tox_tests
   variables:
     ODOO_WORKTREE: odoo12
-  allow_failure: true
   only:
     - branches
 
