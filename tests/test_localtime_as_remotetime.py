@@ -17,7 +17,7 @@ from xoeuf.tools import localtime_as_remotetime, normalize_datetime
 
 @given(
     strategies.datetimes(
-        min_value=normalize_datetime('1900-01-01'),
+        min_value=normalize_datetime('1912-04-14'),
         max_value=normalize_datetime('2100-12-31')
     ),
     timezones(),
