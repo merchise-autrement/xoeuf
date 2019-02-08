@@ -1,7 +1,8 @@
 ---
 stages:
   - pre-check
-  - test
+  - unit-test
+  - integration-test
   - check
   - build
   - publish
@@ -17,7 +18,7 @@ check code smells:
     - branches
 
 .run_tests: &run_tests
-  stage: test
+  stage: integration-test
   script:
     - export CWD=`pwd`
     - cd ~/src/$ODOO_WORKTREE
@@ -66,7 +67,7 @@ run all Odoo 12 tests:
 
 
 .run_tox_tests: &run_tox_tests
-  stage: test
+  stage: unit-test
   script:
     - export CWD=`pwd`
     - export ODOO_URI=file://$HOME/src/$ODOO_WORKTREE
