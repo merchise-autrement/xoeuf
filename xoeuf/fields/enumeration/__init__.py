@@ -147,7 +147,12 @@ def Enumeration(enumclass, *args, **kwargs):
                         return self.get_member_by_name(value).value
                 return value
 
-            def convert_to_column(self, value, record, values=None):
+            # NOTE: The parameter `values` was introduced in Odoo 11; the
+            # parameter validate was introduced in Odoo 12.  We don't use
+            # either; but declare them both to work across the three Odoo
+            # versions.
+            def convert_to_column(self, value, record, values=None,
+                                  validate=True):
                 if value in enumclass.__members__.values():
                     return Base.convert_to_column(
                         self,
@@ -173,6 +178,9 @@ class EnumerationAdapter(object):
     _inherits = _depends = {}
     _sql_constraints = []
     _constraints = []
+
+    # Odoo 12 requires this attribute.  See odoo/models.py, line 528
+    _inherit = None
 
     @api.model
     @api.returns(*models.BaseModel.search._returns)
