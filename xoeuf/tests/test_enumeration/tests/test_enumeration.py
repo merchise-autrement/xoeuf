@@ -19,11 +19,11 @@ from xoeuf.odoo.tests.common import TransactionCase
 
 from ..models import COLORS, Pax, CARS, WORK_TYPE
 
-colors = s.sampled_from(COLORS.__members__.values())
-color_names = s.sampled_from(COLORS.__members__.keys())
-cars = s.sampled_from(CARS.__members__.values())
-paxs = s.sampled_from(Pax.__members__.values())
-wtypes = s.sampled_from(WORK_TYPE.__members__.values())
+colors = s.sampled_from(list(COLORS.__members__.values()))
+color_names = s.sampled_from(list(COLORS.__members__.keys()))
+cars = s.sampled_from(list(CARS.__members__.values()))
+paxs = s.sampled_from(list(Pax.__members__.values()))
+wtypes = s.sampled_from(list(WORK_TYPE.__members__.values()))
 
 
 class TestEnum(TransactionCase):
