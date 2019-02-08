@@ -27,4 +27,4 @@ matrix:
 install: pip install tox
 script:
     - export ODOO_URI=https://github.com/merchise-autrement/odoo.git
-    - tox -e system-$TOX_ENV
+    - tox -e system-$TOX_ENV -vv
