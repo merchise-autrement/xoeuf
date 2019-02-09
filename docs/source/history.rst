@@ -5,10 +5,10 @@
 Beta releases (series 0.X)
 ==========================
 
-Unreleased.  Release 0.53.0
+2019-02-08.  Release 0.53.0
 ---------------------------
 
-- Nothing yet.
+- Add support for Odoo 12.
 
 
 2019-01-07.  Release 0.52.0
