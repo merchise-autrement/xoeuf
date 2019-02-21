@@ -11,7 +11,7 @@ from __future__ import (division as _py3_division,
                         print_function as _py3_print,
                         absolute_import as _py3_abs_import)
 
-from xoeuf.odoo import fields, models, _
+from xoeuf.odoo import api, fields, models, _
 
 
 def get_mixin_descendants(pool, mixin):
@@ -34,11 +34,13 @@ class TypedReference(fields.Reference):
     type = 'reference'
     _slots = {
         'mixin': None,
+        'delegate': None,
     }
 
-    def __init__(self, mixin=fields.Default, **kwargs):
+    def __init__(self, mixin=fields.Default, delegate=fields.Default, **kwargs):
         super(TypedReference, self).__init__(
             mixin=mixin,
+            delegate=delegate,
             **kwargs
         )
 
@@ -66,3 +68,83 @@ class TypedReference(fields.Reference):
         else:
             self.selection = selection
         return super(TypedReference, self)._setup_regular_base(model)
+
+
+@api.model
+def _setup_base(self, *args, **kwargs):
+    super_setup_base(self, *args, **kwargs)
+    delegate_reference_fields = {
+        field.mixin: (name, field)
+        for name, field in self._fields.items()
+        if isinstance(field, TypedReference) and field.delegate
+    }
+    self._add_inherits_by_reference_fields(delegate_reference_fields.values())
+
+
+@api.model
+def _add_inherits_by_reference_fields(self, reference_fields):
+    """ Determine inherited fields. """
+    # determine candidate inherited fields
+    for reference_field_name, reference_field in reference_fields:
+        mixin = self.env[reference_field.mixin]
+        for name, field in mixin._fields.items():
+            if name not in self._fields:
+                args = dict(
+                    field.args,
+                    compute=_make_compute_method(
+                        reference_field_name,
+                        name
+                    ),
+                    depends=(
+                        reference_field_name,
+                        '%s.%s' % (reference_field_name, name)
+                    )
+                )
+                # determine dependencies, compute, inverse, and search
+                if not (field.readonly or reference_field.readonly):
+                    args['inverse'] = _make_inverse_method(
+                        reference_field_name,
+                        name
+                    )
+                if field._description_searchable:
+                    # allow searching on self only if the related
+                    # field is searchable
+                    args['search'] = _make_search_method(
+                        reference_field_name,
+                        name
+                    )
+                self._add_field(name, field.new(**args))
+
+
+def _make_compute_method(reference_field, field_name):
+    @api.multi
+    def _get(self):
+        for record in self:
+            reference = record[reference_field]
+            if reference:
+                record[field_name] = reference[field_name]
+    return _get
+
+
+def _make_inverse_method(reference_field, field_name):
+    @api.multi
+    def _set(self):
+        for record in self:
+            reference = record[reference_field]
+            if reference:
+                reference[field_name] = record[field_name]
+            else:
+                raise ValueError("TODO")
+    return _set
+
+
+def _make_search_method(reference_field, field_name):
+    @api.multi
+    def _search(self, operator, value):
+        return [('%s.%s' % (reference_field, field_name), operator, value)]
+    return _search
+
+
+super_setup_base = models.BaseModel._setup_base
+models.BaseModel._setup_base = _setup_base
+models.BaseModel._add_inherits_by_reference_fields = _add_inherits_by_reference_fields
