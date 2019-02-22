@@ -26,6 +26,12 @@ from xoeuf.tools import localtime_as_remotetime
 import xoeuf.fields as _future
 
 
+try:
+    integer_types = (int, long)
+except NameError:
+    integer_types = (int, )
+
+
 @deprecated(_future.LocalizedDatetime)
 class localized_datetime(_v7_fields.function):
     '''A field for localized datetimes.
@@ -59,7 +65,7 @@ class localized_datetime(_v7_fields.function):
             tz = pytz.timezone(user.tz) if user.tz else pytz.UTC
         else:
             tz = pytz.timezone(tz)
-        if isinstance(ids, (int, long)):
+        if isinstance(ids, integer_types):
             ids = [ids]
         for row in obj.browse(cr, uid, ids, context=context):
             tzone = getattr(row, tzone_field)
@@ -86,7 +92,7 @@ class localized_datetime(_v7_fields.function):
             tz = pytz.timezone(user.tz) if user.tz else pytz.UTC
         else:
             tz = pytz.timezone(tz)
-        if isinstance(ids, (int, long)):
+        if isinstance(ids, integer_types):
             ids = [ids]
         res = {}
         for row in obj.browse(cr, uid, ids, context=context):
