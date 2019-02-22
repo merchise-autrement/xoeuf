@@ -66,7 +66,7 @@ setup(name=project_name,
       extra_requires={
           'odoo': [
               'odoo==10.0; python_version < "3.0"',
-              'odoo==11.0; python_version >= "3.5"',
+              'odoo>=11.0,<13.0; python_version >= "3.5"',
           ],
           'test': ['hypothesis>=3.7.0,<4', ],
       },
