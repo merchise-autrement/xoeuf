@@ -16,6 +16,7 @@ import unittest
 from hypothesis import strategies as s, given
 
 from xoeuf.osv import expression as expr
+from xoeuf.osv import ql
 from xoeuf.odoo.osv import expression as odoo_expr
 from xoeuf.osv.expression import Domain, DomainTree
 
@@ -284,3 +285,12 @@ class TestDomain(unittest.TestCase):
         #     ('OPERATOR', '&')
         # ]
         # self.assertEqual(expected, list(tree.walk()))
+
+    def test_get_filter_ast_simple_one_term_with_in(self):
+        self.assertEqual(
+            Domain([('state', 'in', [1, 2])])._get_filter_ast(),
+            ql.Lambda(
+                ql.make_arguments('this'),
+                expr._constructor_in('this', 'state', [1, 2])
+            )
+        )
