@@ -691,7 +691,7 @@ def _constructor_or(*operands):
 def _constructor_getattr(node, fieldname):
     attrs = fieldname.split('.')
     for attr in attrs:
-        node = ql.Attribute(node, attr)
+        node = ql.Attribute(node, attr, ql.Load())
     return node
 
 
