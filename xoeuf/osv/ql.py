@@ -28,7 +28,7 @@ del sys
 #
 #    qst.Name('a', qst.Load()) == qst.Name('b', qst.Load())
 #
-class PyASTNode:
+class PyASTNode(object):
     def __eq__(self, other):
         from operator import eq
         Unset = object()  # xoutil's Unset is equal to 0!
@@ -170,7 +170,18 @@ if (3, 6) <= _py_version:
 
 # This None as a name.  Only use this for comparison, not as a return value.
 LOAD_NONE = Name('None', Load())   # noqa
-NONE_CT = NameConstant(None)       # noqa
+
+try:
+    NONE_CT = NameConstant(None)       # noqa
+except NameError:
+    class NameConstant(object):
+        def __init__(self, value):
+            self.value = value
+
+        def __eq__(self, other):
+            return is_constant(other, self.value)
+
+    NONE_CT = NameConstant(None)
 
 
 def is_constant(which, value):
@@ -200,7 +211,7 @@ class SetAttributesVisitor(pyast.NodeVisitor):
         for attr, val in self.attrs.items():
             if get(attr) is Unset:
                 setattr(node, attr, val)
-        return super().generic_visit(node)
+        return super(SetAttributesVisitor, self).generic_visit(node)
 
 
 def make_arguments(*names):
