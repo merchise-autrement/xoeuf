@@ -288,9 +288,10 @@ class TestDomain(unittest.TestCase):
 
     def test_get_filter_ast_simple_one_term_with_in(self):
         self.assertEqual(
-            Domain([('state', 'in', [1, 2])])._get_filter_ast(),
-            ql.Lambda(
+            DomainTree(Domain([('state', 'in', [1, 2])]))._get_filter_ast(),
+            ql.Expression(ql.Lambda(
                 ql.make_arguments('this'),
                 expr._constructor_in('this', 'state', [1, 2])
-            )
+            ))
         )
+        DomainTree(Domain([('state', 'in', [1, 2])])).get_filter()
