@@ -19,3 +19,13 @@ class DomainModel(models.Model):
 
     name = fields.Text()
     age = fields.Integer()
+
+    def __repr__(self):
+        def _repr(rec):
+            return "{id}({name!r}, {age!r})".format(
+                id=rec.id,
+                name=rec.name,
+                age=rec.age
+            )
+        recs = "; ".join(_repr(r) for r in self)
+        return "{{{0}}}".format(recs)
