@@ -349,6 +349,12 @@ class Domain(list):
     def __hash__(self):
         return hash(DomainTree(self.second_normal_form))
 
+    def _asfilter_ast(self):
+        return DomainTree(self.second_normal_form)._get_filter_ast()
+
+    def asfilter(self):
+        return DomainTree(self.second_normal_form).get_filter()
+
 
 class DomainTerm(object):
     def __init__(self, term):
@@ -623,7 +629,7 @@ class DomainTree(object):
 
     def get_filter(self, this='this'):
         '''Return a callable to filter a recordset.'''
-        return compile(self._get_filter_ast(this), '<domain>', 'eval')
+        return eval(compile(self._get_filter_ast(this), '<domain>', 'eval'))
 
     def walk(self):
         '''Performs a post-fix walk of the tree.

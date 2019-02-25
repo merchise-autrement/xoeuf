@@ -14,14 +14,19 @@ from __future__ import (division as _py3_division,
 from itertools import product
 import unittest
 from hypothesis import strategies as s, given
+from hypothesis.stateful import RuleBasedStateMachine, rule, Bundle
+from hypothesis.stateful import run_state_machine_as_test
 
 from xoeuf.osv import expression as expr
 from xoeuf.osv import ql
 from xoeuf.odoo.osv import expression as odoo_expr
 from xoeuf.osv.expression import Domain, DomainTree
 
+from xoeuf.odoo.tests.common import TransactionCase
+
 names = s.text(alphabet='abdefgh', min_size=1, max_size=5)
 operators = s.sampled_from(['=', '!=', '<', '>', '<>'])
+ages = s.integers(min_value=0, max_value=120)
 
 # Logical connectors with the amount of terms it connects.  Notice that ''
 # takes two arguments because it's the same as '&'.
@@ -29,17 +34,18 @@ connectors = s.sampled_from([('', 2), ('&', 2), ('!', 1), ('|', 2)])
 
 
 @s.composite
-def terms(draw, values=s.integers(min_value=-10, max_value=10)):
-    name = str(draw(names))
+def terms(draw, fields=None, values=s.integers(min_value=-10, max_value=10)):
+    f = fields or names
+    name = str(draw(f))
     operator = draw(operators)
     value = draw(values)
     return (name, operator, value)
 
 
 @s.composite
-def domains(draw, min_size=1, max_size=10):
+def domains(draw, fields=None, min_size=1, max_size=10):
     leaves = draw(s.lists(
-        terms(),
+        terms(fields),
         min_size=min_size,
         max_size=max_size,
     ))
@@ -295,3 +301,38 @@ class TestDomain(unittest.TestCase):
             ))
         )
         DomainTree(Domain([('state', 'in', [1, 2])])).get_filter()
+
+
+def get_model_domain_machine(env):
+    Model = env['test_domain.model']
+
+    class ModelDomainMachine(RuleBasedStateMachine):
+        objects = Bundle('objects')
+
+        @rule(target=objects, name=names, age=ages)
+        def create_object(self, name, age):
+            return Model.create({'name': name, 'age': age})
+
+        @rule(age=ages, op=operators)
+        def find_by_age(self, age, op):
+            query = Domain([('age', op, age)])
+            res = Model.search(query)
+            assert res.filtered(query.asfilter()) == res
+
+        @rule(ages=s.lists(ages))
+        def find_by_ages(self, ages):
+            query = Domain([('age', 'in', ages)])
+            res = Model.search(query)
+            assert res.filtered(query.asfilter()) == res
+
+        @rule(domain=domains(fields=s.just('age')))
+        def find_by_arbitrary_domain(self, domain):
+            res = Model.search(domain)
+            assert res.filtered(domain.asfilter()) == res
+
+    return ModelDomainMachine
+
+
+class TestConsistencyOfFilters(TransactionCase):
+    def test_consistency_of_domains(self):
+        run_state_machine_as_test(get_model_domain_machine(self.env))
