@@ -328,49 +328,49 @@ def get_model_domain_machine(env):
         @rule(age=ages, op=operators)
         def find_by_age(self, age, op):
             query = Domain([('age', op, age)])
-            logger.info("Check filter/domain: %s", query)
             res = Model.search(query)
+            logger.info("Check filter/domain: %s; count: %s", query, len(res))
             assert res.filtered(query.asfilter()) == res
 
         @rule(ages=s.lists(ages))
         def find_by_ages(self, ages):
             query = Domain([('age', 'in', ages)])
-            logger.info("Check filter/domain: %s", query)
             res = Model.search(query)
+            logger.info("Check filter/domain: %s; count: %s", query, len(res))
             assert res.filtered(query.asfilter()) == res
 
         @rule(ages=s.lists(ages))
         def find_by_not_ages(self, ages):
             query = Domain([('age', 'not in', ages)])
-            logger.info("Check filter/domain: %s", query)
             res = Model.search(query)
+            logger.info("Check filter/domain: %s; count: %s", query, len(res))
             assert res.filtered(query.asfilter()) == res
 
         @rule(domain=domains(fields=s.just('age')))
         def find_by_arbitrary_domain(self, domain):
-            logger.info("Check filter/domain: %s", domain)
             res = Model.search(domain)
+            logger.info("Check filter/domain: %s; count: %s", query, len(res))
             assert res.filtered(domain.asfilter()) == res
 
         @rule(name=names, op=all_operators)
         def find_by_name(self, name, op):
             query = Domain([('name', op, name)])
-            logger.info("Check filter/domain: %s", query)
             res = Model.search(query)
+            logger.info("Check filter/domain: %s; count: %s", query, len(res))
             assert res.filtered(query.asfilter()) == res
 
         @rule(names=s.lists(names))
         def find_by_names(self, names):
             query = Domain([('name', 'in', names)])
-            logger.info("Check filter/domain: %s", query)
             res = Model.search(query)
+            logger.info("Check filter/domain: %s; count: %s", query, len(res))
             assert res.filtered(query.asfilter()) == res
 
         @rule(names=s.lists(names))
         def find_by_not_names(self, names):
             query = Domain([('name', 'not in', names)])
-            logger.info("Check filter/domain: %s", query)
             res = Model.search(query)
+            logger.info("Check filter/domain: %s; count: %s", query, len(res))
             assert res.filtered(query.asfilter()) == res
 
     return ModelDomainMachine
