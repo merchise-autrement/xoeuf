@@ -339,6 +339,13 @@ def get_model_domain_machine(env):
             res = Model.search(query)
             assert res.filtered(query.asfilter()) == res
 
+        @rule(ages=s.lists(ages))
+        def find_by_not_ages(self, ages):
+            query = Domain([('age', 'not in', ages)])
+            logger.info("Check filter/domain: %s", query)
+            res = Model.search(query)
+            assert res.filtered(query.asfilter()) == res
+
         @rule(domain=domains(fields=s.just('age')))
         def find_by_arbitrary_domain(self, domain):
             logger.info("Check filter/domain: %s", domain)
@@ -355,6 +362,13 @@ def get_model_domain_machine(env):
         @rule(names=s.lists(names))
         def find_by_names(self, names):
             query = Domain([('name', 'in', names)])
+            logger.info("Check filter/domain: %s", query)
+            res = Model.search(query)
+            assert res.filtered(query.asfilter()) == res
+
+        @rule(names=s.lists(names))
+        def find_by_not_names(self, names):
+            query = Domain([('name', 'not in', names)])
             logger.info("Check filter/domain: %s", query)
             res = Model.search(query)
             assert res.filtered(query.asfilter()) == res

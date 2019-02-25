@@ -785,6 +785,7 @@ _TERM_CONSTRUCTOR = {
     '>=': _constructor_ge,
     '>': _constructor_gt,
     'in': _constructor_in,
+    'not in': compose(_constructor_not, _constructor_in),
     'like': _constructor_like,
     'ilike': _constructor_ilike,
     'not like': compose(_constructor_not, _constructor_like),
