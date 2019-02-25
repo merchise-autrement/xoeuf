@@ -314,8 +314,8 @@ class TestDomain(unittest.TestCase):
         self.assertTrue(Domain([]).asfilter()(name))
 
 
-def get_model_domain_machine(env):
-    Model = env['test_domain.model']
+def get_model_domain_machine(this):
+    Model = this.env['test_domain.model']
 
     class ModelDomainMachine(RuleBasedStateMachine):
         objects = Bundle('objects')
@@ -330,52 +330,52 @@ def get_model_domain_machine(env):
             query = Domain([('age', op, age)])
             res = Model.search(query)
             logger.info("Check filter/domain: %s; count: %s", query, len(res))
-            assert res.filtered(query.asfilter()) == res
+            this.assertEqual(res.filtered(query.asfilter()), res)
 
         @rule(ages=s.lists(ages))
         def find_by_ages(self, ages):
             query = Domain([('age', 'in', ages)])
             res = Model.search(query)
             logger.info("Check filter/domain: %s; count: %s", query, len(res))
-            assert res.filtered(query.asfilter()) == res
+            this.assertEqual(res.filtered(query.asfilter()), res)
 
         @rule(ages=s.lists(ages))
         def find_by_not_ages(self, ages):
             query = Domain([('age', 'not in', ages)])
             res = Model.search(query)
             logger.info("Check filter/domain: %s; count: %s", query, len(res))
-            assert res.filtered(query.asfilter()) == res
+            this.assertEqual(res.filtered(query.asfilter()), res)
 
         @rule(domain=domains(fields=s.just('age')))
         def find_by_arbitrary_domain(self, domain):
             res = Model.search(domain)
-            logger.info("Check filter/domain: %s; count: %s", query, len(res))
-            assert res.filtered(domain.asfilter()) == res
+            logger.info("Check filter/domain: %s; count: %s", domain, len(res))
+            this.assertEqual(res.filtered(domain.asfilter()), res)
 
         @rule(name=names, op=all_operators)
         def find_by_name(self, name, op):
             query = Domain([('name', op, name)])
             res = Model.search(query)
             logger.info("Check filter/domain: %s; count: %s", query, len(res))
-            assert res.filtered(query.asfilter()) == res
+            this.assertEqual(res.filtered(query.asfilter()), res)
 
         @rule(names=s.lists(names))
         def find_by_names(self, names):
             query = Domain([('name', 'in', names)])
             res = Model.search(query)
             logger.info("Check filter/domain: %s; count: %s", query, len(res))
-            assert res.filtered(query.asfilter()) == res
+            this.assertEqual(res.filtered(query.asfilter()), res)
 
         @rule(names=s.lists(names))
         def find_by_not_names(self, names):
             query = Domain([('name', 'not in', names)])
             res = Model.search(query)
             logger.info("Check filter/domain: %s; count: %s", query, len(res))
-            assert res.filtered(query.asfilter()) == res
+            this.assertEqual(res.filtered(query.asfilter()), res)
 
     return ModelDomainMachine
 
 
 class TestConsistencyOfFilters(TransactionCase):
     def test_consistency_of_domains(self):
-        run_state_machine_as_test(get_model_domain_machine(self.env))
+        run_state_machine_as_test(get_model_domain_machine(self))
