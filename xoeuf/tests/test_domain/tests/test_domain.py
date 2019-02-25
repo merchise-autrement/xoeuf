@@ -13,6 +13,8 @@ from __future__ import (division as _py3_division,
 
 from itertools import product
 import unittest
+import logging
+
 from hypothesis import strategies as s, given
 from hypothesis.stateful import RuleBasedStateMachine, rule, Bundle
 from hypothesis.stateful import run_state_machine_as_test
@@ -32,6 +34,8 @@ ages = s.integers(min_value=0, max_value=120)
 # Logical connectors with the amount of terms it connects.  Notice that ''
 # takes two arguments because it's the same as '&'.
 connectors = s.sampled_from([('', 2), ('&', 2), ('!', 1), ('|', 2)])
+
+logger = logging.getLogger(__name__)
 
 
 @s.composite
@@ -312,34 +316,40 @@ def get_model_domain_machine(env):
 
         @rule(target=objects, name=names, age=ages)
         def create_object(self, name, age):
+            logger.info("Creating object name: %s, age: %s", name, age)
             return Model.create({'name': name, 'age': age})
 
         @rule(age=ages, op=operators)
         def find_by_age(self, age, op):
             query = Domain([('age', op, age)])
+            logger.info("Check filter/domain: %s", query)
             res = Model.search(query)
             assert res.filtered(query.asfilter()) == res
 
         @rule(ages=s.lists(ages))
         def find_by_ages(self, ages):
             query = Domain([('age', 'in', ages)])
+            logger.info("Check filter/domain: %s", query)
             res = Model.search(query)
             assert res.filtered(query.asfilter()) == res
 
         @rule(domain=domains(fields=s.just('age')))
         def find_by_arbitrary_domain(self, domain):
+            logger.info("Check filter/domain: %s", domain)
             res = Model.search(domain)
             assert res.filtered(domain.asfilter()) == res
 
         @rule(name=names, op=all_operators)
         def find_by_name(self, name, op):
             query = Domain([('name', op, name)])
+            logger.info("Check filter/domain: %s", query)
             res = Model.search(query)
             assert res.filtered(query.asfilter()) == res
 
         @rule(names=s.lists(names))
         def find_by_names(self, names):
             query = Domain([('name', 'in', names)])
+            logger.info("Check filter/domain: %s", query)
             res = Model.search(query)
             assert res.filtered(query.asfilter()) == res
 
