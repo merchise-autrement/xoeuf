@@ -695,9 +695,12 @@ def _constructor_or(*operands):
 
 
 def _constructor_getattr(node, fieldname):
-    attrs = fieldname.split('.')
-    for attr in attrs:
-        node = ql.Attribute(node, attr, ql.Load())
+    if isinstance(fieldname, string_types):
+        attrs = fieldname.split('.')
+        for attr in attrs:
+            node = ql.Attribute(node, attr, ql.Load())
+    else:
+        node = _constructor_from_value(fieldname)
     return node
 
 

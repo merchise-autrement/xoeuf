@@ -307,6 +307,10 @@ class TestDomain(unittest.TestCase):
         )
         DomainTree(Domain([('state', 'in', [1, 2])])).get_filter()
 
+    @given(names)
+    def test_empty_domain(self, name):
+        self.assertTrue(Domain([]).asfilter()(name))
+
 
 def get_model_domain_machine(env):
     Model = env['test_domain.model']
