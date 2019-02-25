@@ -339,7 +339,7 @@ def get_model_domain_machine(this):
             logger.info("Check filter/domain: %s; count: %s", query, len(res))
             this.assertEqualRecordset(res.filtered(query.asfilter()), res)
 
-        @rule(ages=s.lists(ages))
+        @rule(ages=s.lists(s.integers(min_value=1, max_value=100)))
         def find_by_not_ages(self, ages):
             query = Domain([('age', 'not in', ages)])
             res = Model.search(query)
