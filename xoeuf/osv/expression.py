@@ -618,7 +618,7 @@ class DomainTree(object):
                 else:
                     args = [stack.pop()]
                 constructor = _TERM_CONSTRUCTOR[term]
-                stack.append(constructor(term, *args))
+                stack.append(constructor(*args))
         node = stack.pop()
         assert not stack, "Remaining nodes in the stack: {}".format(stack)
         fn = ql.ensure_compilable(ql.Expression(ql.Lambda(
