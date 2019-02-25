@@ -34,6 +34,7 @@ import operator
 from itertools import chain
 from xoeuf.odoo.osv import expression as _odoo_expression
 from xoutil.eight import string_types
+from xoutil.fp.tools import compose
 
 from . import ql
 
@@ -785,4 +786,6 @@ _TERM_CONSTRUCTOR = {
     'in': _constructor_in,
     'like': _constructor_like,
     'ilike': _constructor_ilike,
+    'not like': compose(_constructor_not, _constructor_like),
+    'not ilike': compose(_constructor_not, _constructor_ilike),
 }

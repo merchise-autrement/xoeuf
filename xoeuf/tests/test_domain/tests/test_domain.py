@@ -28,7 +28,9 @@ from xoeuf.odoo.tests.common import TransactionCase
 
 names = s.text(alphabet='abdefgh', min_size=1, max_size=5)
 operators = s.sampled_from(['=', '!=', '<', '>', '<>'])
-all_operators = s.sampled_from(['=', '!=', '<', '>', '<>', 'like', 'ilike'])
+all_operators = s.sampled_from(
+    ['=', '!=', '<', '>', '<>', 'like', 'ilike', 'not like', 'not ilike']
+)
 ages = s.integers(min_value=0, max_value=120)
 
 # Logical connectors with the amount of terms it connects.  Notice that ''
