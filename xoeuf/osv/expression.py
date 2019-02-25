@@ -736,6 +736,32 @@ def _constructor_in(this, fieldname, value):
     return ql.Compare(node, [ql.In()], [_constructor_from_value(value)])
 
 
+def _constructor_like(this, fieldname, value):
+    # ``value in this.fieldname``
+    node = _constructor_getattr(ql.Name(this, ql.Load()), fieldname)
+    return ql.Compare(
+        _constructor_from_value(value),
+        [ql.In()],
+        [node]
+    )
+
+
+def _constructor_ilike(this, fieldname, value):
+    # ``value.lower() in this.fieldname.lower()``
+    node = _constructor_getattr(
+        ql.Name(this, ql.Load()),
+        fieldname + ".lower"
+    )
+    fn = ql.make_argless_call(node)
+    return ql.Compare(
+        ql.make_argless_call(
+            _constructor_getattr(_constructor_from_value(value), "lower"),
+        ),
+        [ql.In()],
+        [fn]
+    )
+
+
 def _constructor_from_value(value):
     expr = ql.parse(repr(value))
     return expr.body
@@ -754,4 +780,6 @@ _TERM_CONSTRUCTOR = {
     '>=': _constructor_ge,
     '>': _constructor_gt,
     'in': _constructor_in,
+    'like': _constructor_like,
+    'ilike': _constructor_ilike,
 }

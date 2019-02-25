@@ -214,6 +214,13 @@ class SetAttributesVisitor(pyast.NodeVisitor):
         return super(SetAttributesVisitor, self).generic_visit(node)
 
 
+def make_argless_call(fn):
+    if _py3:
+        return Call(fn, [], [])   # noqa
+    else:
+        return Call(fn, [], [], None, None)   # noqa
+
+
 def make_arguments(*names):
     if _py3:
         if _py_version >= (3, 4):

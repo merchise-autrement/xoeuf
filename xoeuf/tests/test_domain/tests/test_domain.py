@@ -26,6 +26,7 @@ from xoeuf.odoo.tests.common import TransactionCase
 
 names = s.text(alphabet='abdefgh', min_size=1, max_size=5)
 operators = s.sampled_from(['=', '!=', '<', '>', '<>'])
+all_operators = s.sampled_from(['=', '!=', '<', '>', '<>', 'like', 'ilike'])
 ages = s.integers(min_value=0, max_value=120)
 
 # Logical connectors with the amount of terms it connects.  Notice that ''
@@ -329,6 +330,18 @@ def get_model_domain_machine(env):
         def find_by_arbitrary_domain(self, domain):
             res = Model.search(domain)
             assert res.filtered(domain.asfilter()) == res
+
+        @rule(name=names, op=all_operators)
+        def find_by_name(self, name, op):
+            query = Domain([('name', op, name)])
+            res = Model.search(query)
+            assert res.filtered(query.asfilter()) == res
+
+        @rule(names=s.lists(names))
+        def find_by_names(self, names):
+            query = Domain([('name', 'in', names)])
+            res = Model.search(query)
+            assert res.filtered(query.asfilter()) == res
 
     return ModelDomainMachine
 
