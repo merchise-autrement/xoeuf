@@ -224,7 +224,7 @@ class Domain(list):
     def simplified(self):
         '''A simplified second normal form of the domain.
 
-        Example::
+        Examples:
 
             >>> domain1 = Domain([
             ...     ('field_x', '!=', False),
@@ -232,6 +232,14 @@ class Domain(list):
             ...     ('field_z', 'in', (1, 2, 3)),
             ...     ('field_y', '=', 'value'),
             ... ])
+            >>> domain1.simplified
+            [
+                '&',
+                '&',
+                ('field_x', '!=', False),
+                ('field_y', '=', 'value'),
+                ('field_z', 'in', (1, 2, 3))
+            ]
 
             >>> domain2 = Domain([
             ...     '|',
@@ -242,6 +250,14 @@ class Domain(list):
             ...     ('field_y', '=', 'value'),
             ...     ('field_x', '!=', False)
             ... ])
+            >>> domain2.simplified
+            [
+                '&',
+                '|',
+                ('field_x', '!=', False),
+                ('field_y', '=', 'value'),
+                ('field_z', 'in', (1, 2, 3))
+            ]
 
             >>> domain3 = Domain([
             ...     ('field_y', '!=', False),
@@ -252,25 +268,6 @@ class Domain(list):
             ...     ('field_x', 'in', (1,)),
             ...     ('field_x', 'in', (2,))
             ... ])
-
-            >>> domain1.simplified
-            [
-                '&',
-                '&',
-                ('field_x', '!=', False),
-                ('field_y', '=', 'value'),
-                ('field_z', 'in', (1, 2, 3))
-            ]
-
-            >>> domain2.simplified
-            [
-                '&',
-                '|',
-                ('field_x', '!=', False),
-                ('field_y', '=', 'value'),
-                ('field_z', 'in', (1, 2, 3))
-            ]
-
             >>> domain3.simplified
             ['&', ('field_x', 'in', (1,)), ('field_y', '!=', False)]
 
