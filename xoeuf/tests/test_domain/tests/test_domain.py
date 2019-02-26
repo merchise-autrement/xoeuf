@@ -13,32 +13,46 @@ from __future__ import (division as _py3_division,
 
 from itertools import product
 import unittest
+import logging
+
 from hypothesis import strategies as s, given
+from hypothesis.stateful import RuleBasedStateMachine, rule, Bundle
+from hypothesis.stateful import run_state_machine_as_test
 
 from xoeuf.osv import expression as expr
+from xoeuf.osv import ql
 from xoeuf.odoo.osv import expression as odoo_expr
 from xoeuf.osv.expression import Domain, DomainTree
 
+from xoeuf.odoo.tests.common import TransactionCase
+
 names = s.text(alphabet='abdefgh', min_size=1, max_size=5)
 operators = s.sampled_from(['=', '!=', '<', '>', '<>'])
+all_operators = s.sampled_from(
+    ['=', '!=', '<', '>', '<>', 'like', 'ilike', 'not like', 'not ilike']
+)
+ages = s.integers(min_value=0, max_value=120)
 
 # Logical connectors with the amount of terms it connects.  Notice that ''
 # takes two arguments because it's the same as '&'.
 connectors = s.sampled_from([('', 2), ('&', 2), ('!', 1), ('|', 2)])
 
+logger = logging.getLogger(__name__)
+
 
 @s.composite
-def terms(draw, values=s.integers(min_value=-10, max_value=10)):
-    name = str(draw(names))
+def terms(draw, fields=None, values=s.integers(min_value=-10, max_value=10)):
+    f = fields or names
+    name = str(draw(f))
     operator = draw(operators)
     value = draw(values)
     return (name, operator, value)
 
 
 @s.composite
-def domains(draw, min_size=1, max_size=10):
+def domains(draw, fields=None, min_size=1, max_size=10):
     leaves = draw(s.lists(
-        terms(),
+        terms(fields),
         min_size=min_size,
         max_size=max_size,
     ))
@@ -284,3 +298,93 @@ class TestDomain(unittest.TestCase):
         #     ('OPERATOR', '&')
         # ]
         # self.assertEqual(expected, list(tree.walk()))
+
+    def test_get_filter_ast_simple_one_term_with_in(self):
+        self.assertEqual(
+            DomainTree(Domain([('state', 'in', [1, 2])]))._get_filter_ast(),
+            ql.Expression(ql.Lambda(
+                ql.make_arguments('this'),
+                expr._constructor_in('this', 'state', [1, 2])
+            ))
+        )
+        DomainTree(Domain([('state', 'in', [1, 2])])).get_filter()
+
+    @given(names)
+    def test_empty_domain(self, name):
+        self.assertTrue(Domain([]).asfilter()(name))
+
+
+def get_model_domain_machine(this):
+    Model = this.env['test_domain.model']
+
+    class ModelDomainMachine(RuleBasedStateMachine):
+        objects = Bundle('objects')
+
+        @rule(target=objects, name=names, age=ages)
+        def create_object(self, name, age):
+            logger.info("Creating object name: %s, age: %s", name, age)
+            return Model.create({'name': name, 'age': age})
+
+        @rule(age=ages, op=operators)
+        def find_by_age(self, age, op):
+            query = Domain([('age', op, age)])
+            res = Model.search(query)
+            logger.info("Check filter/domain: %s; count: %s", query, len(res))
+            this.assertEqualRecordset(res.filtered(query.asfilter()), res)
+
+        @rule(ages=s.lists(ages))
+        def find_by_ages(self, ages):
+            query = Domain([('age', 'in', ages)])
+            res = Model.search(query)
+            logger.info("Check filter/domain: %s; count: %s", query, len(res))
+            this.assertEqualRecordset(res.filtered(query.asfilter()), res)
+
+        @rule(ages=s.lists(ages))
+        def find_by_not_ages(self, ages):
+            query = Domain([('age', 'not in', ages)])
+            res = Model.search(query)
+            logger.info("Check filter/domain: %s; count: %s", query, len(res))
+            this.assertEqualRecordset(res.filtered(query.asfilter()), res)
+
+        @rule(domain=domains(fields=s.just('age')))
+        def find_by_arbitrary_domain(self, domain):
+            res = Model.search(domain)
+            logger.info("Check filter/domain: %s; count: %s", domain, len(res))
+            this.assertEqualRecordset(res.filtered(domain.asfilter()), res)
+
+        @rule(name=names, op=all_operators)
+        def find_by_name(self, name, op):
+            query = Domain([('name', op, name)])
+            res = Model.search(query)
+            logger.info("Check filter/domain: %s; count: %s", query, len(res))
+            this.assertEqualRecordset(res.filtered(query.asfilter()), res)
+
+        @rule(names=s.lists(names))
+        def find_by_names(self, names):
+            query = Domain([('name', 'in', names)])
+            res = Model.search(query)
+            logger.info("Check filter/domain: %s; count: %s", query, len(res))
+            this.assertEqualRecordset(res.filtered(query.asfilter()), res)
+
+        @rule(names=s.lists(names))
+        def find_by_not_names(self, names):
+            query = Domain([('name', 'not in', names)])
+            res = Model.search(query)
+            logger.info("Check filter/domain: %s; count: %s", query, len(res))
+            this.assertEqualRecordset(res.filtered(query.asfilter()), res)
+
+    return ModelDomainMachine
+
+
+class TestConsistencyOfFilters(TransactionCase):
+    def assertEqualRecordset(self, rs1, rs2):
+        ours = rs1 - rs2
+        theirs = rs2 - rs1
+        self.assertEqual(
+            rs1,
+            rs2,
+            msg="ours: {0!r}; theirs: {1!r}".format(ours, theirs)
+        )
+
+    def test_consistency_of_domains(self):
+        run_state_machine_as_test(get_model_domain_machine(self))

@@ -6,7 +6,26 @@
 #
 # This is free software; you can do what the LICENCE file allows you to.
 #
-
 from __future__ import (division as _py3_division,
                         print_function as _py3_print,
                         absolute_import as _py3_abs_import)
+
+
+from xoeuf import models, fields
+
+
+class DomainModel(models.Model):
+    _name = 'test_domain.model'
+
+    name = fields.Text()
+    age = fields.Integer()
+
+    def __repr__(self):
+        def _repr(rec):
+            return "{id}({name!r}, {age!r})".format(
+                id=rec.id,
+                name=rec.name,
+                age=rec.age
+            )
+        recs = "; ".join(_repr(r) for r in self)
+        return "{{{0}}}".format(recs)

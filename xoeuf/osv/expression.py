@@ -6,7 +6,6 @@
 #
 # This is free software; you can do what the LICENCE file allows you to.
 #
-
 '''Extensions to `odoo.osv.expression`.
 
 This module reexport all symbols from the `odoo.osv.expression` so it can be
@@ -27,7 +26,6 @@ Additions and changes:
   True, there's a proof.
 
 '''
-
 from __future__ import (division as _py3_division,
                         print_function as _py3_print,
                         absolute_import as _py3_abs_import)
@@ -36,6 +34,9 @@ import operator
 from itertools import chain
 from xoeuf.odoo.osv import expression as _odoo_expression
 from xoutil.eight import string_types
+from xoutil.fp.tools import compose
+
+from . import ql
 
 
 # TODO: `copy_members` will be deprecated in xoutil 1.8, use instead the same
@@ -84,6 +85,8 @@ except ImportError:
 
 UNARY_OPERATORS = [this.NOT_OPERATOR]
 BINARY_OPERATORS = [this.AND_OPERATOR, this.OR_OPERATOR]
+KIND_OPERATOR = 'OPERATOR'
+KIND_TERM = 'TERM'
 
 
 # Exports normalize_leaf so that we can replace 'from xoeuf.odoo.
@@ -347,6 +350,30 @@ class Domain(list):
     def __hash__(self):
         return hash(DomainTree(self.second_normal_form))
 
+    def _asfilter_ast(self):
+        return DomainTree(self.second_normal_form)._get_filter_ast()
+
+    def asfilter(self):
+        '''Return a callable which is equivalent to the domain.
+
+        This method translates the domain to a `ast.Lambda <ast>`:mod: and
+        compiles it.
+
+        The main property is that is ``res`` is the result of a
+        ``search(domain)``; then filtering by ``domain.asfilter()`` does not
+        filter-out any record.
+
+        The domain cannot use 'child_of', '=like' or '=ilike'.
+
+        .. note:: In Python ``0 == False``, so Odoo treats 0 specially in the
+           context of 'not in' and 'in'.  See `PR 31408`__ for more
+           information.
+
+         __ https://github.com/odoo/odoo/pull/31408
+
+        '''
+        return DomainTree(self.second_normal_form).get_filter()
+
 
 class DomainTerm(object):
     def __init__(self, term):
@@ -595,6 +622,34 @@ class DomainTree(object):
     def __hash__(self):
         return hash(tuple([self.term] + self.sorted_children))
 
+    def _get_filter_ast(self, this='this'):
+        'Get compilable AST of the lambda obtained by `get_filter`:func:.'
+        stack = []
+        for kind, term in self.walk():
+            if kind == KIND_TERM:
+                fieldname, op, value = term
+                constructor = _TERM_CONSTRUCTOR[op]
+                stack.append(constructor(this, fieldname, value))
+            else:
+                assert kind == KIND_OPERATOR
+                if term in BINARY_OPERATORS:
+                    args = [stack.pop(), stack.pop()]
+                else:
+                    args = [stack.pop()]
+                constructor = _TERM_CONSTRUCTOR[term]
+                stack.append(constructor(*args))
+        node = stack.pop()
+        assert not stack, "Remaining nodes in the stack: {}".format(stack)
+        fn = ql.ensure_compilable(ql.Expression(ql.Lambda(
+            ql.make_arguments(this),
+            node
+        )))
+        return fn
+
+    def get_filter(self, this='this'):
+        '''Return a callable to filter a recordset.'''
+        return eval(compile(self._get_filter_ast(this), '<domain>', 'eval'))
+
     def walk(self):
         '''Performs a post-fix walk of the tree.
 
@@ -624,17 +679,17 @@ class DomainTree(object):
 
         '''
         if self.is_leaf:
-            yield ('TERM', self.term.original)
+            yield (KIND_TERM, self.term.original)
         else:
             for which in self.children:
                 for what in which.walk():
                     yield what
-            yield ('OPERATOR', self.term)
+            yield (KIND_OPERATOR, self.term)
             # Since the tree groups more than two children under a single
             # instance of binary operator, we have to yield it once per pair.
             if self.term.original in BINARY_OPERATORS:
                 for _ in range(len(self.children) - 2):
-                    yield ('OPERATOR', self.term)
+                    yield (KIND_OPERATOR, self.term)
 
 
 # Exports AND and OR so that we can replace 'from xoeuf.odoo.
@@ -644,3 +699,116 @@ def AND(domains):
 
 def OR(domains):
     return Domain.OR(*domains)
+
+
+def _constructor_not(node):
+    return ql.UnaryOp(ql.Not(), node)
+
+
+def _constructor_and(*operands):
+    return ql.BoolOp(ql.And(), list(operands))
+
+
+def _constructor_or(*operands):
+    return ql.BoolOp(ql.Or(), list(operands))
+
+
+def _constructor_getattr(node, fieldname):
+    if isinstance(fieldname, string_types):
+        attrs = fieldname.split('.')
+        for attr in attrs:
+            node = ql.Attribute(node, attr, ql.Load())
+    else:
+        node = _constructor_from_value(fieldname)
+    return node
+
+
+def _constructor_eq(this, fieldname, value):
+    node = _constructor_getattr(ql.Name(this, ql.Load()), fieldname)
+    return ql.Compare(node, [ql.Eq()], [_constructor_from_value(value)])
+
+
+def _constructor_ne(this, fieldname, value):
+    node = _constructor_getattr(ql.Name(this, ql.Load()), fieldname)
+    return ql.Compare(node, [ql.NotEq()], [_constructor_from_value(value)])
+
+
+def _constructor_le(this, fieldname, value):
+    node = _constructor_getattr(ql.Name(this, ql.Load()), fieldname)
+    return ql.Compare(node, [ql.LtE()], [_constructor_from_value(value)])
+
+
+def _constructor_lt(this, fieldname, value):
+    node = _constructor_getattr(ql.Name(this, ql.Load()), fieldname)
+    return ql.Compare(node, [ql.Lt()], [_constructor_from_value(value)])
+
+
+def _constructor_ge(this, fieldname, value):
+    node = _constructor_getattr(ql.Name(this, ql.Load()), fieldname)
+    return ql.Compare(node, [ql.GtE()], [_constructor_from_value(value)])
+
+
+def _constructor_gt(this, fieldname, value):
+    node = _constructor_getattr(ql.Name(this, ql.Load()), fieldname)
+    return ql.Compare(node, [ql.Gt()], [_constructor_from_value(value)])
+
+
+def _constructor_in(this, fieldname, value):
+    # Filtering False is the same Odoo does; which causes 0 to be removed
+    # also.  See https://github.com/odoo/odoo/pull/31408
+    value = [x for x in value if x != False]  # noqa
+    node = _constructor_getattr(ql.Name(this, ql.Load()), fieldname)
+    return ql.Compare(node, [ql.In()], [_constructor_from_value(value)])
+
+
+def _constructor_like(this, fieldname, value):
+    # ``value in this.fieldname``
+    node = _constructor_getattr(ql.Name(this, ql.Load()), fieldname)
+    return ql.Compare(
+        _constructor_from_value(value),
+        [ql.In()],
+        [node]
+    )
+
+
+def _constructor_ilike(this, fieldname, value):
+    # ``value.lower() in this.fieldname.lower()``
+    node = _constructor_getattr(
+        ql.Name(this, ql.Load()),
+        fieldname + ".lower"
+    )
+    fn = ql.make_argless_call(node)
+    return ql.Compare(
+        ql.make_argless_call(
+            _constructor_getattr(_constructor_from_value(value), "lower"),
+        ),
+        [ql.In()],
+        [fn]
+    )
+
+
+def _constructor_from_value(value):
+    expr = ql.parse(repr(value))
+    return expr.body
+
+
+_TERM_CONSTRUCTOR = {
+    '!': _constructor_not,
+    '&': _constructor_and,
+    '|': _constructor_or,
+    '=': _constructor_eq,
+    '==': _constructor_eq,
+    '=?': _constructor_eq,
+    '!=': _constructor_ne,
+    '<>': _constructor_ne,
+    '<=': _constructor_le,
+    '<': _constructor_lt,
+    '>=': _constructor_ge,
+    '>': _constructor_gt,
+    'in': _constructor_in,
+    'not in': compose(_constructor_not, _constructor_in),
+    'like': _constructor_like,
+    'ilike': _constructor_ilike,
+    'not like': compose(_constructor_not, _constructor_like),
+    'not ilike': compose(_constructor_not, _constructor_ilike),
+}
