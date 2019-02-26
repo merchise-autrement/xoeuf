@@ -354,6 +354,24 @@ class Domain(list):
         return DomainTree(self.second_normal_form)._get_filter_ast()
 
     def asfilter(self):
+        '''Return a callable which is equivalent to the domain.
+
+        This method translates the domain to a `ast.Lambda <ast>`:mod: and
+        compiles it.
+
+        The main property is that is ``res`` is the result of a
+        ``search(domain)``; then filtering by ``domain.asfilter()`` does not
+        filter-out any record.
+
+        The domain cannot use 'child_of', '=like' or '=ilike'.
+
+        .. note:: In Python ``0 == False``, so Odoo treats 0 specially in the
+           context of 'not in' and 'in'.  See `PR 31408`__ for more
+           information.
+
+         __ https://github.com/odoo/odoo/pull/31408
+
+        '''
         return DomainTree(self.second_normal_form).get_filter()
 
 
@@ -736,6 +754,9 @@ def _constructor_gt(this, fieldname, value):
 
 
 def _constructor_in(this, fieldname, value):
+    # Filtering False is the same Odoo does; which causes 0 to be removed
+    # also.  See https://github.com/odoo/odoo/pull/31408
+    value = [x for x in value if x != False]  # noqa
     node = _constructor_getattr(ql.Name(this, ql.Load()), fieldname)
     return ql.Compare(node, [ql.In()], [_constructor_from_value(value)])
 
