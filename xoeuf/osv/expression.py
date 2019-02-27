@@ -347,10 +347,7 @@ class Domain(list):
     def __hash__(self):
         return hash(DomainTree(self.second_normal_form))
 
-    def _asfilter_ast(self):
-        return DomainTree(self.second_normal_form)._get_filter_ast()
-
-    def asfilter(self):
+    def asfilter(self, this='this'):
         '''Return a callable which is equivalent to the domain.
 
         This method translates the domain to a `ast.Lambda <ast>`:mod: and
@@ -368,8 +365,32 @@ class Domain(list):
 
          __ https://github.com/odoo/odoo/pull/31408
 
+        :param this: The name of the argument in the lambda.  All attributes
+            in the domain are get from this argument.
+
+        The lambda created for::
+
+            Domain([('line_id.state', 'in', ('draft', 'open'))]).asfilter()
+
+        is equivalent to::
+
+            lambda this: this.line_id.state in ('draft', 'open')
+
+        .. warning:: You should avoid x2many fields in domains because they
+           would cause runtime errors (Required singleton).  For instance::
+
+             Domain([('line_ids.state', '=', 'open')]).asfilter()
+
+           generates something like ``lambda t: t.line_ids.state == 'open'``;
+           but the right result would be::
+
+             lambda t: t.line_ids.filtered(lambda r: r.state == 'open').exists()
+
+        .. versionadded:: 0.54.0
+
         '''
-        return DomainTree(self.second_normal_form).get_filter()
+        tree = DomainTree(self.second_normal_form)
+        return eval(compile(tree._get_filter_ast(this), '<domain>', 'eval'))
 
 
 class DomainTerm(object):
@@ -642,10 +663,6 @@ class DomainTree(object):
             node
         )))
         return fn
-
-    def get_filter(self, this='this'):
-        '''Return a callable to filter a recordset.'''
-        return eval(compile(self._get_filter_ast(this), '<domain>', 'eval'))
 
     def walk(self):
         '''Performs a post-fix walk of the tree.

@@ -307,7 +307,7 @@ class TestDomain(unittest.TestCase):
                 expr._constructor_in('this', 'state', [1, 2])
             ))
         )
-        DomainTree(Domain([('state', 'in', [1, 2])])).get_filter()
+        Domain([('state', 'in', [1, 2])]).asfilter()
 
     @given(names)
     def test_empty_domain(self, name):
