@@ -8,7 +8,7 @@ Beta releases (series 0.X)
 Unreleased.  Release 0.54.0
 ---------------------------
 
-- Add `Domain.asfilter()`:meth:.
+- Add `xoeuf.osv.expression.Domain.asfilter()`:meth:.
 
 
 2019-02-08.  Release 0.53.0
