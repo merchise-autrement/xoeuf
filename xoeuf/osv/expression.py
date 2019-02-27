@@ -360,10 +360,10 @@ class Domain(list):
         The domain cannot use 'child_of', '=like' or '=ilike'.
 
         .. note:: In Python ``0 == False``, so Odoo treats 0 specially in the
-           context of 'not in' and 'in'.  See `PR 31408`__ for more
-           information.
+                  context of 'not in' and 'in'.  See `PR 31408`__ for more
+                  information.
 
-         __ https://github.com/odoo/odoo/pull/31408
+        __ https://github.com/odoo/odoo/pull/31408
 
         :param this: The name of the argument in the lambda.  All attributes
             in the domain are get from this argument.
