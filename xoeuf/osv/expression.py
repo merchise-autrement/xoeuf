@@ -370,23 +370,28 @@ class Domain(list):
 
         The lambda created for::
 
-            Domain([('line_id.state', 'in', ('draft', 'open'))]).asfilter()
+            Domain([('state', 'in', ('draft', 'open'))]).asfilter()
 
         is equivalent to::
 
-            lambda this: this.line_id.state in ('draft', 'open')
+            lambda this: this.state in ('draft', 'open')
 
-        .. warning:: You should avoid x2many fields in domains because they
-           would cause runtime errors (Required singleton).  For instance::
+        .. rubric:: Traversing fields in domains
 
-             Domain([('line_ids.state', '=', 'open')]).asfilter()
+        If your domain uses field traversal (e.g ``('line_ids.state', ...)`)
+        the generated lambda will use ``mapped()`` and ``filtered()`` instead
+        of simple ``ast.Attribute`` nodes.  Thus the lamda for::
 
-           generates something like ``lambda t: t.line_ids.state == 'open'``;
-           but the right result would be::
+          Domain([('line_ids.state', '=', 'open')]).asfilter()
 
-             lambda t: t.line_ids.filtered(lambda r: r.state == 'open').exists()
+        is equivalent to::
+
+          lambda t: t.mapped('line_ids').filtered(lambda r: r.state == 'open').exists()
 
         .. versionadded:: 0.54.0
+
+        .. versionchanged:: 0.55.0 Change the behavior of fields traversal, so
+           that filters over x2many fields work.
 
         '''
         tree = DomainTree(self.second_normal_form)
@@ -727,20 +732,41 @@ def _constructor_or(*operands):
     return ql.BoolOp(ql.Or(), list(operands))
 
 
+def _get_mapped(node, fieldname):
+    attrs, field = fieldname.rsplit('.', 1)
+    mapped_fn = ql.Attribute(node, 'mapped', ql.Load())
+    return (ql.make_call(mapped_fn, _constructor_from_value(attrs)), field)
+
+
 def _constructor_getattr(node, fieldname):
     if isinstance(fieldname, string_types):
-        attrs = fieldname.split('.')
-        for attr in attrs:
-            node = ql.Attribute(node, attr, ql.Load())
+        if '.' in fieldname:
+            result = _get_mapped(node, fieldname)
+        else:
+            result = ql.Attribute(node, fieldname, ql.Load())
     else:
-        node = _constructor_from_value(fieldname)
-    return node
+        result = _constructor_from_value(fieldname)
+    return result
 
 
 def _get_constructor(qst):
     def result(this, fieldname, value):
         node = _constructor_getattr(ql.Name(this, ql.Load()), fieldname)
-        return ql.Compare(node, [qst()], [_constructor_from_value(value)])
+        if not isinstance(node, tuple):
+            return ql.Compare(node, [qst()], [_constructor_from_value(value)])
+        else:
+            node, field = node
+            # node.filtered(lambda x: x.field <CMP> <value>)
+            filtered_fn = ql.Attribute(node, 'filtered')
+            lambda_ast = ql.Lambda(
+                ql.make_arguments('x'),
+                ql.Compare(
+                    ql.Name('x', ql.Load()),
+                    [qst()],
+                    [_constructor_from_value(value)]
+                )
+            )
+            return ql.make_call(filtered_fn, lambda_ast)
 
     return result
 
