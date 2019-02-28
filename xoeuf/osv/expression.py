@@ -737,34 +737,20 @@ def _constructor_getattr(node, fieldname):
     return node
 
 
-def _constructor_eq(this, fieldname, value):
-    node = _constructor_getattr(ql.Name(this, ql.Load()), fieldname)
-    return ql.Compare(node, [ql.Eq()], [_constructor_from_value(value)])
+def _get_constructor(qst):
+    def result(this, fieldname, value):
+        node = _constructor_getattr(ql.Name(this, ql.Load()), fieldname)
+        return ql.Compare(node, [qst()], [_constructor_from_value(value)])
+
+    return result
 
 
-def _constructor_ne(this, fieldname, value):
-    node = _constructor_getattr(ql.Name(this, ql.Load()), fieldname)
-    return ql.Compare(node, [ql.NotEq()], [_constructor_from_value(value)])
-
-
-def _constructor_le(this, fieldname, value):
-    node = _constructor_getattr(ql.Name(this, ql.Load()), fieldname)
-    return ql.Compare(node, [ql.LtE()], [_constructor_from_value(value)])
-
-
-def _constructor_lt(this, fieldname, value):
-    node = _constructor_getattr(ql.Name(this, ql.Load()), fieldname)
-    return ql.Compare(node, [ql.Lt()], [_constructor_from_value(value)])
-
-
-def _constructor_ge(this, fieldname, value):
-    node = _constructor_getattr(ql.Name(this, ql.Load()), fieldname)
-    return ql.Compare(node, [ql.GtE()], [_constructor_from_value(value)])
-
-
-def _constructor_gt(this, fieldname, value):
-    node = _constructor_getattr(ql.Name(this, ql.Load()), fieldname)
-    return ql.Compare(node, [ql.Gt()], [_constructor_from_value(value)])
+_constructor_eq = _get_constructor(ql.Eq)
+_constructor_ne = _get_constructor(ql.NotEq)
+_constructor_le = _get_constructor(ql.LtE)
+_constructor_lt = _get_constructor(ql.Lt)
+_constructor_ge = _get_constructor(ql.GtE)
+_constructor_gt = _get_constructor(ql.Gt)
 
 
 def _constructor_in(this, fieldname, value):
