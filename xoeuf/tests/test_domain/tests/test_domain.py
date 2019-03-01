@@ -324,9 +324,31 @@ def get_model_domain_machine(this):
             logger.info("Creating object name: %s, age: %s", name, age)
             return Model.create({'name': name, 'age': age})
 
+        @rule(target=objects, name=names, age=ages, parent=objects)
+        def create_child_object(self, name, age, parent):
+            return Model.create({
+                'name': name,
+                'age': age,
+                'parent_id': parent.id
+            })
+
         @rule(age=ages, op=operators)
         def find_by_age(self, age, op):
             query = Domain([('age', op, age)])
+            res = Model.search(query)
+            logger.info("Check filter/domain: %s; count: %s", query, len(res))
+            this.assertEqualRecordset(res.filtered(query.asfilter()), res)
+
+        @rule(age=ages, op=operators)
+        def find_by_parent_age(self, age, op):
+            query = Domain([('parent_id.age', op, age)])
+            res = Model.search(query)
+            logger.info("Check filter/domain: %s; count: %s", query, len(res))
+            this.assertEqualRecordset(res.filtered(query.asfilter()), res)
+
+        @rule(age=ages, op=operators)
+        def find_by_children_age(self, age, op):
+            query = Domain([('children_ids.age', op, age)])
             res = Model.search(query)
             logger.info("Check filter/domain: %s; count: %s", query, len(res))
             this.assertEqualRecordset(res.filtered(query.asfilter()), res)
@@ -339,8 +361,29 @@ def get_model_domain_machine(this):
             this.assertEqualRecordset(res.filtered(query.asfilter()), res)
 
         @rule(ages=s.lists(ages))
+        def find_by_parent_ages(self, ages):
+            query = Domain([('parent_id.age', 'in', ages)])
+            res = Model.search(query)
+            logger.info("Check filter/domain: %s; count: %s", query, len(res))
+            this.assertEqualRecordset(res.filtered(query.asfilter()), res)
+
+        @rule(ages=s.lists(ages))
+        def find_by_children_ages(self, ages):
+            query = Domain([('children_ids.age', 'in', ages)])
+            res = Model.search(query)
+            logger.info("Check filter/domain: %s; count: %s", query, len(res))
+            this.assertEqualRecordset(res.filtered(query.asfilter()), res)
+
+        @rule(ages=s.lists(ages))
         def find_by_not_ages(self, ages):
             query = Domain([('age', 'not in', ages)])
+            res = Model.search(query)
+            logger.info("Check filter/domain: %s; count: %s", query, len(res))
+            this.assertEqualRecordset(res.filtered(query.asfilter()), res)
+
+        @rule(ages=s.lists(ages))
+        def find_by_parent_not_ages(self, ages):
+            query = Domain([('parent_id.age', 'not in', ages)])
             res = Model.search(query)
             logger.info("Check filter/domain: %s; count: %s", query, len(res))
             this.assertEqualRecordset(res.filtered(query.asfilter()), res)
@@ -358,6 +401,20 @@ def get_model_domain_machine(this):
             logger.info("Check filter/domain: %s; count: %s", query, len(res))
             this.assertEqualRecordset(res.filtered(query.asfilter()), res)
 
+        @rule(name=names, op=all_operators)
+        def find_by_parent_name(self, name, op):
+            query = Domain([('parent_id.name', op, name)])
+            res = Model.search(query)
+            logger.info("Check filter/domain: %s; count: %s", query, len(res))
+            this.assertEqualRecordset(res.filtered(query.asfilter()), res)
+
+        @rule(name=names, op=all_operators)
+        def find_by_chilren_name(self, name, op):
+            query = Domain([('children_ids.name', op, name)])
+            res = Model.search(query)
+            logger.info("Check filter/domain: %s; count: %s", query, len(res))
+            this.assertEqualRecordset(res.filtered(query.asfilter()), res)
+
         @rule(names=s.lists(names))
         def find_by_names(self, names):
             query = Domain([('name', 'in', names)])
@@ -366,8 +423,36 @@ def get_model_domain_machine(this):
             this.assertEqualRecordset(res.filtered(query.asfilter()), res)
 
         @rule(names=s.lists(names))
+        def find_by_parent_names(self, names):
+            query = Domain([('parent_id.name', 'in', names)])
+            res = Model.search(query)
+            logger.info("Check filter/domain: %s; count: %s", query, len(res))
+            this.assertEqualRecordset(res.filtered(query.asfilter()), res)
+
+        @rule(names=s.lists(names))
+        def find_by_children_names(self, names):
+            query = Domain([('children_ids.name', 'in', names)])
+            res = Model.search(query)
+            logger.info("Check filter/domain: %s; count: %s", query, len(res))
+            this.assertEqualRecordset(res.filtered(query.asfilter()), res)
+
+        @rule(names=s.lists(names))
         def find_by_not_names(self, names):
             query = Domain([('name', 'not in', names)])
+            res = Model.search(query)
+            logger.info("Check filter/domain: %s; count: %s", query, len(res))
+            this.assertEqualRecordset(res.filtered(query.asfilter()), res)
+
+        @rule(names=s.lists(names))
+        def find_by_parent_not_names(self, names):
+            query = Domain([('parent_id.name', 'not in', names)])
+            res = Model.search(query)
+            logger.info("Check filter/domain: %s; count: %s", query, len(res))
+            this.assertEqualRecordset(res.filtered(query.asfilter()), res)
+
+        @rule(names=s.lists(names))
+        def find_by_children_not_names(self, names):
+            query = Domain([('children_ids.name', 'not in', names)])
             res = Model.search(query)
             logger.info("Check filter/domain: %s; count: %s", query, len(res))
             this.assertEqualRecordset(res.filtered(query.asfilter()), res)

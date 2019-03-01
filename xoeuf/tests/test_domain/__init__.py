@@ -20,6 +20,9 @@ class DomainModel(models.Model):
     name = fields.Text()
     age = fields.Integer()
 
+    parent_id = fields.Many2one(_name)
+    children_ids = fields.One2many(_name, 'parent_id')
+
     def __repr__(self):
         def _repr(rec):
             return "{id}({name!r}, {age!r})".format(
