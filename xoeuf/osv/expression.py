@@ -377,7 +377,7 @@ class Domain(list):
 
         .. rubric:: Traversing fields in domains
 
-        If your domain uses field traversal (e.g ``('line_ids.state', ...)`)
+        If your domain uses field traversal (e.g ``('line_ids.state', ...)``)
         the generated lambda will use ``mapped()`` and ``filtered()`` instead
         of simple ``ast.Attribute`` nodes.  Thus the lamda for::
 
