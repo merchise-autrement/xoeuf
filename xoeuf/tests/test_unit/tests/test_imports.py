@@ -10,13 +10,16 @@ from __future__ import (division as _py3_division,
                         print_function as _py3_print,
                         absolute_import as _py3_abs_import)
 
+import unittest
 
-def test_imports():
-    'Xoeuf is importable in Python 2 and 3'
-    from xoeuf import fields, models, api  # noqa
-    try:
-        from xoeuf.fields import Serialized    # noqa
-    except ImportError:
-        pass
-    else:
-        assert False, 'Serialized should not be exported'
+
+class TestXoeufImports(unittest.TestCase):
+    def test_xoeuf_imports(self):
+        'Xoeuf is importable in Python 2 and 3'
+        from xoeuf import fields, models, api  # noqa
+        try:
+            from xoeuf.fields import Serialized    # noqa
+        except ImportError:
+            pass
+        else:
+            assert False, 'Serialized should not be exported'

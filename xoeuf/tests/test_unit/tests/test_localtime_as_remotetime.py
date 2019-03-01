@@ -10,29 +10,38 @@ from __future__ import (division as _py3_division,
                         print_function as _py3_print,
                         absolute_import as _py3_abs_import)
 
+import unittest
+
 from hypothesis import strategies, given
 from hypothesis.extra.pytz import timezones
 from xoeuf.tools import localtime_as_remotetime, normalize_datetime
 
 
-@given(
-    strategies.datetimes(
-        min_value=normalize_datetime('1912-04-14'),
-        max_value=normalize_datetime('2100-12-31')
-    ),
-    timezones(),
-    timezones()
-)
-def test_(_dt, from_tz, to_tz):
-    _dt = normalize_datetime(_dt)
-    assert _dt == localtime_as_remotetime(
-        localtime_as_remotetime(_dt, from_tz, to_tz),
-        to_tz,
-        from_tz
+class TestLocalAsRemote(unittest.TestCase):
+    @given(
+        strategies.datetimes(
+            min_value=normalize_datetime('1912-04-14'),
+            max_value=normalize_datetime('2100-12-31')
+        ),
+        timezones(),
+        timezones()
     )
-    assert _dt == localtime_as_remotetime(
-        localtime_as_remotetime(_dt, from_tz, to_tz, ignore_dst=True),
-        to_tz,
-        from_tz,
-        ignore_dst=True
-    )
+    def test_local_remote_time(self, _dt, from_tz, to_tz):
+        _dt = normalize_datetime(_dt)
+        self.assertEqual(
+            _dt,
+            localtime_as_remotetime(
+                localtime_as_remotetime(_dt, from_tz, to_tz),
+                to_tz,
+                from_tz
+            )
+        )
+        self.assertEqual(
+            _dt,
+            localtime_as_remotetime(
+                localtime_as_remotetime(_dt, from_tz, to_tz, ignore_dst=True),
+                to_tz,
+                from_tz,
+                ignore_dst=True
+            )
+        )
