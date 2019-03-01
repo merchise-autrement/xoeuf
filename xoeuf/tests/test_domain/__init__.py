@@ -25,10 +25,11 @@ class DomainModel(models.Model):
 
     def __repr__(self):
         def _repr(rec):
-            return "{id}({name!r}, {age!r})".format(
+            return "{id}({name!r}, {age!r}, {children!r})".format(
                 id=rec.id,
                 name=rec.name,
-                age=rec.age
+                age=rec.age,
+                children=rec.children_ids
             )
         recs = "; ".join(_repr(r) for r in self)
         return "{{{0}}}".format(recs)
