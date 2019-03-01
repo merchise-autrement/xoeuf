@@ -13,7 +13,7 @@ from __future__ import (division as _py3_division,
 
 import contextlib
 
-from hypothesis import strategies as s, given
+from hypothesis import strategies as s, given, settings
 from xoeuf import fields
 from xoeuf.odoo.tests.common import TransactionCase, at_install, post_install
 
@@ -129,12 +129,14 @@ class TestEnum(TransactionCase):
             self.assertEqual(obj.color3, COLORS.Red)
 
     @given(color_names)
+    @settings(deadline=None)
     def test_color2_computed_field_set_on_create(self, name):
         with force_ready(self.env.registry):
             obj = self.EnumModel.create({'color2_name': name})
             self.assertEqual(obj.color2, COLORS.__members__[name])
 
     @given(color_names)
+    @settings(deadline=None)
     def test_color2_computed_field_set_on_assignment(self, name):
         with force_ready(self.env.registry):
             obj = self.EnumModel.create({})
