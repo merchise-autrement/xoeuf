@@ -34,7 +34,6 @@ import operator
 from itertools import chain
 from xoeuf.odoo.osv import expression as _odoo_expression
 from xoutil.eight import string_types
-from xoutil.fp.tools import compose
 
 from . import ql
 
@@ -370,27 +369,34 @@ class Domain(list):
 
         The lambda created for::
 
-            Domain([('line_id.state', 'in', ('draft', 'open'))]).asfilter()
+            Domain([('state', 'in', ('draft', 'open'))]).asfilter()
 
         is equivalent to::
 
-            lambda this: this.line_id.state in ('draft', 'open')
+            lambda this: this.state in ('draft', 'open')
 
-        .. warning:: You should avoid x2many fields in domains because they
-           would cause runtime errors (Required singleton).  For instance::
+        .. rubric:: Traversing fields in domains
 
-             Domain([('line_ids.state', '=', 'open')]).asfilter()
+        If your domain uses field traversal (e.g ``('line_ids.state', ...)`)
+        the generated lambda will use ``mapped()`` and ``filtered()`` instead
+        of simple ``ast.Attribute`` nodes.  Thus the lamda for::
 
-           generates something like ``lambda t: t.line_ids.state == 'open'``;
-           but the right result would be::
+          Domain([('line_ids.state', '=', 'open')]).asfilter()
 
-             lambda t: t.line_ids.filtered(lambda r: r.state == 'open').exists()
+        is equivalent to::
+
+          lambda t: t.mapped('line_ids').filtered(lambda r: r.state == 'open').exists()
 
         .. versionadded:: 0.54.0
 
+        .. versionchanged:: 0.55.0 Change the behavior of fields traversal, so
+           that filters over x2many fields work.
+
         '''
-        tree = DomainTree(self.second_normal_form)
-        return eval(compile(tree._get_filter_ast(this), '<domain>', 'eval'))
+        return eval(compile(self._get_filter_ast(this), '<domain>', 'eval'))
+
+    def _get_filter_ast(self, this='this'):
+        return DomainTree(self.second_normal_form)._get_filter_ast(this)
 
 
 class DomainTerm(object):
@@ -727,78 +733,181 @@ def _constructor_or(*operands):
     return ql.BoolOp(ql.Or(), list(operands))
 
 
+def _get_mapped(node, fieldname):
+    attrs, field = fieldname.rsplit('.', 1)
+    mapped_fn = ql.make_attr(node, 'mapped')
+    return (ql.make_call(mapped_fn, _constructor_from_value(attrs)), field)
+
+
 def _constructor_getattr(node, fieldname):
     if isinstance(fieldname, string_types):
-        attrs = fieldname.split('.')
-        for attr in attrs:
-            node = ql.Attribute(node, attr, ql.Load())
+        if '.' in fieldname:
+            result = _get_mapped(node, fieldname)
+        else:
+            result = ql.make_attr(node, fieldname)
     else:
-        node = _constructor_from_value(fieldname)
-    return node
+        result = _constructor_from_value(fieldname)
+    return result
 
 
-def _constructor_eq(this, fieldname, value):
-    node = _constructor_getattr(ql.Name(this, ql.Load()), fieldname)
-    return ql.Compare(node, [ql.Eq()], [_constructor_from_value(value)])
+def _get_constructor(qst):
+    '''Return a constructor for AST for a term `(fielname, <op>, value)`.
+
+    :param qst: Any of the operators AST classes available for comparisons.
+
+    The result is a function that with signaure ``(this, fieldname, value)``.
+
+    :param this: The AST node to which the operation is applied.
+
+    :param fieldname: The name of the field being operated upon.
+
+    :param value: The second operand of the operator.
+
+    If the fieldname doesn't contain a dot '.'; return a simple AST.  A domain
+    like::
+
+        Domain(['state', '=', 'open']).asfilter()
+
+    yields a callable equivalent to::
+
+        lambda this: this.state == 'open'
+
+    If the fieldname contains a dot '.'; return an AST using ``mapped()`` and
+    ``filtered()`` as appropriate:
+
+        Domain(['parent_id.children_ids.state', '=', 'open']).asfilter()
+
+    yields a callable equivalent to::
+
+        lambda this: this.mapped('parent_id.children_ids').filtered(
+            lambda r: r.state == 'open'
+        )
+
+    '''
+
+    def result(this, fieldname, value):
+        node = _constructor_getattr(ql.Name(this, ql.Load()), fieldname)
+        if not isinstance(node, tuple):
+            return ql.Compare(node, [qst()], [_constructor_from_value(value)])
+        else:
+            # node.filtered(lambda x: x.field <CMP> <value>)
+            mapped, field = node
+            lambda_ast = ql.Lambda(
+                ql.make_arguments('x'),
+                ql.Compare(
+                    ql.make_attr(ql.Name('x', ql.Load()), field),
+                    [qst()],
+                    [_constructor_from_value(value)]
+                )
+            )
+            filtered_fn = ql.make_attr(mapped, 'filtered')
+            return ql.make_call(filtered_fn, lambda_ast)
+
+    return result
 
 
-def _constructor_ne(this, fieldname, value):
-    node = _constructor_getattr(ql.Name(this, ql.Load()), fieldname)
-    return ql.Compare(node, [ql.NotEq()], [_constructor_from_value(value)])
+_constructor_eq = _get_constructor(ql.Eq)
+_constructor_ne = _get_constructor(ql.NotEq)
+_constructor_le = _get_constructor(ql.LtE)
+_constructor_lt = _get_constructor(ql.Lt)
+_constructor_ge = _get_constructor(ql.GtE)
+_constructor_gt = _get_constructor(ql.Gt)
 
 
-def _constructor_le(this, fieldname, value):
-    node = _constructor_getattr(ql.Name(this, ql.Load()), fieldname)
-    return ql.Compare(node, [ql.LtE()], [_constructor_from_value(value)])
+def _constructor_in(this, fieldname, value, qst=ql.In):
+    '''Create the AST for a term `(fielname, '[not ]in', value)`.
 
+    The difference with `standard <_get_constructor>`:func: constructors is
+    that, to comply with Odoo's interpretation of 'in' and 'not in', this
+    function removes any 0 or False in `value`.
 
-def _constructor_lt(this, fieldname, value):
-    node = _constructor_getattr(ql.Name(this, ql.Load()), fieldname)
-    return ql.Compare(node, [ql.Lt()], [_constructor_from_value(value)])
-
-
-def _constructor_ge(this, fieldname, value):
-    node = _constructor_getattr(ql.Name(this, ql.Load()), fieldname)
-    return ql.Compare(node, [ql.GtE()], [_constructor_from_value(value)])
-
-
-def _constructor_gt(this, fieldname, value):
-    node = _constructor_getattr(ql.Name(this, ql.Load()), fieldname)
-    return ql.Compare(node, [ql.Gt()], [_constructor_from_value(value)])
-
-
-def _constructor_in(this, fieldname, value):
+    '''
     # Filtering False is the same Odoo does; which causes 0 to be removed
     # also.  See https://github.com/odoo/odoo/pull/31408
+    assert qst in (ql.In, ql.NotIn)
     value = [x for x in value if x != False]  # noqa
+    return _get_constructor(qst)(this, fieldname, value)
+
+
+def _constructor_not_in(this, fieldname, value):
+    return _constructor_in(this, fieldname, value, qst=ql.NotIn)
+
+
+def _constructor_like(this, fieldname, value, qst=ql.In):
+    '''Create the AST for a term `(fielname, '[not ]like', value)`.
+
+    We use 'in' ('not in') Python operators; so the procedure AST are those
+    matching syntax 'value in this.fieldname' when fieldname doesn't contain a
+    dot.  If `fieldname` contains a dot the result changes to::
+
+       headattrs, lastattr = fiedname.rsplit('.', 1)
+       this.mapped(headattrs).filtered(lambda r: value in getattr(r, lastattr))
+
+    '''
+    assert qst in (ql.In, ql.NotIn)
     node = _constructor_getattr(ql.Name(this, ql.Load()), fieldname)
-    return ql.Compare(node, [ql.In()], [_constructor_from_value(value)])
+    if isinstance(node, tuple):
+        # this.mapped(attrs).filtered(lambda r: value in r.field)
+        mapped, field = node
+        lambda_arg = ql.Lambda(
+            ql.make_arguments('r'),
+            ql.Compare(
+                _constructor_from_value(value),
+                [qst()],
+                [ql.make_attr(ql.Name('r', ql.Load()), field)]
+            )
+        )
+        fn = ql.make_attr(mapped, 'filtered')
+        return ql.make_call(fn, lambda_arg)
+    else:
+        # ``value in this.fieldname``
+        return ql.Compare(
+            _constructor_from_value(value),
+            [qst()],
+            [node]
+        )
 
 
-def _constructor_like(this, fieldname, value):
-    # ``value in this.fieldname``
+def _constructor_not_like(this, fieldname, value):
+    return _constructor_like(this, fieldname, value, qst=ql.NotIn)
+
+
+def _constructor_ilike(this, fieldname, value, qst=ql.In):
+    assert qst in (ql.In, ql.NotIn)
     node = _constructor_getattr(ql.Name(this, ql.Load()), fieldname)
-    return ql.Compare(
-        _constructor_from_value(value),
-        [ql.In()],
-        [node]
-    )
+    if isinstance(node, tuple):
+        # this.mapped(attrs).filtered(lambda r: value.lower() in r.field.lower())``
+        mapped, field = node
+        lambda_arg = ql.Lambda(
+            ql.make_arguments('r'),
+            ql.Compare(
+                ql.make_argless_call(
+                    _constructor_getattr(_constructor_from_value(value), "lower"),
+                ),
+                [qst()],
+                [ql.make_argless_call(
+                    ql.make_attr(ql.make_attr(ql.Name('r', ql.Load()), field),
+                                 'lower')
+                )]
+            )
+        )
+        fn = ql.make_attr(mapped, 'filtered')
+        return ql.make_call(fn, lambda_arg)
+    else:
+        # ``value.lower() in this.fieldname.lower()``
+        node = _constructor_getattr(node, 'lower')
+        fn = ql.make_argless_call(node)
+        return ql.Compare(
+            ql.make_argless_call(
+                _constructor_getattr(_constructor_from_value(value), "lower"),
+            ),
+            [qst()],
+            [fn]
+        )
 
 
-def _constructor_ilike(this, fieldname, value):
-    # ``value.lower() in this.fieldname.lower()``
-    node = _constructor_getattr(
-        ql.Name(this, ql.Load()),
-        fieldname + ".lower"
-    )
-    fn = ql.make_argless_call(node)
-    return ql.Compare(
-        ql.make_argless_call(
-            _constructor_getattr(_constructor_from_value(value), "lower"),
-        ),
-        [ql.In()],
-        [fn]
-    )
+def _constructor_not_ilike(this, fieldname, value):
+    return _constructor_ilike(this, fieldname, value, qst=ql.NotIn)
 
 
 def _constructor_from_value(value):
@@ -820,9 +929,9 @@ _TERM_CONSTRUCTOR = {
     '>=': _constructor_ge,
     '>': _constructor_gt,
     'in': _constructor_in,
-    'not in': compose(_constructor_not, _constructor_in),
+    'not in': _constructor_not_in,
     'like': _constructor_like,
     'ilike': _constructor_ilike,
-    'not like': compose(_constructor_not, _constructor_like),
-    'not ilike': compose(_constructor_not, _constructor_ilike),
+    'not like': _constructor_not_like,
+    'not ilike': _constructor_not_ilike,
 }

@@ -215,10 +215,15 @@ class SetAttributesVisitor(pyast.NodeVisitor):
 
 
 def make_argless_call(fn):
+    return make_call(fn)
+
+
+def make_call(fn, *args, **kwargs):
+    kws = [keyword(name, val) for name, val in kwargs.items()]   # noqa
     if _py3:
-        return Call(fn, [], [])   # noqa
+        return Call(fn, list(args), kws)   # noqa
     else:
-        return Call(fn, [], [], None, None)   # noqa
+        return Call(fn, list(args), kws, None, None)   # noqa
 
 
 def make_arguments(*names):
@@ -238,3 +243,7 @@ def make_arguments(*names):
             [Name(name, Param()) for name in names],               # noqa
             None, None, []
         )
+
+
+def make_attr(node, attr):
+    return Attribute(node, attr, Load())   # noqa

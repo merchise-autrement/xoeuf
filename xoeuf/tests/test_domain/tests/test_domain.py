@@ -309,9 +309,8 @@ class TestDomain(unittest.TestCase):
         )
         Domain([('state', 'in', [1, 2])]).asfilter()
 
-    @given(names)
-    def test_empty_domain(self, name):
-        self.assertTrue(Domain([]).asfilter()(name))
+    def test_empty_domain(self):
+        self.assertTrue(Domain([]).asfilter()(0))
 
 
 def get_model_domain_machine(this):
@@ -325,9 +324,27 @@ def get_model_domain_machine(this):
             logger.info("Creating object name: %s, age: %s", name, age)
             return Model.create({'name': name, 'age': age})
 
+        @rule(target=objects, name=names, age=ages, parent=objects)
+        def create_child_object(self, name, age, parent):
+            return Model.create({
+                'name': name,
+                'age': age,
+                'parent_id': parent.id
+            })
+
         @rule(age=ages, op=operators)
         def find_by_age(self, age, op):
             query = Domain([('age', op, age)])
+            res = Model.search(query)
+            logger.info("Check filter/domain: %s; count: %s", query, len(res))
+            this.assertEqualRecordset(res.filtered(query.asfilter()), res)
+
+        @rule(age=ages, op=operators,
+              path=s.lists(s.sampled_from(['parent_id', 'children_ids']),
+                           min_size=1, max_size=4))
+        def find_by_parent_age(self, age, op, path):
+            attr = '.'.join(path) + '.age'
+            query = Domain([(attr, op, age)])
             res = Model.search(query)
             logger.info("Check filter/domain: %s; count: %s", query, len(res))
             this.assertEqualRecordset(res.filtered(query.asfilter()), res)
@@ -339,9 +356,29 @@ def get_model_domain_machine(this):
             logger.info("Check filter/domain: %s; count: %s", query, len(res))
             this.assertEqualRecordset(res.filtered(query.asfilter()), res)
 
+        @rule(ages=s.lists(ages),
+              path=s.lists(s.sampled_from(['parent_id', 'children_ids']),
+                           min_size=1, max_size=4))
+        def find_by_parent_ages(self, ages, path):
+            attr = '.'.join(path) + '.age'
+            query = Domain([(attr, 'in', ages)])
+            res = Model.search(query)
+            logger.info("Check filter/domain: %s; count: %s", query, len(res))
+            this.assertEqualRecordset(res.filtered(query.asfilter()), res)
+
         @rule(ages=s.lists(ages))
         def find_by_not_ages(self, ages):
             query = Domain([('age', 'not in', ages)])
+            res = Model.search(query)
+            logger.info("Check filter/domain: %s; count: %s", query, len(res))
+            this.assertEqualRecordset(res.filtered(query.asfilter()), res)
+
+        @rule(ages=s.lists(ages),
+              path=s.lists(s.sampled_from(['parent_id', 'children_ids']),
+                           min_size=1, max_size=4))
+        def find_by_path_not_ages(self, ages, path):
+            attr = '.'.join(path) + '.age'
+            query = Domain([(attr, 'not in', ages)])
             res = Model.search(query)
             logger.info("Check filter/domain: %s; count: %s", query, len(res))
             this.assertEqualRecordset(res.filtered(query.asfilter()), res)
@@ -359,6 +396,16 @@ def get_model_domain_machine(this):
             logger.info("Check filter/domain: %s; count: %s", query, len(res))
             this.assertEqualRecordset(res.filtered(query.asfilter()), res)
 
+        @rule(name=names, op=all_operators,
+              path=s.lists(s.sampled_from(['parent_id', 'children_ids']),
+                           min_size=1, max_size=4))
+        def find_by_path_name(self, name, op, path):
+            attr = '.'.join(path) + '.name'
+            query = Domain([(attr, op, name)])
+            res = Model.search(query)
+            logger.info("Check filter/domain: %s; count: %s", query, len(res))
+            this.assertEqualRecordset(res.filtered(query.asfilter()), res)
+
         @rule(names=s.lists(names))
         def find_by_names(self, names):
             query = Domain([('name', 'in', names)])
@@ -366,9 +413,29 @@ def get_model_domain_machine(this):
             logger.info("Check filter/domain: %s; count: %s", query, len(res))
             this.assertEqualRecordset(res.filtered(query.asfilter()), res)
 
+        @rule(names=s.lists(names),
+              path=s.lists(s.sampled_from(['parent_id', 'children_ids']),
+                           min_size=1, max_size=4))
+        def find_by_path_names(self, names, path):
+            attr = '.'.join(path) + '.name'
+            query = Domain([(attr, 'in', names)])
+            res = Model.search(query)
+            logger.info("Check filter/domain: %s; count: %s", query, len(res))
+            this.assertEqualRecordset(res.filtered(query.asfilter()), res)
+
         @rule(names=s.lists(names))
         def find_by_not_names(self, names):
             query = Domain([('name', 'not in', names)])
+            res = Model.search(query)
+            logger.info("Check filter/domain: %s; count: %s", query, len(res))
+            this.assertEqualRecordset(res.filtered(query.asfilter()), res)
+
+        @rule(names=s.lists(names),
+              path=s.lists(s.sampled_from(['parent_id', 'children_ids']),
+                           min_size=1, max_size=4))
+        def find_by_path_not_names(self, names, path):
+            attr = '.'.join(path) + '.name'
+            query = Domain([(attr, 'not in', names)])
             res = Model.search(query)
             logger.info("Check filter/domain: %s; count: %s", query, len(res))
             this.assertEqualRecordset(res.filtered(query.asfilter()), res)
