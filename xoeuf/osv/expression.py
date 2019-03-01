@@ -755,17 +755,17 @@ def _get_constructor(qst):
         if not isinstance(node, tuple):
             return ql.Compare(node, [qst()], [_constructor_from_value(value)])
         else:
-            node, field = node
             # node.filtered(lambda x: x.field <CMP> <value>)
-            filtered_fn = ql.make_attr(node, 'filtered')
+            mapped, field = node
             lambda_ast = ql.Lambda(
                 ql.make_arguments('x'),
                 ql.Compare(
-                    ql.Name('x', ql.Load()),
+                    ql.make_attr(ql.Name('x', ql.Load()), field),
                     [qst()],
                     [_constructor_from_value(value)]
                 )
             )
+            filtered_fn = ql.make_attr(mapped, 'filtered')
             return ql.make_call(filtered_fn, lambda_ast)
 
     return result
