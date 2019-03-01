@@ -381,11 +381,12 @@ class Domain(list):
         the generated lambda will use ``mapped()`` and ``filtered()`` instead
         of simple ``ast.Attribute`` nodes.  Thus the lamda for::
 
-          Domain([('line_ids.state', '=', 'open')]).asfilter()
+          Domain([('order_id.line_ids.state', '=', 'open')]).asfilter(this='t')
 
         is equivalent to::
 
-          lambda t: t.mapped('line_ids').filtered(lambda r: r.state == 'open').exists()
+          lambda t: (t.mapped('order_id.line_ids')
+                      .filtered(lambda r: r.state == 'open'))
 
         .. versionadded:: 0.54.0
 
