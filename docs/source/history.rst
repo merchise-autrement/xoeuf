@@ -8,7 +8,8 @@ Beta releases (series 0.X)
 Unreleased.  Release 0.55.0
 ---------------------------
 
-Nothing yet.
+- Improve `xoeuf.osv.expression.Domain.asfilter()`:meth: to avoid *required
+  singleton* errors if the domain uses Many2many or One2many fields.
 
 
 2019-02-27.  Release 0.54.0
