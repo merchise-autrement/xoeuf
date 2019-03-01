@@ -11,8 +11,10 @@ from __future__ import (division as _py3_division,
                         absolute_import as _py3_abs_import)
 
 import unittest
+import datetime
+import pytz
 
-from hypothesis import strategies, given
+from hypothesis import strategies, given, example
 from hypothesis.extra.pytz import timezones
 from xoeuf.tools import localtime_as_remotetime, normalize_datetime
 
@@ -25,6 +27,11 @@ class TestLocalAsRemote(unittest.TestCase):
         ),
         timezones(),
         timezones()
+    )
+    @example(
+        _dt=datetime.datetime(1946, 1, 1, 0, 0),
+        from_tz=pytz.timezone('Europe/Kaliningrad'),
+        to_tz=pytz.UTC
     )
     def test_local_remote_time(self, _dt, from_tz, to_tz):
         _dt = normalize_datetime(_dt)
