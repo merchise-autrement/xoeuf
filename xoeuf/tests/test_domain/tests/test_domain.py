@@ -309,9 +309,8 @@ class TestDomain(unittest.TestCase):
         )
         Domain([('state', 'in', [1, 2])]).asfilter()
 
-    @given(names)
-    def test_empty_domain(self, name):
-        self.assertTrue(Domain([]).asfilter()(name))
+    def test_empty_domain(self):
+        self.assertTrue(Domain([]).asfilter()(0))
 
 
 def get_model_domain_machine(this):
