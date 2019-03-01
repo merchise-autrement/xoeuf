@@ -393,8 +393,10 @@ class Domain(list):
            that filters over x2many fields work.
 
         '''
-        tree = DomainTree(self.second_normal_form)
-        return eval(compile(tree._get_filter_ast(this), '<domain>', 'eval'))
+        return eval(compile(self._get_filter_ast(this), '<domain>', 'eval'))
+
+    def _get_filter_ast(self, this='this'):
+        return DomainTree(self.second_normal_form)._get_filter_ast(this)
 
 
 class DomainTerm(object):
@@ -749,6 +751,40 @@ def _constructor_getattr(node, fieldname):
 
 
 def _get_constructor(qst):
+    '''Return a constructor for AST for a term `(fielname, <op>, value)`.
+
+    :param qst: Any of the operators AST classes available for comparisons.
+
+    The result is a function that with signaure ``(this, fieldname, value)``.
+
+    :param this: The AST node to which the operation is applied.
+
+    :param fieldname: The name of the field being operated upon.
+
+    :param value: The second operand of the operator.
+
+    If the fieldname doesn't contain a dot '.'; return a simple AST.  A domain
+    like::
+
+        Domain(['state', '=', 'open']).asfilter()
+
+    yields a callable equivalent to::
+
+        lambda this: this.state == 'open'
+
+    If the fieldname contains a dot '.'; return an AST using ``mapped()`` and
+    ``filtered()`` as appropriate:
+
+        Domain(['parent_id.children_ids.state', '=', 'open']).asfilter()
+
+    yields a callable equivalent to::
+
+        lambda this: this.mapped('parent_id.children_ids').filtered(
+            lambda r: r.state == 'open'
+        )
+
+    '''
+
     def result(this, fieldname, value):
         node = _constructor_getattr(ql.Name(this, ql.Load()), fieldname)
         if not isinstance(node, tuple):
@@ -779,27 +815,18 @@ _constructor_gt = _get_constructor(ql.Gt)
 
 
 def _constructor_in(this, fieldname, value, qst=ql.In):
+    '''Create the AST for a term `(fielname, '[not ]in', value)`.
+
+    The difference with `standard <_get_constructor>`:func: constructors is
+    that, to comply with Odoo's interpretation of 'in' and 'not in', this
+    function removes any 0 or False in `value`.
+
+    '''
     # Filtering False is the same Odoo does; which causes 0 to be removed
     # also.  See https://github.com/odoo/odoo/pull/31408
     assert qst in (ql.In, ql.NotIn)
     value = [x for x in value if x != False]  # noqa
-    node = _constructor_getattr(ql.Name(this, ql.Load()), fieldname)
-    if isinstance(node, tuple):
-        # this.mapped(attrs).filtered(lambda r: r.field in value)
-        mapped, field = node
-        lambda_arg = ql.Lambda(
-            ql.make_arguments('r'),
-            ql.Compare(
-                ql.make_attr(ql.Name('r', ql.Load()), field),
-                [qst()],
-                [_constructor_from_value(value)]
-            )
-        )
-        fn = ql.make_attr(mapped, 'filtered')
-        return ql.make_call(fn, lambda_arg)
-    else:
-        # this.field in value
-        return ql.Compare(node, [qst()], [_constructor_from_value(value)])
+    return _get_constructor(qst)(this, fieldname, value)
 
 
 def _constructor_not_in(this, fieldname, value):
@@ -807,6 +834,16 @@ def _constructor_not_in(this, fieldname, value):
 
 
 def _constructor_like(this, fieldname, value, qst=ql.In):
+    '''Create the AST for a term `(fielname, '[not ]like', value)`.
+
+    We use 'in' ('not in') Python operators; so the procedure AST are those
+    matching syntax 'value in this.fieldname' when fieldname doesn't contain a
+    dot.  If `fieldname` contains a dot the result changes to::
+
+       headattrs, lastattr = fiedname.rsplit('.', 1)
+       this.mapped(headattrs).filtered(lambda r: value in getattr(r, lastattr))
+
+    '''
     assert qst in (ql.In, ql.NotIn)
     node = _constructor_getattr(ql.Name(this, ql.Load()), fieldname)
     if isinstance(node, tuple):
