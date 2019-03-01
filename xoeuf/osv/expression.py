@@ -34,7 +34,6 @@ import operator
 from itertools import chain
 from xoeuf.odoo.osv import expression as _odoo_expression
 from xoutil.eight import string_types
-from xoutil.fp.tools import compose
 
 from . import ql
 
@@ -779,9 +778,10 @@ _constructor_ge = _get_constructor(ql.GtE)
 _constructor_gt = _get_constructor(ql.Gt)
 
 
-def _constructor_in(this, fieldname, value):
+def _constructor_in(this, fieldname, value, qst=ql.In):
     # Filtering False is the same Odoo does; which causes 0 to be removed
     # also.  See https://github.com/odoo/odoo/pull/31408
+    assert qst in (ql.In, ql.NotIn)
     value = [x for x in value if x != False]  # noqa
     node = _constructor_getattr(ql.Name(this, ql.Load()), fieldname)
     if isinstance(node, tuple):
@@ -791,7 +791,7 @@ def _constructor_in(this, fieldname, value):
             ql.make_arguments('r'),
             ql.Compare(
                 ql.make_attr(ql.Name('r', ql.Load()), field),
-                [ql.In()],
+                [qst()],
                 [_constructor_from_value(value)]
             )
         )
@@ -799,10 +799,15 @@ def _constructor_in(this, fieldname, value):
         return ql.make_call(fn, lambda_arg)
     else:
         # this.field in value
-        return ql.Compare(node, [ql.In()], [_constructor_from_value(value)])
+        return ql.Compare(node, [qst()], [_constructor_from_value(value)])
 
 
-def _constructor_like(this, fieldname, value):
+def _constructor_not_in(this, fieldname, value):
+    return _constructor_in(this, fieldname, value, qst=ql.NotIn)
+
+
+def _constructor_like(this, fieldname, value, qst=ql.In):
+    assert qst in (ql.In, ql.NotIn)
     node = _constructor_getattr(ql.Name(this, ql.Load()), fieldname)
     if isinstance(node, tuple):
         # this.mapped(attrs).filtered(lambda r: value in r.field)
@@ -811,7 +816,7 @@ def _constructor_like(this, fieldname, value):
             ql.make_arguments('r'),
             ql.Compare(
                 _constructor_from_value(value),
-                [ql.In()],
+                [qst()],
                 [ql.make_attr(ql.Name('r', ql.Load()), field)]
             )
         )
@@ -821,12 +826,17 @@ def _constructor_like(this, fieldname, value):
         # ``value in this.fieldname``
         return ql.Compare(
             _constructor_from_value(value),
-            [ql.In()],
+            [qst()],
             [node]
         )
 
 
-def _constructor_ilike(this, fieldname, value):
+def _constructor_not_like(this, fieldname, value):
+    return _constructor_like(this, fieldname, value, qst=ql.NotIn)
+
+
+def _constructor_ilike(this, fieldname, value, qst=ql.In):
+    assert qst in (ql.In, ql.NotIn)
     node = _constructor_getattr(ql.Name(this, ql.Load()), fieldname)
     if isinstance(node, tuple):
         # this.mapped(attrs).filtered(lambda r: value.lower() in r.field.lower())``
@@ -837,7 +847,7 @@ def _constructor_ilike(this, fieldname, value):
                 ql.make_argless_call(
                     _constructor_getattr(_constructor_from_value(value), "lower"),
                 ),
-                [ql.In()],
+                [qst()],
                 [ql.make_argless_call(
                     ql.make_attr(ql.make_attr(ql.Name('r', ql.Load()), field),
                                  'lower')
@@ -854,9 +864,13 @@ def _constructor_ilike(this, fieldname, value):
             ql.make_argless_call(
                 _constructor_getattr(_constructor_from_value(value), "lower"),
             ),
-            [ql.In()],
+            [qst()],
             [fn]
         )
+
+
+def _constructor_not_ilike(this, fieldname, value):
+    return _constructor_ilike(this, fieldname, value, qst=ql.NotIn)
 
 
 def _constructor_from_value(value):
@@ -878,9 +892,9 @@ _TERM_CONSTRUCTOR = {
     '>=': _constructor_ge,
     '>': _constructor_gt,
     'in': _constructor_in,
-    'not in': compose(_constructor_not, _constructor_in),
+    'not in': _constructor_not_in,
     'like': _constructor_like,
     'ilike': _constructor_ilike,
-    'not like': compose(_constructor_not, _constructor_like),
-    'not ilike': compose(_constructor_not, _constructor_ilike),
+    'not like': _constructor_not_like,
+    'not ilike': _constructor_not_ilike,
 }
