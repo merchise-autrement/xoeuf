@@ -5,7 +5,7 @@
 Beta releases (series 0.X)
 ==========================
 
-Unreleased.  Release 0.55.0
+2019-03-01.  Release 0.55.0
 ---------------------------
 
 - Improve `xoeuf.osv.expression.Domain.asfilter()`:meth: to avoid *required
