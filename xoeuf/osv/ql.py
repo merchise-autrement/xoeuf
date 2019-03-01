@@ -243,3 +243,7 @@ def make_arguments(*names):
             [Name(name, Param()) for name in names],               # noqa
             None, None, []
         )
+
+
+def make_attr(node, attr):
+    return Attribute(node, attr, Load())   # noqa

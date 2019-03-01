@@ -734,7 +734,7 @@ def _constructor_or(*operands):
 
 def _get_mapped(node, fieldname):
     attrs, field = fieldname.rsplit('.', 1)
-    mapped_fn = ql.Attribute(node, 'mapped', ql.Load())
+    mapped_fn = ql.make_attr(node, 'mapped')
     return (ql.make_call(mapped_fn, _constructor_from_value(attrs)), field)
 
 
@@ -743,7 +743,7 @@ def _constructor_getattr(node, fieldname):
         if '.' in fieldname:
             result = _get_mapped(node, fieldname)
         else:
-            result = ql.Attribute(node, fieldname, ql.Load())
+            result = ql.make_attr(node, fieldname)
     else:
         result = _constructor_from_value(fieldname)
     return result
@@ -757,7 +757,7 @@ def _get_constructor(qst):
         else:
             node, field = node
             # node.filtered(lambda x: x.field <CMP> <value>)
-            filtered_fn = ql.Attribute(node, 'filtered')
+            filtered_fn = ql.make_attr(node, 'filtered')
             lambda_ast = ql.Lambda(
                 ql.make_arguments('x'),
                 ql.Compare(
@@ -784,33 +784,79 @@ def _constructor_in(this, fieldname, value):
     # also.  See https://github.com/odoo/odoo/pull/31408
     value = [x for x in value if x != False]  # noqa
     node = _constructor_getattr(ql.Name(this, ql.Load()), fieldname)
-    return ql.Compare(node, [ql.In()], [_constructor_from_value(value)])
+    if isinstance(node, tuple):
+        # this.mapped(attrs).filtered(lambda r: r.field in value)
+        mapped, field = node
+        lambda_arg = ql.Lambda(
+            ql.make_arguments('r'),
+            ql.Compare(
+                ql.make_attr(ql.Name('r', ql.Load()), field),
+                [ql.In()],
+                [_constructor_from_value(value)]
+            )
+        )
+        fn = ql.make_attr(mapped, 'filtered')
+        return ql.make_call(fn, lambda_arg)
+    else:
+        # this.field in value
+        return ql.Compare(node, [ql.In()], [_constructor_from_value(value)])
 
 
 def _constructor_like(this, fieldname, value):
-    # ``value in this.fieldname``
     node = _constructor_getattr(ql.Name(this, ql.Load()), fieldname)
-    return ql.Compare(
-        _constructor_from_value(value),
-        [ql.In()],
-        [node]
-    )
+    if isinstance(node, tuple):
+        # this.mapped(attrs).filtered(lambda r: value in r.field)
+        mapped, field = node
+        lambda_arg = ql.Lambda(
+            ql.make_arguments('r'),
+            ql.Compare(
+                _constructor_from_value(value),
+                [ql.In()],
+                [ql.make_attr(ql.Name('r', ql.Load()), field)]
+            )
+        )
+        fn = ql.make_attr(mapped, 'filtered')
+        return ql.make_call(fn, lambda_arg)
+    else:
+        # ``value in this.fieldname``
+        return ql.Compare(
+            _constructor_from_value(value),
+            [ql.In()],
+            [node]
+        )
 
 
 def _constructor_ilike(this, fieldname, value):
-    # ``value.lower() in this.fieldname.lower()``
-    node = _constructor_getattr(
-        ql.Name(this, ql.Load()),
-        fieldname + ".lower"
-    )
-    fn = ql.make_argless_call(node)
-    return ql.Compare(
-        ql.make_argless_call(
-            _constructor_getattr(_constructor_from_value(value), "lower"),
-        ),
-        [ql.In()],
-        [fn]
-    )
+    node = _constructor_getattr(ql.Name(this, ql.Load()), fieldname)
+    if isinstance(node, tuple):
+        # this.mapped(attrs).filtered(lambda r: value.lower() in r.field.lower())``
+        mapped, field = node
+        lambda_arg = ql.Lambda(
+            ql.make_arguments('r'),
+            ql.Compare(
+                ql.make_argless_call(
+                    _constructor_getattr(_constructor_from_value(value), "lower"),
+                ),
+                [ql.In()],
+                [ql.make_argless_call(
+                    ql.make_attr(ql.make_attr(ql.Name('r', ql.Load()), field),
+                                 'lower')
+                )]
+            )
+        )
+        fn = ql.make_attr(mapped, 'filtered')
+        return ql.make_call(fn, lambda_arg)
+    else:
+        # ``value.lower() in this.fieldname.lower()``
+        node = _constructor_getattr(node, 'lower')
+        fn = ql.make_argless_call(node)
+        return ql.Compare(
+            ql.make_argless_call(
+                _constructor_getattr(_constructor_from_value(value), "lower"),
+            ),
+            [ql.In()],
+            [fn]
+        )
 
 
 def _constructor_from_value(value):
