@@ -3,8 +3,7 @@ stages:
   - pre-check
   - build doc
   - publish doc
-  - integration-test
-  - unit-test
+  - test
   - check
   - build
   - publish
@@ -18,7 +17,7 @@ check code smells:
     - branches
 
 .run_tests: &run_tests
-  stage: integration-test
+  stage: test
   script:
     - export CWD=`pwd`
     - cd ~/src/$ODOO_WORKTREE
@@ -60,40 +59,6 @@ run all Odoo 12 tests:
   <<: *run_tests
   variables:
     PYTHON: python3
-    ODOO_WORKTREE: odoo12
-  only:
-    - branches
-
-
-.run_tox_tests: &run_tox_tests
-  stage: unit-test
-  script:
-    - export CWD=`pwd`
-    - export ODOO_URI=file://$HOME/src/$ODOO_WORKTREE
-    - cd ~/src/$ODOO_WORKTREE
-    - cd $CWD
-    - tox -e system-$ODOO_WORKTREE-unit
-  tags:
-    - tox
-    - xoeuf-tester
-
-run tox Odoo 10 tests:
-  <<: *run_tox_tests
-  variables:
-    ODOO_WORKTREE: odoo10
-  only:
-    - branches
-
-run tox Odoo 11 tests:
-  <<: *run_tox_tests
-  variables:
-    ODOO_WORKTREE: odoo11
-  only:
-    - branches
-
-run tox Odoo 12 tests:
-  <<: *run_tox_tests
-  variables:
     ODOO_WORKTREE: odoo12
   only:
     - branches
