@@ -5,7 +5,7 @@
 Beta releases (series 0.X)
 ==========================
 
-Unreleased.  Release 0.56.0
+2019-03-03.  Release 0.56.0
 ---------------------------
 
 - `xoeuf.signals.receiver`:func: can take an iterable of signals.
