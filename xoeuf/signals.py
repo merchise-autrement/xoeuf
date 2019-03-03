@@ -278,7 +278,7 @@ class FrameworkHook(Hook):
 def receiver(signal, **kwargs):
     """A decorator for connecting receivers to signals.
 
-    :param signal: Either a single signal or a list of signals.
+    :param signal: Either a single signal or an iterable of signals.
 
     :keyword require_registry: If set to True the receiver will only be called
              if the Odoo DB registry is ready.
@@ -297,13 +297,17 @@ def receiver(signal, **kwargs):
         def signals_receiver(sender, **kwargs):
             ...
 
+    .. versionchanged:: 0.56.0 `signal` is not required to be a list or tuple,
+                        but any type of iterable (`iter`:func:).
+
     """
     def _decorator(func):
-        if isinstance(signal, (list, tuple)):
-            for s in signal:
-                s.connect(func, **kwargs)
-        else:
-            signal.connect(func, **kwargs)
+        try:
+            signals = iter(signal)
+        except TypeError:
+            signals = [signal, ]
+        for s in signals:
+            s.connect(func, **kwargs)
         return func
     return _decorator
 
