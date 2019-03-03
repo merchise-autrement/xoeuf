@@ -20,6 +20,8 @@ from functools import wraps
 from xoeuf.odoo import api, models
 from xoutil.objects import temp_attributes
 
+from xoutil.future.contextlib import ExitStack, contextmanager
+
 
 logger = logging.getLogger(__name__)
 del logging
@@ -348,6 +350,22 @@ def _no_signalling(signal):
 
     '''
     return temp_attributes(signal, {'hooks': []})
+
+
+@contextmanager
+def no_signals(*signals):
+    '''Context manager that temporarily stop the signals from being called.
+
+    Basically, we disconnect all receivers from `signals` within the scope of
+    the context manager.
+
+    .. versionadded:: 0.56.0
+
+    '''
+    with ExitStack() as stack:
+        for signal in signals:
+            stack.enter_context(_no_signalling(signal))
+        yield
 
 
 def mock_replace(hook, func, **replacement_attrs):

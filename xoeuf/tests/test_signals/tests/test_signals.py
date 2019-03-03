@@ -20,6 +20,7 @@ from xoeuf.signals import (
     pre_create,
     write_wrapper,
     pre_fields_view_get,
+    no_signals,
 )
 from xoeuf.odoo.addons.test_signals.models import (
     post_save_receiver,
@@ -83,3 +84,16 @@ class TestXoeufSignals(TransactionCase):
             result = who.fields_view_get()
             self.assertTrue(mock.called)
             self.assertIn('fgv-is-present', safe_decode(result['arch'], 'utf-8'))
+
+    def test_no_signals(self):
+        # Test mocks outside and inside
+        with mock_replace(pre_create, pre_save_receiver) as mock:
+            with no_signals(pre_create):
+                self.Model.create(dict(name='My name'))
+            self.Model.create(dict(name='My name'))
+            self.assertEqual(mock.call_count, 1)
+
+        with no_signals(pre_create):
+            with mock_replace(pre_create, pre_save_receiver) as mock:
+                self.Model.create(dict(name='My name'))
+                self.assertFalse(mock.called)

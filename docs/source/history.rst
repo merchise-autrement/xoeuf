@@ -10,6 +10,8 @@ Unreleased.  Release 0.56.0
 
 - `xoeuf.signals.receiver`:func: can take an iterable of signals.
 
+- Add `xoeuf.signals.no_signals`:func:.
+
 
 2019-03-01.  Release 0.55.0
 ---------------------------

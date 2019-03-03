@@ -307,3 +307,11 @@ Wrappings
 .. object:: write_wrapper
 
    A wrapping around the 'write' method of models.
+
+
+Other
+=====
+
+.. autofunction:: no_signals
+
+.. autofunction:: mock_replace
