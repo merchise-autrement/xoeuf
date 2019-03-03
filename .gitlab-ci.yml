@@ -1,16 +1,15 @@
 ---
 stages:
-  - pre-check
+  - check
   - build doc
   - publish doc
   - test
-  - check
   - build
   - publish
 
 check code smells:
   script: merchise_lint2
-  stage: pre-check
+  stage: check
   tags:
     - merchise-lint
   only:
