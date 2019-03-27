@@ -8,7 +8,8 @@ Beta releases (series 0.X)
 Unreleased.  Release 0.57.0
 ---------------------------
 
-Nothing yet.
+- Fix bug in `xoeuf.tools.add_symbols_to_xmls`:func: when passing positional
+  arguments.
 
 
 2019-03-03.  Release 0.56.0

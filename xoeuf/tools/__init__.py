@@ -405,7 +405,7 @@ def add_symbols_to_xmls(*objs, **symbols):
 
     '''
     if objs:
-        symbols.update({nameof(obj, inner=True, full=False) for obj in objs})
+        symbols.update({nameof(obj, inner=True, full=False): obj for obj in objs})
     _SAFE_EVAL_SYMBOLS.update(symbols)
 
 
