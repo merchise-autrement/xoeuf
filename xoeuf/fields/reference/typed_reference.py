@@ -34,15 +34,19 @@ class TypedReference(fields.Reference):
     type = 'reference'
     _slots = {
         'mixin': None,
+        'comodel_name': None,
         'delegate': None,
     }
 
     def __init__(self, mixin=fields.Default, delegate=fields.Default, **kwargs):
-        super(TypedReference, self).__init__(
+        # Set comodel_name = mixin, this is required for odoo make triggers
+        # on delegate field declarations.
+        super(TypedReference, self).__init__(**dict(
+            kwargs,
             mixin=mixin,
-            delegate=delegate,
-            **kwargs
-        )
+            comodel_name=mixin,
+            delegate=delegate
+        ))
 
     def new(self, **kwargs):
         # Pass original args to the new one.  This ensures that the
