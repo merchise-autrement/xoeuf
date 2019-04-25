@@ -14,7 +14,8 @@ from __future__ import (division as _py3_division,
 from xoeuf.odoo.fields import Field as Base
 
 
-class Property(Base):
+def Property(getter, setter=None, deleter=None, onsetup=None,
+             **kwargs):
     '''A property-like field.
 
     This is always non-store field.  In fact, you may only pass the getter,
@@ -62,7 +63,27 @@ class Property(Base):
        result = Property(lambda s: 1, setter=_set_result)
        del _set_result
 
+    :keyword memoize_result: If True, the property will cache the result.  The
+             default is False (compute each time the property is read).
+
+    .. versionchanged:: 0.58.0 Added keyword parameter `memoize_result`.
+
     '''
+    if getter is None and 'memoize_result' not in kwargs:
+        raise TypeError('Property must have a getter')
+    elif getter:
+        return PropertyField(getter, setter=setter, deleter=deleter,
+                             onsetup=onsetup, **kwargs)
+    else:
+        def Prop(getter, setter=setter, deleter=deleter, onsetup=onsetup,
+                   **kw):
+            kwargs.update(kw)
+            return PropertyField(getter, setter=setter, deleter=deleter,
+                                 onsetup=onsetup, **kwargs)
+        return Prop
+
+
+class PropertyField(Base):
     # This is the best of the three major versions of Odoo we support.  This
     # create a __slot__ and avoids that these values go to the
     # __getattr__/__setattr__ mechanism in fields.Field.  But it also, means
@@ -89,8 +110,9 @@ class Property(Base):
             'inherited': kwargs.get('inherited', None),
             'related': kwargs.get('related', None),
             'related_sudo': kwargs.get('related_sudo', False),
+            'memoize_result': kwargs.get('memoize_result', False),
         }
-        super(Property, self).__init__(
+        super(PropertyField, self).__init__(
             # Odoo ignores arguments which are None, therefore, let's force
             # them with Unset.  Odoo 9 and 10, uses this args to call
             # field.new(**args), and also to restore the values of the _slots
@@ -131,7 +153,7 @@ class Property(Base):
         )
 
     def setup_full(self, model):
-        res = super(Property, self).setup_full(model)
+        res = super(PropertyField, self).setup_full(model)
         if self.property_onsetup:
             self.property_onsetup(self, model)
         return res
@@ -152,7 +174,10 @@ class Property(Base):
             if not instance:
                 return self.null(instance.env)
             instance.ensure_one()
-            return self.property_getter(instance)
+            if not getattr(self, 'memoize_result', False):
+                return self.property_getter(instance)
+            else:
+                return self.property_getter(instance)
 
     def __set__(self, instance, value):
         if self.property_setter:
