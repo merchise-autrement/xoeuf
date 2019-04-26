@@ -8,7 +8,7 @@ Beta releases (series 0.X)
 Unreleased.  Release 0.58.0
 ---------------------------
 
-Nothing yet.
+- Add parameter `memoize` to `xoeuf.fields.Property`:class:
 
 
 2019-03-27.  Release 0.57.0
