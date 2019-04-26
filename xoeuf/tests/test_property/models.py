@@ -45,6 +45,14 @@ class ValueMixin(models.AbstractModel):
     def memoized_object(self):
         return object()
 
+    @memoized_object.setter
+    def memoized_object(self, value):
+        pass
+
+    @memoized_object.deleter
+    def memoized_object(self):
+        pass
+
     @fields.Property
     def new_object(self):
         return object()

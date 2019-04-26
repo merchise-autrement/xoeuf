@@ -57,6 +57,10 @@ def Property(getter=None, setter=None, deleter=None, onsetup=None,
        def result(self, value):
           pass
 
+       @Property(memoize=True)
+       def sentinel(self):
+           return object()
+
     You may also do::
 
        def _set_result(self, value):
@@ -196,6 +200,8 @@ class PropertyField(Base):
         if self.property_setter:
             instance.ensure_one()
             self.property_setter(instance, value)
+            if self.memoize_result:
+                _set_to_cache(instance, self, value)
         else:
             raise TypeError('Setting to read-only Property')
 
@@ -203,6 +209,8 @@ class PropertyField(Base):
         if self.property_deleter:
             instance.ensure_one()
             self.property_deleter(instance)
+            if self.memoize_result:
+                _del_from_cache(instance, self)
         else:
             raise TypeError('Deleting undeletable Property')
 
@@ -214,9 +222,15 @@ if MAJOR_ODOO_VERSION < 11:
     def _set_to_cache(record, field, value):
         record.env.cache[field][record.id] = value
 
+    def _del_from_cache(record, field):
+        del record.env.cache[field][record.id]
+
 else:
     def _get_from_cache(record, field, default):
         return record.env.cache.get_value(record, field, default)
 
     def _set_to_cache(record, field, value):
         record.env.cache.set(record, field, value)
+
+    def _del_from_cache(record, field):
+        record.env.cache.remove(record, field)
