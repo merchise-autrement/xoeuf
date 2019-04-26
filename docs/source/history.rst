@@ -8,7 +8,7 @@ Beta releases (series 0.X)
 Unreleased.  Release 0.58.0
 ---------------------------
 
-- Add parameter `memoize` to `xoeuf.fields.Property`:class:
+- Add parameter `memoize` to `xoeuf.fields.Property`:func:
 
 
 2019-03-27.  Release 0.57.0
@@ -464,7 +464,7 @@ build and publish 0.29.0.
 2017-10-07.  Release 0.15.0
 ---------------------------
 
-- Allow `xoeuf.fields.Property`:class: to setup.  When the ORM setups the
+- Allow `xoeuf.fields.Property`:func: to setup.  When the ORM setups the
   models in the registry, the setup will be called.
 
 - Extend models proxies to support HTTP requests.  This allows model proxies
@@ -526,7 +526,7 @@ build and publish 0.29.0.
 - Deprecate `xoeuf.osv.fields`:mod:, will promote the usage of new API fields.
 
 - Add fields `xoeuf.fields.LocalizedDatetime`:class:,
-  `xoeuf.fields.Property`:class:, and `xoeuf.fields.Monetary`:class:.  All of
+  `xoeuf.fields.Property`:func:, and `xoeuf.fields.Monetary`:class:.  All of
   those fields work in Odoo 8, 9 and 10.
 
   .. note:: `xoeuf.fields.Monetary`:class: is actually a float in Odoo 8, in

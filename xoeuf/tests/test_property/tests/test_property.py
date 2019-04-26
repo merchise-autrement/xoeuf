@@ -61,7 +61,14 @@ class TestProperty(TransactionCase):
         self.assertIsNot(self.obj.new_object, self.obj.new_object)
 
     def test_memoized_object(self):
+        previous = self.obj.memoized_object
+        self.assertIs(self.obj.memoized_object, previous)
+        self.obj.memoized_object = sentinel = object()
+        self.assertIs(self.obj.memoized_object, sentinel)
         self.assertIs(self.obj.memoized_object, self.obj.memoized_object)
+        del self.obj.memoized_object
+        self.assertIsNot(self.obj.memoized_object, sentinel)
+        self.assertIsNot(self.obj.memoized_object, previous)
 
     def test_invalidated_memoized_object(self):
         previous = self.obj.memoized_object
