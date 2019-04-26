@@ -14,7 +14,7 @@ from __future__ import (division as _py3_division,
 from xoeuf.odoo.fields import Field as Base
 
 
-def Property(getter, setter=None, deleter=None, onsetup=None,
+def Property(getter=None, setter=None, deleter=None, onsetup=None,
              **kwargs):
     '''A property-like field.
 
