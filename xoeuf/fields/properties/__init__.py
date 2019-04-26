@@ -6,12 +6,13 @@
 #
 # This is free software; you can do what the LICENCE file allows you to.
 #
-
 from __future__ import (division as _py3_division,
                         print_function as _py3_print,
                         absolute_import as _py3_abs_import)
 
 from xoutil.symbols import Unset
+
+from xoeuf import MAJOR_ODOO_VERSION
 from xoeuf.odoo.fields import Field as Base
 
 
@@ -185,10 +186,10 @@ class PropertyField(Base):
                 return self.property_getter(instance)
             else:
                 Unset = object()
-                result = instance.env.cache.get_value(instance, self, Unset)
+                result = _get_from_cache(instance, self, Unset)
                 if result is Unset:
                     result = self.property_getter(instance)
-                    instance.env.cache.set(instance, self, result)
+                    _set_to_cache(instance, self, result)
                 return result
 
     def __set__(self, instance, value):
@@ -204,3 +205,18 @@ class PropertyField(Base):
             self.property_deleter(instance)
         else:
             raise TypeError('Deleting undeletable Property')
+
+
+if MAJOR_ODOO_VERSION < 11:
+    def _get_from_cache(record, field, default):
+        return record.env.cache[field].get(record.id, default)
+
+    def _set_to_cache(record, field, value):
+        record.env.cache[field][record.id] = value
+
+else:
+    def _get_from_cache(record, field, default):
+        return record.env.cache.get_value(record, field, default)
+
+    def _set_to_cache(record, field, value):
+        record.env.cache.set(record, field, value)
