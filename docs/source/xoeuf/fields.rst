@@ -15,7 +15,7 @@ We don't backport all fields from later Odoo versions to earlier ones, though.
 
 .. autoclass:: LocalizedDatetime
 
-.. autofunction:: Property(getter, setter=None, deleter=None, onsetup=None, **kwargs)
+.. autoclass:: Property(getter, setter=None, deleter=None, onsetup=None, memoize=False, **kwargs)
 
 .. autoclass:: Monetary(string=None, currency_field='currency_id', **kwargs)
 

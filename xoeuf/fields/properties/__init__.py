@@ -11,13 +11,13 @@ from __future__ import (division as _py3_division,
                         absolute_import as _py3_abs_import)
 
 from xoutil.symbols import Unset
+from xoutil.eight.meta import metaclass
 
 from xoeuf import MAJOR_ODOO_VERSION
 from xoeuf.odoo.fields import Field as Base
 
 
-def Property(getter=None, setter=None, deleter=None, onsetup=None,
-             memoize=Unset, **kwargs):
+class PropertyField(Base):
     '''A property-like field.
 
     This is always non-store field.  In fact, you may only pass the getter,
@@ -75,23 +75,6 @@ def Property(getter=None, setter=None, deleter=None, onsetup=None,
     .. versionchanged:: 0.58.0 Added keyword parameter `memoize`.
 
     '''
-    if getter is None and memoize is Unset:
-        raise TypeError('Property must have a getter')
-    elif getter:
-        return PropertyField(getter, setter=setter, deleter=deleter,
-                             onsetup=onsetup, memoize=bool(memoize),
-                             **kwargs)
-    else:
-        def Prop(getter, setter=setter, deleter=deleter, onsetup=onsetup,
-                   **kw):
-            kwargs.update(kw)
-            return PropertyField(getter, setter=setter, deleter=deleter,
-                                 onsetup=onsetup, memoize=bool(memoize),
-                                 **kwargs)
-        return Prop
-
-
-class PropertyField(Base):
     # This is the best of the three major versions of Odoo we support.  This
     # create a __slot__ and avoids that these values go to the
     # __getattr__/__setattr__ mechanism in fields.Field.  But it also, means
@@ -114,7 +97,6 @@ class PropertyField(Base):
         # allow for inheritance (_inherits) of this field.  Such inheritance
         # is done via a related field, but otherwise custom `write/create`
         # that treat properties could be ignored.
-        from xoutil.symbols import Unset
         kw = {
             'inherited': kwargs.get('inherited', None),
             'related': kwargs.get('related', None),
@@ -151,12 +133,13 @@ class PropertyField(Base):
     def new(self, **kwargs):
         # Ensure the property getter, setter and deleter are provided.  This
         # is used in `setter`:meth: and `deleter`:meth:.
+        getter = kwargs.pop('getter', self.property_getter)
         setter = kwargs.pop('setter', self.property_setter)
         deleter = kwargs.pop('deleter', self.property_deleter)
         onsetup = kwargs.pop('onsetup', self.property_onsetup)
         memoize = kwargs.pop('memoize', self.memoize_result)
         return type(self)(
-            self.property_getter,
+            getter=getter,
             setter=setter,
             deleter=deleter,
             onsetup=onsetup,
@@ -213,6 +196,35 @@ class PropertyField(Base):
                 _del_from_cache(instance, self)
         else:
             raise TypeError('Deleting undeletable Property')
+
+
+class _PropertyType(type):
+    def __instancecheck__(self, instance):
+        return isinstance(instance, PropertyField)
+
+    def __call__(self, getter=None, setter=None, deleter=None, onsetup=None,
+                 **kwargs):
+        memoize = kwargs.pop('memoize', Unset)
+        if memoize is Unset and getter is None:
+            raise TypeError('getter must be provided')
+        elif getter is None:
+            def result(getter):
+                return PropertyField(getter, setter=setter, deleter=deleter,
+                                     onsetup=onsetup, memoize=bool(memoize),
+                                     **kwargs)
+            return result
+        else:
+            return PropertyField(getter, setter=setter, deleter=deleter,
+                                 onsetup=onsetup, memoize=bool(memoize),
+                                 **kwargs)
+
+
+class Property(metaclass(_PropertyType)):
+    # So that isinstance(x, Property) work
+    pass
+
+
+Property.__doc__ = PropertyField.__doc__
 
 
 if MAJOR_ODOO_VERSION < 11:
