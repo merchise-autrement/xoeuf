@@ -6,15 +6,18 @@
 #
 # This is free software; you can do what the LICENCE file allows you to.
 #
-
 from __future__ import (division as _py3_division,
                         print_function as _py3_print,
                         absolute_import as _py3_abs_import)
 
+from xoutil.symbols import Unset
+
+from xoeuf import MAJOR_ODOO_VERSION
 from xoeuf.odoo.fields import Field as Base
 
 
-class Property(Base):
+def Property(getter=None, setter=None, deleter=None, onsetup=None,
+             memoize=Unset, **kwargs):
     '''A property-like field.
 
     This is always non-store field.  In fact, you may only pass the getter,
@@ -62,7 +65,29 @@ class Property(Base):
        result = Property(lambda s: 1, setter=_set_result)
        del _set_result
 
+    :keyword memoize: If True, the property will cache the result.  The
+             default is False (compute each time the property is read).
+
+    .. versionchanged:: 0.58.0 Added keyword parameter `memoize`.
+
     '''
+    if getter is None and memoize is Unset:
+        raise TypeError('Property must have a getter')
+    elif getter:
+        return PropertyField(getter, setter=setter, deleter=deleter,
+                             onsetup=onsetup, memoize=bool(memoize),
+                             **kwargs)
+    else:
+        def Prop(getter, setter=setter, deleter=deleter, onsetup=onsetup,
+                   **kw):
+            kwargs.update(kw)
+            return PropertyField(getter, setter=setter, deleter=deleter,
+                                 onsetup=onsetup, memoize=bool(memoize),
+                                 **kwargs)
+        return Prop
+
+
+class PropertyField(Base):
     # This is the best of the three major versions of Odoo we support.  This
     # create a __slot__ and avoids that these values go to the
     # __getattr__/__setattr__ mechanism in fields.Field.  But it also, means
@@ -73,11 +98,12 @@ class Property(Base):
         'property_setter': None,
         'property_deleter': None,
         'property_onsetup': None,
+        'memoize_result': False,
     }
     type = 'python-property'  # needed to satisfy ir.models.field
 
     def __init__(self, getter, setter=None, deleter=None, onsetup=None,
-                 **kwargs):
+                 memoize=False, **kwargs):
         # Notice we don't abide by the expected fields signature.  Instead, we
         # require one that is compatible with `property`; but we ensure that
         # Odoo sees this Property as normal field with custom attributes.  We
@@ -90,7 +116,7 @@ class Property(Base):
             'related': kwargs.get('related', None),
             'related_sudo': kwargs.get('related_sudo', False),
         }
-        super(Property, self).__init__(
+        super(PropertyField, self).__init__(
             # Odoo ignores arguments which are None, therefore, let's force
             # them with Unset.  Odoo 9 and 10, uses this args to call
             # field.new(**args), and also to restore the values of the _slots
@@ -104,6 +130,7 @@ class Property(Base):
             property_setter=setter or Unset,
             property_deleter=deleter or Unset,
             property_onsetup=onsetup or Unset,
+            memoize_result=memoize,
 
             compute=getter,
             store=False,
@@ -115,6 +142,7 @@ class Property(Base):
         self.property_setter = setter or Unset
         self.property_deleter = deleter or Unset
         self.property_onsetup = onsetup or Unset
+        self.memoize_result = memoize
 
     def new(self, **kwargs):
         # Ensure the property getter, setter and deleter are provided.  This
@@ -122,16 +150,18 @@ class Property(Base):
         setter = kwargs.pop('setter', self.property_setter)
         deleter = kwargs.pop('deleter', self.property_deleter)
         onsetup = kwargs.pop('onsetup', self.property_onsetup)
+        memoize = kwargs.pop('memoize', self.memoize_result)
         return type(self)(
             self.property_getter,
             setter=setter,
             deleter=deleter,
             onsetup=onsetup,
+            memoize=memoize,
             **kwargs
         )
 
     def setup_full(self, model):
-        res = super(Property, self).setup_full(model)
+        res = super(PropertyField, self).setup_full(model)
         if self.property_onsetup:
             self.property_onsetup(self, model)
         return res
@@ -152,7 +182,15 @@ class Property(Base):
             if not instance:
                 return self.null(instance.env)
             instance.ensure_one()
-            return self.property_getter(instance)
+            if not self.memoize_result:
+                return self.property_getter(instance)
+            else:
+                Unset = object()
+                result = _get_from_cache(instance, self, Unset)
+                if result is Unset:
+                    result = self.property_getter(instance)
+                    _set_to_cache(instance, self, result)
+                return result
 
     def __set__(self, instance, value):
         if self.property_setter:
@@ -167,3 +205,18 @@ class Property(Base):
             self.property_deleter(instance)
         else:
             raise TypeError('Deleting undeletable Property')
+
+
+if MAJOR_ODOO_VERSION < 11:
+    def _get_from_cache(record, field, default):
+        return record.env.cache[field].get(record.id, default)
+
+    def _set_to_cache(record, field, value):
+        record.env.cache[field][record.id] = value
+
+else:
+    def _get_from_cache(record, field, default):
+        return record.env.cache.get_value(record, field, default)
+
+    def _set_to_cache(record, field, value):
+        record.env.cache.set(record, field, value)

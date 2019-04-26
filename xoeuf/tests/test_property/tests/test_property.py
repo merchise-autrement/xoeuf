@@ -57,6 +57,17 @@ class TestProperty(TransactionCase):
     # Don't perform the test of `search()` because it does not raise an
     # exception, but log an error that may fool our test scripts.
 
+    def test_non_memoized_object(self):
+        self.assertIsNot(self.obj.new_object, self.obj.new_object)
+
+    def test_memoized_object(self):
+        self.assertIs(self.obj.memoized_object, self.obj.memoized_object)
+
+    def test_invalidated_memoized_object(self):
+        previous = self.obj.memoized_object
+        self.obj.invalidate_cache()
+        self.assertIsNot(previous, self.obj.memoized_object)
+
 
 class TestInheritedValue(TransactionCase):
     def setUp(self):
