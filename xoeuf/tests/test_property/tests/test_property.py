@@ -63,6 +63,11 @@ class TestProperty(TransactionCase):
     def test_memoized_object(self):
         self.assertIs(self.obj.memoized_object, self.obj.memoized_object)
 
+    def test_invalidated_memoized_object(self):
+        previous = self.obj.memoized_object
+        self.obj.invalidate_cache()
+        self.assertIsNot(previous, self.obj.memoized_object)
+
 
 class TestInheritedValue(TransactionCase):
     def setUp(self):
