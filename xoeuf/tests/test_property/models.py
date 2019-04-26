@@ -41,6 +41,14 @@ class ValueMixin(models.AbstractModel):
     def inverted(field, model):
         type(model).inverted_setup = True
 
+    @fields.Property(memoize_result=True)
+    def memoized_object(self):
+        return object()
+
+    @fields.Property
+    def new_object(self):
+        return object()
+
 
 class ObjectMixin(models.AbstractModel):
     _name = 'test.property.object'
