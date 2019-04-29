@@ -202,6 +202,9 @@ class _PropertyType(type):
     def __instancecheck__(self, instance):
         return isinstance(instance, PropertyField)
 
+    def __subclasscheck__(self, klass):
+        return issubclass(klass, PropertyField)
+
     def __call__(self, getter=None, setter=None, deleter=None, onsetup=None,
                  **kwargs):
         memoize = kwargs.pop('memoize', Unset)
