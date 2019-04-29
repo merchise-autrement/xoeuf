@@ -5,7 +5,7 @@
 Beta releases (series 0.X)
 ==========================
 
-Unreleased.  Release 0.59.0
+2019-04-29.  Release 0.59.0
 ---------------------------
 
 - Restate `xoeuf.fields.Property`:class: as class.  Release 0.58.0 converted
