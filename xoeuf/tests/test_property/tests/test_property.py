@@ -6,12 +6,11 @@
 #
 # This is free software; you can do what the LICENCE file allows you to.
 #
-
 from __future__ import (division as _py3_division,
                         print_function as _py3_print,
                         absolute_import as _py3_abs_import)
 
-
+from xoeuf import fields
 from xoeuf.odoo.tests.common import TransactionCase
 
 
@@ -91,3 +90,8 @@ class TestInheritedValue(TransactionCase):
         v = {'a': [1, (1, 2), u'a']}
         i.write({'result': v})
         self.assertEqual(i.thing, repr(v))
+
+    def test_isinstance(self):
+        TValue = type(self.env['test.property.value'])
+        self.assertIsInstance(TValue.result, fields.Property)
+        self.assertNotIsInstance(TValue.thing, fields.Property)

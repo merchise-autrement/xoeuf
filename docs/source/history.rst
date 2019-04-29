@@ -8,13 +8,19 @@ Beta releases (series 0.X)
 Unreleased.  Release 0.59.0
 ---------------------------
 
-Nothing yet.
+- Restate `xoeuf.fields.Property`:class: as class.  Release 0.58.0 converted
+  Property to a function (fields in Odoo can't be callable because that
+  confuses ``api.guess``).  That broke some code in other projects that uses
+  ``isinstance(field, fields.Property)``.
+
+  This release makes the function a class with a special metaclass to actually
+  return a ``PropertyField`` instance, and to perform the instance check.
 
 
 2019-04-26.  Release 0.58.0
 ---------------------------
 
-- Add parameter `memoize` to `xoeuf.fields.Property`:func:
+- Add parameter `memoize` to `xoeuf.fields.Property`:class:
 
 
 2019-03-27.  Release 0.57.0
@@ -470,7 +476,7 @@ build and publish 0.29.0.
 2017-10-07.  Release 0.15.0
 ---------------------------
 
-- Allow `xoeuf.fields.Property`:func: to setup.  When the ORM setups the
+- Allow `xoeuf.fields.Property`:class: to setup.  When the ORM setups the
   models in the registry, the setup will be called.
 
 - Extend models proxies to support HTTP requests.  This allows model proxies
@@ -532,7 +538,7 @@ build and publish 0.29.0.
 - Deprecate `xoeuf.osv.fields`:mod:, will promote the usage of new API fields.
 
 - Add fields `xoeuf.fields.LocalizedDatetime`:class:,
-  `xoeuf.fields.Property`:func:, and `xoeuf.fields.Monetary`:class:.  All of
+  `xoeuf.fields.Property`:class:, and `xoeuf.fields.Monetary`:class:.  All of
   those fields work in Odoo 8, 9 and 10.
 
   .. note:: `xoeuf.fields.Monetary`:class: is actually a float in Odoo 8, in
