@@ -95,3 +95,20 @@ class TestInheritedValue(TransactionCase):
         TValue = type(self.env['test.property.value'])
         self.assertIsInstance(TValue.result, fields.Property)
         self.assertNotIsInstance(TValue.thing, fields.Property)
+
+    def test_issubclass(self):
+        TValue = type(self.env['test.property.value'])
+        self.assertIsSubclass(type(TValue.result), fields.Property)
+        self.assertNotIsSubclass(type(TValue.thing), fields.Property)
+
+    def assertIsSubclass(self, subclass, superclass, msg=None):
+        assert issubclass(subclass, superclass), \
+            "{subclass} is not a subclass or {superclass}".format(
+                subclass=subclass,
+                superclass=superclass)
+
+    def assertNotIsSubclass(self, subclass, superclass, msg=None):
+        assert not issubclass(subclass, superclass), \
+            "{subclass} is a subclass or {superclass}".format(
+                subclass=subclass,
+                superclass=superclass)
