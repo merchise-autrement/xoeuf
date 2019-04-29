@@ -5,6 +5,18 @@
 Beta releases (series 0.X)
 ==========================
 
+Unreleased.  Release 0.59.0
+---------------------------
+
+- Restate `xoeuf.fields.Property`:class: as class.  Release 0.58.0 converted
+  Property to a function (fields in Odoo can't be callable because that
+  confuses ``api.guess``).  That broke some code in other projects that uses
+  ``isinstance(field, fields.Property)``.
+
+  This release makes the function a class with a special metaclass to actually
+  return a ``PropertyField`` instance, and to perform the instance check.
+
+
 2019-04-26.  Release 0.58.0
 ---------------------------
 
