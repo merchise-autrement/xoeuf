@@ -57,21 +57,32 @@ class TypedReference(fields.Reference):
         return super(TypedReference, self).new(**kwargs)
 
     def _setup_regular_base(self, model):
-        def selection(model):
-            return [
-                (model_name, _(model.env[model_name]._description or model_name))
-                for model_name in get_mixin_descendants(model.pool, self.mixin)
-            ]
-        if self.selection:
-            descendants = [val for val, string in selection(model)]
-            for val in self.get_values(model.env):
-                if val not in descendants:
-                    raise ValueError(
-                        _("Wrong value for %s: %r") % (self, val)
-                    )
-        else:
+        if not self.selection:
+            def selection(model):
+                return [
+                    (model_name, _(model.env[model_name]._description or model_name))
+                    for model_name in get_mixin_descendants(model.pool, self.mixin)
+                ]
             self.selection = selection
         return super(TypedReference, self)._setup_regular_base(model)
+
+    def convert_to_cache(self, value, record, validate=True):
+        res = super(TypedReference, self).convert_to_cache(
+            value,
+            record,
+            validate=validate
+        )
+        if res and validate:
+            res_model, res_id = res
+            descendants = [
+                model_name
+                for model_name in get_mixin_descendants(record.pool, self.mixin)
+            ]
+            if res_model not in descendants:
+                raise ValueError(
+                    _("Wrong value for %s: %r") % (self, res)
+                )
+        return res
 
 
 @api.model
