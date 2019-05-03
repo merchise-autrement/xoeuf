@@ -6,7 +6,6 @@
 #
 # This is free software; you can do what the LICENCE file allows you to.
 #
-
 from __future__ import (division as _py3_division,
                         print_function as _py3_print,
                         absolute_import as _py3_abs_import)
@@ -26,9 +25,13 @@ def get_mixin_descendants(pool, mixin):
 
 
 class TypedReference(fields.Reference):
-    '''A reference field filtered by type (mixin).
+    '''A reference field filtered by a type (mixin).
 
-    Many2one equivalent recordset.
+    This is like a Many2one field, but the comodel should be an AbstractModel
+    (a mixin).  This way you can relate objects in different actual models but
+    that share a common type.
+
+    .. warning:: This field works only in Odoo 11+.
 
     '''
     type = 'reference'

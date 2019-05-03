@@ -6,7 +6,6 @@
 #
 # This is free software; you can do what the LICENCE file allows you to.
 #
-
 '''Xœuf are basic services for OpenERP and Open Object.
 
 The name is composed by:
