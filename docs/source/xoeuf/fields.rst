@@ -30,3 +30,5 @@ We don't backport all fields from later Odoo versions to earlier ones, though.
 .. autoclass:: One2one
 
 .. autoclass:: TimeRange(time_field, selection, *args, **kwargs)
+
+.. autoclass:: TypedReference(mixin, [delegate=False], **kwargs)

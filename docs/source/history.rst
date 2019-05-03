@@ -8,7 +8,11 @@ Beta releases (series 0.X)
 Unreleased.  Release 0.60.0
 ---------------------------
 
-Nothing yet.
+- We're starting to remove support for Odoo 10.  All features still work in
+  the three previously supported versions (10, 11 and 12); but newer features
+  may not work in Odoo 10.
+
+- Add `xoeuf.fields.TypedReferece`:class:.
 
 
 2019-04-29.  Release 0.59.0
