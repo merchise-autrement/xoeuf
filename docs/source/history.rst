@@ -5,7 +5,7 @@
 Beta releases (series 0.X)
 ==========================
 
-Unreleased.  Release 0.60.0
+2019-05-03.  Release 0.60.0
 ---------------------------
 
 - We're starting to remove support for Odoo 10.  All features still work in
