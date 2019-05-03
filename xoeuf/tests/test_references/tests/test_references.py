@@ -11,7 +11,7 @@ from __future__ import (division as _py3_division,
                         absolute_import as _py3_abs_import)
 
 from xoeuf import fields
-from odoo.tests.common import TransactionCase
+from xoeuf.odoo.tests.common import TransactionCase
 
 
 class TestReferences(TransactionCase):

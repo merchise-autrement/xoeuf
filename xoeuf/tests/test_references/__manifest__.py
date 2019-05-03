@@ -12,5 +12,5 @@
     'version': '1.0',
     'depends': ['base', ],
     'auto_install': False,
-    'installable': True
+    'installable': MAJOR_ODOO_VERSION > 10,  # noqa
 }
