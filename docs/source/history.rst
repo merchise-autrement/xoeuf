@@ -12,7 +12,7 @@ Unreleased.  Release 0.60.0
   the three previously supported versions (10, 11 and 12); but newer features
   may not work in Odoo 10.
 
-- Add `xoeuf.fields.TypedReferece`:class:.
+- Add `xoeuf.fields.TypedReference`:class:.
 
 
 2019-04-29.  Release 0.59.0
