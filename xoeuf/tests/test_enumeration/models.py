@@ -51,6 +51,7 @@ class Model(models.Model):
         inverse='_set_color_name',
         store=False,
     )
+    color_selection = color.get_selection_field('color', 'color_selection')
 
     car = fields.Enumeration(CARS)
     pax = fields.Enumeration(Pax)

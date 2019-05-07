@@ -15,6 +15,7 @@ from collections import namedtuple
 from xoutil.eight import string_types
 
 from xoeuf import models, api
+from odoo import fields
 
 __all__ = ['Enumeration']
 
@@ -46,6 +47,10 @@ def Enumeration(enumclass, *args, **kwargs):
     These requirements are compatible with Python 3.4's `enum.Enum`:class:
     However, we don't require that values are instances of the enumeration
     class.
+
+    Enumeration fields are hard to put in views because their values are
+    Python objects which are not easily transferred to/from the web client.
+
 
     .. versionchanged:: 0.36.0 A new generalized enumeration field.  Maintains
        DB compatibility (does not need migrations), but do require changes in
@@ -175,7 +180,55 @@ class EnumerationAdapter(object):
         return super(EnumerationAdapter, self).write(values)
 
 
+class _EnumSelection(fields.Selection):
+    pass
+
+
 class _EnumeratedField(object):
+    def get_selection_field(self, field_name,
+                            selection_field_name,
+                            compute_member_string=None, **kwargs):
+        '''Return a computed Selection field to set/get the Enumeration.
+
+        '''
+        @api.multi
+        @api.depends(field_name)
+        def _compute_selection_field(rs):
+            for record in rs:
+                value = getattr(record, field_name, None)
+                if value is not None:
+                    member = self.get_member_by_value(value)
+                    setattr(record, selection_field_name, member.name)
+                else:
+                    setattr(record, selection_field_name, False)
+
+        @api.multi
+        def _set_selection(rs):
+            for record in rs:
+                name = getattr(record, selection_field_name, None)
+                if name:
+                    member = self.get_member_by_name(name)
+                    setattr(record, field_name, member.value)
+                else:
+                    setattr(record, field_name, False)
+
+        if not compute_member_string:
+            compute_member_string = self._compute_member_string
+        return _EnumSelection(
+            selection=lambda s: [
+                (name, compute_member_string(name, value))
+                for name, value in self.members.items()
+            ],
+            store=False,
+            compute=_compute_selection_field,
+            inverse=_set_selection,
+            **kwargs
+        )
+
+    @staticmethod
+    def _compute_member_string(name, value):
+        return name
+
     @classmethod
     def get_member_by_value(cls, value):
         '''Find the enumclass's member that is equal to `value`.'''
