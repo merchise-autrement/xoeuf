@@ -13,6 +13,11 @@ Unreleased.  Release 0.61.0
   This a breaking change.  User SHOULD NOT upgrade without doing a DB
   migration.
 
+- Remove support to use `~xoeuf.models.base.get_modelname`:func: with model
+  proxies.
+
+- Depreciate model proxies `xoeuf.models.proxy`:mod:.
+
 
 2019-05-03.  Release 0.60.0
 ---------------------------
