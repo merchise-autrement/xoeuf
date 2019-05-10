@@ -13,6 +13,15 @@ Unreleased.  Release 0.61.0
   This a breaking change.  User SHOULD NOT upgrade without doing a DB
   migration.
 
+- Fix several bugs of `xoeuf.fields.Eumeration`:class:\ :
+
+  - Enumeration fields would not properly work in abstract models.
+
+  - Enumeration fields would not properly work when used via delegation (or
+    related).
+
+- Add an automatic selection field in `xoeuf.fields.Enumeration`:class:.
+
 - Remove support to use `~xoeuf.models.base.get_modelname`:func: with model
   proxies.
 
