@@ -6,7 +6,6 @@
 #
 # This is free software; you can do what the LICENCE file allows you to.
 #
-
 from __future__ import (division as _py3_division,
                         print_function as _py3_print,
                         absolute_import as _py3_abs_import)
@@ -83,8 +82,10 @@ def Enumeration(enumclass, *args, **kwargs):
             # argument in the 'search' method, and signals are designed for
             # such use case (although they work at the moment).
             #
+            # We must find EnumerationAdapter in the MRO to avoid injecting it
+            # twice when using Enumeration fields in abstract models.
             cls = type(model)
-            if EnumerationAdapter not in cls.__bases__:
+            if EnumerationAdapter not in cls.mro():
                 cls.__bases__ = (EnumerationAdapter, ) + cls.__bases__
             return super(EnumeratedField, self).setup_full(model)
 
