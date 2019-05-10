@@ -34,7 +34,7 @@ class TestEnum(TransactionCase):
         self.EnumModel = self.env['test.enum.model']
 
     def test_column_type_force_char_columns(self):
-        self.assertIsInstance(self.EnumModel._fields['color'], fields.Integer)
+        self.assertIsInstance(self.EnumModel._fields['color'], fields.Char)
         self.assertIsInstance(self.EnumModel._fields['color2'], fields.Char)
 
     def test_can_set_valid_integers(self):
@@ -179,7 +179,8 @@ class TestEnum(TransactionCase):
     def test_intsubclasses_values(self, work_type):
         from xoeuf.fields.enumeration import _get_db_value
         value = _get_db_value(self.EnumModel._fields['wtype'], work_type)
-        self.assertIs(value, work_type)
+        self.assertIn(value, WORK_TYPE.__members__.keys())
+        self.assertIs(work_type, WORK_TYPE.__members__[value])
 
 
 @contextlib.contextmanager

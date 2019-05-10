@@ -27,21 +27,8 @@ def Enumeration(enumclass, *args, **kwargs):
     The `enumclass` argument must be either an `enumeration class` or a
     fully qualified name of an enumeration class.
 
-    The column in the DB will be either of type INTEGER or a CHAR: If **all**
-    values of the enumeration are integers (instances of `int`, possibly by
-    subclassing), the DB column will be a integer unless you pass a keyword
-    argument 'force_char_column' set to True.  Otherwise, it will be a char
-    with the *name* of the enumeration's key.
-
-    .. warning:: In a future release we might drop the INTEGER/CHAR
-       variation.
-
-       This is to avoid possible mistakes: you create an enumeration with
-       integers and afterwards you change to other types; that would require a
-       migration step in the DB to convert old integer values to names.
-
-    .. note:: Even in Python 2, we test for instances of `int`.  So values of
-       type `long` won't be considered integers.
+    The column in the DB will be of type CHAR and the values are the name of
+    attribute in the enumeration class.
 
     Enumeration classes are required to:
 
@@ -64,28 +51,19 @@ def Enumeration(enumclass, *args, **kwargs):
        DB compatibility (does not need migrations), but do require changes in
        the code.
 
-    .. warning:: To avoid mistakes in the final 1.0 release (or some releases
-       before that) the column DB will always be a CHAR representing the
-       member's name.
-
     .. versionchanged:: 0.47.0 Add keyword parameter 'force_char_column'.
 
+    .. versionchanged:: 0.61.0 The DB column type is always a CHAR.  Ignore
+       the parameter 'force_char_column'.
+
     '''
-    from xoeuf import fields
+    from odoo.fields import Char
     from xoutil.objects import import_object, classproperty
 
-    force_char_column = kwargs.get('force_char_column', False)
+    kwargs.pop('force_char_column', False)
     enumclass = import_object(enumclass)
-    if force_char_column:
-        members_integers = False
-    else:
-        members_integers = all(
-            isinstance(value, int)
-            for value in enumclass.__members__.values()
-        )
-    Base = fields.Integer if members_integers else fields.Char
 
-    class EnumeratedField(Base, _EnumeratedField):
+    class EnumeratedField(Char, _EnumeratedField):
         @classproperty
         def members(cls):
             return enumclass.__members__
@@ -111,56 +89,36 @@ def Enumeration(enumclass, *args, **kwargs):
             else:
                 return value
 
-        if Base is fields.Integer:
-            def convert_to_write(self, value, record):
-                if value:
-                    return self.get_member_by_value(value).value
-                else:
-                    return value
-
-            def convert_to_cache(self, value, record, validate=True):
-                if value:
-                    return self.get_member_by_value(value).value
-                elif value == 0:
-                    # Odoo converts NULL to 0 for Integers, we try to find a
-                    # 0-member, and return False if not found.
-                    try:
-                        return self.get_member_by_value(value).value
-                    except ValueError:
-                        return False
-                return value
-
-        else:
-            def convert_to_write(self, value, record):
-                if value is not None and value is not False:
-                    if value in enumclass.__members__.values():
-                        member = self.get_member_by_value(value)
-                        # Our EnumerationAdapter takes care of doing the right
-                        # thing when writing to the DB, also convert_to_column
-                        # does.
-                        return member.value
-                return value
-
-            def convert_to_cache(self, value, record, validate=True):
-                if value not in enumclass.__members__.values():
-                    if value is not None and value is not False:
-                        return self.get_member_by_name(value).value
-                return value
-
-            # NOTE: The parameter `values` was introduced in Odoo 11; the
-            # parameter validate was introduced in Odoo 12.  We don't use
-            # either; but declare them both to work across the three Odoo
-            # versions.
-            def convert_to_column(self, value, record, values=None,
-                                  validate=True):
+        def convert_to_write(self, value, record):
+            if value is not None and value is not False:
                 if value in enumclass.__members__.values():
-                    return Base.convert_to_column(
-                        self,
-                        self.get_member_by_value(value).name,
-                        record
-                    )
-                else:
-                    return Base.convert_to_column(self, value, record)
+                    member = self.get_member_by_value(value)
+                    # Our EnumerationAdapter takes care of doing the right
+                    # thing when writing to the DB, also convert_to_column
+                    # does.
+                    return member.value
+            return value
+
+        def convert_to_cache(self, value, record, validate=True):
+            if value not in enumclass.__members__.values():
+                if value is not None and value is not False:
+                    return self.get_member_by_name(value).value
+            return value
+
+        # NOTE: The parameter `values` was introduced in Odoo 11; the
+        # parameter validate was introduced in Odoo 12.  We don't use
+        # either; but declare them both to work across the three Odoo
+        # versions.
+        def convert_to_column(self, value, record, values=None,
+                              validate=True):
+            if value in enumclass.__members__.values():
+                return Char.convert_to_column(
+                    self,
+                    self.get_member_by_value(value).name,
+                    record
+                )
+            else:
+                return Char.convert_to_column(self, value, record)
 
     return EnumeratedField(*args, **kwargs)
 
@@ -244,14 +202,10 @@ class _EnumeratedField(object):
 
 
 def _get_db_value(field, value):
-    from xoeuf.odoo import fields
     if value is None or value is False:  # and not field.required
         return value
     if isinstance(field, _EnumeratedField):
         member = field.get_member_by_value(value)
-        if isinstance(field, fields.Integer):
-            return member.value
-        else:
-            return member.name
+        return member.name
     else:
         return value
