@@ -6,15 +6,16 @@
 #
 # This is free software; you can do what the LICENCE file allows you to.
 #
-
 from __future__ import (division as _py3_division,
                         print_function as _py3_print,
                         absolute_import as _py3_abs_import)
 
 from collections import namedtuple
 from xoutil.eight import string_types
+from xoutil.string import cut_prefix
 
 from xoeuf import models, api
+from odoo import fields
 
 __all__ = ['Enumeration']
 
@@ -47,6 +48,25 @@ def Enumeration(enumclass, *args, **kwargs):
     However, we don't require that values are instances of the enumeration
     class.
 
+    .. rubric:: Automatic selection field
+
+    Enumeration fields are hard to put in views because their values are
+    Python objects which are not easily transferred to/from the web client.
+
+    You can use the parameter 'selection_field_name' to automatically inject a
+    computed Selection field that allows to represent this Enumeration in the
+    web client.  This automatic is by default not stored in the DB.  Its
+    values are the names of the members of the enumeration class.
+
+    You may pass a function 'compute_member_string' which will be called to
+    get the user facing text of each member.  The function will be passed both
+    the name and value of the member.  By default we return the member's name.
+
+    Additional keyword arguments starting with the prefix 'selection_field_'
+    are used to construct the Selection field.  For instance,
+    'selection_field_string' sets the argument 'string'.  If not provided, we
+    set 'string', and 'help' to the same values of the Enumeration field.
+
     .. versionchanged:: 0.36.0 A new generalized enumeration field.  Maintains
        DB compatibility (does not need migrations), but do require changes in
        the code.
@@ -56,12 +76,25 @@ def Enumeration(enumclass, *args, **kwargs):
     .. versionchanged:: 0.61.0 The DB column type is always a CHAR.  Ignore
        the parameter 'force_char_column'.
 
+    .. versionchanged:: 0.61.0 Add an automatic way to create a selection
+       field via the parameter 'selection_field_name'.
+
     '''
     from odoo.fields import Char
     from xoutil.objects import import_object, classproperty
 
     kwargs.pop('force_char_column', False)
     enumclass = import_object(enumclass)
+
+    SELECTION_FIELD_PREFIX = 'selection_field_'
+    selection_field_kwargs = {
+        cut_prefix(kw, SELECTION_FIELD_PREFIX): value
+        for kw, value in kwargs.items()
+        if kw.startswith(SELECTION_FIELD_PREFIX)
+    }
+    compute_member_string = kwargs.pop('compute_member_string', None)
+    if compute_member_string:
+        selection_field_kwargs['compute_member_string'] = compute_member_string
 
     class EnumeratedField(Char, _EnumeratedField):
         @classproperty
@@ -78,9 +111,31 @@ def Enumeration(enumclass, *args, **kwargs):
             # argument in the 'search' method, and signals are designed for
             # such use case (although they work at the moment).
             #
+            # We must find EnumerationAdapter in the MRO to avoid injecting it
+            # twice when using Enumeration fields in abstract models.
+            #
+            # We don't need to inject the EnumerationAdapter in related
+            # (delegated) copies for this Enumeration fields, because the
+            # actual field does the right thing with DB (it do have the
+            # EnumerationAdapter injected.)
             cls = type(model)
-            if EnumerationAdapter not in cls.__bases__:
+            if EnumerationAdapter not in cls.mro() and not self.related:
                 cls.__bases__ = (EnumerationAdapter, ) + cls.__bases__
+                # I tried to use model._add_field because it changes the
+                # cls._fields that Odoo is iterating and that raises an error
+                # (RuntimeError: dictionary changed size during iteration).
+                #
+                # So let's resort to injection.
+                if selection_field_kwargs:
+                    selection_field_name = selection_field_kwargs.pop('name')
+                    selection_field = self.get_selection_field(
+                        self.name,
+                        selection_field_name,
+                        **selection_field_kwargs
+                    )
+                    cls.__bases__ = (
+                        SelectionMixin(self.name, selection_field_name, selection_field),
+                    ) + cls.__bases__
             return super(EnumeratedField, self).setup_full(model)
 
         def convert_to_read(self, value, record, use_name_get=True):
@@ -123,23 +178,25 @@ def Enumeration(enumclass, *args, **kwargs):
     return EnumeratedField(*args, **kwargs)
 
 
-class EnumerationAdapter(object):
-    'Adapt the create/write/search method to Enumeration fields.'
+class Adapter(object):
     # See the note in setup_full above.
 
     # Odoo 11 requires all bases to have these attributes.  See
     # odoo/models.py, method _build_model_attributes in lines 515-555 (at the
     # time of writing).
     _table = None
-    _description = None
     _sequence = None
     _inherits = _depends = {}
     _sql_constraints = []
     _constraints = []
+    _description = None
 
     # Odoo 12 requires this attribute.  See odoo/models.py, line 528
     _inherit = None
 
+
+class EnumerationAdapter(Adapter):
+    'Adapt the create/write/search method to Enumeration fields.'
     @api.model
     @api.returns(*models.BaseModel.search._returns)
     def search(self, args, *pos_args, **kwargs):
@@ -175,7 +232,60 @@ class EnumerationAdapter(object):
         return super(EnumerationAdapter, self).write(values)
 
 
+def SelectionMixin(field_name, selection_field_name, selection_field):
+    return type(
+        'selection_mixin_' + field_name,
+        (Adapter, ),
+        {selection_field_name: selection_field}
+    )
+
+
 class _EnumeratedField(object):
+    def get_selection_field(self, field_name, name,
+                            compute_member_string=None, **kwargs):
+        '''Return a computed Selection field to set/get the Enumeration.
+
+        '''
+        selection_field_name = name
+
+        @api.multi
+        @api.depends(field_name)
+        def _compute_selection_field(rs):
+            for record in rs:
+                value = getattr(record, field_name, None)
+                if value is not None:
+                    member = self.get_member_by_value(value)
+                    setattr(record, selection_field_name, member.name)
+                else:
+                    setattr(record, selection_field_name, False)
+
+        @api.multi
+        def _set_selection(rs):
+            for record in rs:
+                key = getattr(record, selection_field_name, None)
+                if key:
+                    member = self.get_member_by_name(key)
+                    setattr(record, field_name, member.value)
+                else:
+                    setattr(record, field_name, False)
+
+        if not compute_member_string:
+            compute_member_string = self._compute_member_string
+        kwargs.setdefault('store', False)
+        kwargs.setdefault('compute', _compute_selection_field)
+        kwargs.setdefault('inverse', _set_selection)
+        return fields.Selection(
+            selection=lambda s: [
+                (name, compute_member_string(name, value))
+                for name, value in self.members.items()
+            ],
+            **kwargs
+        )
+
+    @staticmethod
+    def _compute_member_string(name, value):
+        return name
+
     @classmethod
     def get_member_by_value(cls, value):
         '''Find the enumclass's member that is equal to `value`.'''
