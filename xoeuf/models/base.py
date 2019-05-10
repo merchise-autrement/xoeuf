@@ -31,7 +31,7 @@ def get_modelname(model):
     .. deprecated:: 0.49.0 Calling with a `model proxy
                     <xoeuf.models.proxy>`:mod:.
 
-    .. versionchanged:: 0.60.0 Calling with a `model proxy
+    .. versionchanged:: 0.61.0 Calling with a `model proxy
        <xoeuf.models.proxy>`:mod: is an error.
 
     '''
