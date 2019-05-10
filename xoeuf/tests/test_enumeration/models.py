@@ -43,8 +43,11 @@ class WORK_TYPE(object):
 
 class Mixin(models.AbstractModel):
     _name = 'test_enumeration.mixin'
-    color = fields.Enumeration(COLORS, default=COLORS.Red)
-    color_name = color.get_selection_field('color', 'color_name')
+    color = fields.Enumeration(
+        COLORS,
+        default=COLORS.Red,
+        selection_field_name='color_name',
+    )
 
 
 class Model(models.Model):
