@@ -31,19 +31,12 @@ def get_modelname(model):
     .. deprecated:: 0.49.0 Calling with a `model proxy
                     <xoeuf.models.proxy>`:mod:.
 
+    .. versionchanged:: 0.60.0 Calling with a `model proxy
+       <xoeuf.models.proxy>`:mod: is an error.
+
     '''
     from xoutil.eight import string_types
     from xoeuf.odoo.models import BaseModel
-    from xoeuf.models._proxy import ModelProxy
-    if isinstance(model, ModelProxy):
-        # Minor hack to support models imported using 'xoeuf.models' stuff
-        import warnings
-        warnings.warn(
-            'get_modelname of a ModelProxy is deprecated and will be '
-            'removed soon.  Use get_modelname  mostly for model classes or '
-            'model classes definitions.'
-        )
-        return model._ModelProxy__model
     if not isinstance(model, BaseModel) and not issubclass(model, BaseModel):
         msg = "Invalid argument '%s' for param 'model'" % model
         raise TypeError(msg)
