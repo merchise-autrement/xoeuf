@@ -20,6 +20,9 @@ Unreleased.  Release 0.61.0
   - Enumeration fields would not properly work when used via delegation (or
     related).
 
+    .. warning:: This was fixed for Odoo 12, but still fails in Odoo 10
+       and 11.
+
 - Add an automatic selection field in `xoeuf.fields.Enumeration`:class:.
 
 - Remove support to use `~xoeuf.models.base.get_modelname`:func: with model

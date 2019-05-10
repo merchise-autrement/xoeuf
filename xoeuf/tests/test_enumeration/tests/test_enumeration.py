@@ -11,9 +11,11 @@ from __future__ import (division as _py3_division,
                         absolute_import as _py3_abs_import)
 
 import contextlib
+from unittest import skipIf
 
 from hypothesis import strategies as s, given
-from xoeuf import fields
+
+from xoeuf import fields, MAJOR_ODOO_VERSION
 from xoeuf.odoo.tests.common import TransactionCase, at_install, post_install
 
 from ..models import COLORS, Pax, CARS, WORK_TYPE
@@ -185,6 +187,7 @@ class TestEnum(TransactionCase):
             obj.write({'color': value})
             self.assertEqual(obj.color_name, name)
 
+    @skipIf(MAJOR_ODOO_VERSION < 12, "Supported only for  Odoo 12+")
     @given(color_pairs, color_pairs)
     def test_color_computed_field_set_on_create_delegated(self, pair, update):
         with force_ready(self.env.registry):
@@ -202,6 +205,7 @@ class TestEnum(TransactionCase):
             obj = self.DelegatedModel.create({'color': value})
             self.assertEqual(obj.color_name, name)
 
+    @skipIf(MAJOR_ODOO_VERSION < 12, "Supported only for  Odoo 12+")
     @given(color_pairs, color_pairs)
     def test_color_computed_field_set_on_assignment_delegated(self, pair, update):
         with force_ready(self.env.registry):
