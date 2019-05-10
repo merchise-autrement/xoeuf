@@ -30,7 +30,6 @@ Example usage (in xoeuf' shell)::
 
 
 '''
-
 from __future__ import (division as _py3_division,
                         print_function as _py3_print,
                         absolute_import as _py3_abs_import)
@@ -40,6 +39,9 @@ import re
 from os.path import splitext
 from types import ModuleType
 from . import _proxy
+
+import warnings
+warnings.warn('xoeuf.model.proxy is deprecated and will be removed before 1.0')
 
 
 class ModelImporter(object):

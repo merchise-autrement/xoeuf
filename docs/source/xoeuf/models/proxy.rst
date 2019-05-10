@@ -4,6 +4,9 @@
 
 .. module:: xoeuf.models.proxy
 
+.. deprecated:: 0.61.0 This module is completely deprecated and will be
+                removed before the final release of 1.0
+
 .. warning:: In the previous release this was named `xoeuf.models`, however
    that's now a package that contains a lot more, and the `ModelProxy`:class:
    is just a part.
