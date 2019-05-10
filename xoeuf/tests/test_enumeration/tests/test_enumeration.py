@@ -31,6 +31,7 @@ class TestEnum(TransactionCase):
     def setUp(self):
         super(TestEnum, self).setUp()
         self.EnumModel = self.env['test.enum.model']
+        self.DelegatedModel = self.env['test.enum.model_delegated']
 
     def test_column_type_force_char_columns(self):
         self.assertIsInstance(self.EnumModel._fields['color'], fields.Char)
@@ -182,6 +183,42 @@ class TestEnum(TransactionCase):
             name, value = update
             obj = self.EnumModel.create({})
             obj.write({'color': value})
+            self.assertEqual(obj.color_name, name)
+
+    @given(color_pairs, color_pairs)
+    def test_color_computed_field_set_on_create_delegated(self, pair, update):
+        with force_ready(self.env.registry):
+            name, value = pair
+            obj = self.DelegatedModel.create({'color_name': name})
+            self.assertEqual(obj.color, value)
+            name, value = update
+            obj = self.DelegatedModel.create({'color_name': name})
+            self.assertEqual(obj.color, value)
+        with force_ready(self.env.registry):
+            name, value = pair
+            obj = self.DelegatedModel.create({'color': value})
+            self.assertEqual(obj.color_name, name)
+            name, value = update
+            obj = self.DelegatedModel.create({'color': value})
+            self.assertEqual(obj.color_name, name)
+
+    @given(color_pairs, color_pairs)
+    def test_color_computed_field_set_on_assignment_delegated(self, pair, update):
+        with force_ready(self.env.registry):
+            name, value = pair
+            obj = self.DelegatedModel.create({})
+            obj.color_name = name
+            self.assertEqual(obj.color, value)
+            name, value = update
+            obj.color_name = name
+            self.assertEqual(obj.color, value)
+        with force_ready(self.env.registry):
+            name, value = pair
+            obj = self.DelegatedModel.create({})
+            obj.color = value
+            self.assertEqual(obj.color_name, name)
+            name, value = update
+            obj.color = name
             self.assertEqual(obj.color_name, name)
 
 

@@ -56,3 +56,15 @@ class Model(models.Model):
 
     car = fields.Enumeration(CARS)
     pax = fields.Enumeration(Pax)
+
+
+class DelegatedModel(models.Model):
+    _name = 'test.enum.model_delegated'
+    _inherits = {'test.enum.model': 'model_id'}
+
+    model_id = fields.Many2one('test.enum.model')
+
+    def create(self, values):
+        if 'model_id' not in values:
+            values['model_id'] = self.env['test.enum.model'].create({}).id
+        return super(DelegatedModel, self).create(values)
