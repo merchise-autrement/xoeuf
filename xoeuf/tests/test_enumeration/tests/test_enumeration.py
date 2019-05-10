@@ -34,6 +34,7 @@ class TestEnum(TransactionCase):
 
     def test_column_type_force_char_columns(self):
         self.assertIsInstance(self.EnumModel._fields['color'], fields.Char)
+        self.assertIsInstance(self.EnumModel._fields['color_name'], fields.Selection)
 
     def test_can_set_valid_integers(self):
         with force_ready(self.env.registry):
@@ -126,28 +127,62 @@ class TestEnum(TransactionCase):
             obj = self.EnumModel.create({'color': COLORS.Red})
             self.assertEqual(obj.color_name, 'Red')
 
-    @given(color_pairs)
-    def test_color_computed_field_set_on_create(self, pair):
-        name, value = pair
+    @given(color_pairs, color_pairs)
+    def test_color_computed_field_set_on_create(self, pair, update):
         with force_ready(self.env.registry):
+            name, value = pair
             obj = self.EnumModel.create({'color_name': name})
             self.assertEqual(obj.color, value)
-
-    @given(color_pairs)
-    def test_color_computed_field_set_on_assignment(self, pair):
-        name, value = pair
+            name, value = update
+            obj = self.EnumModel.create({'color_name': name})
+            self.assertEqual(obj.color, value)
         with force_ready(self.env.registry):
+            name, value = pair
+            obj = self.EnumModel.create({'color': value})
+            self.assertEqual(obj.color_name, name)
+            name, value = update
+            obj = self.EnumModel.create({'color': value})
+            self.assertEqual(obj.color_name, name)
+
+    @given(color_pairs, color_pairs)
+    def test_color_computed_field_set_on_assignment(self, pair, update):
+        with force_ready(self.env.registry):
+            name, value = pair
             obj = self.EnumModel.create({})
             obj.color_name = name
             self.assertEqual(obj.color, value)
-
-    @given(color_pairs)
-    def test_color_computed_field_set_on_write(self, pair):
-        name, value = pair
+            name, value = update
+            obj.color_name = name
+            self.assertEqual(obj.color, value)
         with force_ready(self.env.registry):
+            name, value = pair
+            obj = self.EnumModel.create({})
+            obj.color = value
+            self.assertEqual(obj.color_name, name)
+            name, value = update
+            obj.color = name
+            self.assertEqual(obj.color_name, name)
+
+    @given(color_pairs, color_pairs)
+    def test_color_computed_field_set_on_write(self, pair, update):
+        with force_ready(self.env.registry):
+            name, value = pair
             obj = self.EnumModel.create({})
             obj.write({'color_name': name})
             self.assertEqual(obj.color, value)
+            name, value = update
+            obj = self.EnumModel.create({})
+            obj.write({'color_name': name})
+            self.assertEqual(obj.color, value)
+        with force_ready(self.env.registry):
+            name, value = pair
+            obj = self.EnumModel.create({})
+            obj.write({'color': value})
+            self.assertEqual(obj.color_name, name)
+            name, value = update
+            obj = self.EnumModel.create({})
+            obj.write({'color': value})
+            self.assertEqual(obj.color_name, name)
 
 
 @contextlib.contextmanager
