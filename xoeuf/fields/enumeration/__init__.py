@@ -113,8 +113,13 @@ def Enumeration(enumclass, *args, **kwargs):
             #
             # We must find EnumerationAdapter in the MRO to avoid injecting it
             # twice when using Enumeration fields in abstract models.
+            #
+            # We don't need to inject the EnumerationAdapter in related
+            # (delegated) copies for this Enumeration fields, because the
+            # actual field does the right thing with DB (it do have the
+            # EnumerationAdapter injected.)
             cls = type(model)
-            if EnumerationAdapter not in cls.mro():
+            if EnumerationAdapter not in cls.mro() and not self.related:
                 cls.__bases__ = (EnumerationAdapter, ) + cls.__bases__
                 # I tried to use model._add_field because it changes the
                 # cls._fields that Odoo is iterating and that raises an error
