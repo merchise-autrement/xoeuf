@@ -215,14 +215,14 @@ class _EnumeratedField(object):
 
         if not compute_member_string:
             compute_member_string = self._compute_member_string
+        kwargs.setdefault('store', False)
+        kwargs.setdefault('compute', _compute_selection_field)
+        kwargs.setdefault('inverse', _set_selection)
         return _EnumSelection(
             selection=lambda s: [
                 (name, compute_member_string(name, value))
                 for name, value in self.members.items()
             ],
-            store=False,
-            compute=_compute_selection_field,
-            inverse=_set_selection,
             **kwargs
         )
 
