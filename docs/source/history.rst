@@ -30,6 +30,8 @@ Unreleased.  Release 0.61.0
 
 - Deprecate model proxies `xoeuf.models.proxy`:mod:.
 
+- Remove deprecated module ``xoeuf.models.importer``.
+
 
 2019-05-03.  Release 0.60.0
 ---------------------------
