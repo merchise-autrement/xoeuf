@@ -5,7 +5,7 @@
 Beta releases (series 0.X)
 ==========================
 
-Unreleased.  Release 0.61.0
+2019-05-11.  Release 0.61.0
 ---------------------------
 
 - Remove the INT-based DB representation of `xoeuf.fields.Enumeration`:class:.
