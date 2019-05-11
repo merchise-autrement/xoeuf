@@ -50,8 +50,9 @@ def Enumeration(enumclass, *args, **kwargs):
 
     .. rubric:: Automatic selection field
 
-    Enumeration fields are hard to put in views because their values are
-    Python objects which are not easily transferred to/from the web client.
+    Enumeration fields cannot be put in views because their values can be
+    arbitrary Python objects which are not easily transferred to/from the web
+    client.
 
     You can use the parameter 'selection_field_name' to automatically inject a
     computed Selection field that allows to represent this Enumeration in the
