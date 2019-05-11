@@ -62,7 +62,7 @@ def Enumeration(enumclass, *args, **kwargs):
     get the user facing text of each member.  The function will be passed both
     the name and value of the member.  By default we return the member's name.
 
-    Additional keyword arguments starting with the prefix 'selection_field_'
+    Additional keyword arguments starting with the prefix ``selection_field_``
     are used to construct the Selection field.  For instance,
     'selection_field_string' sets the argument 'string'.  If not provided, we
     set 'string', and 'help' to the same values of the Enumeration field.
