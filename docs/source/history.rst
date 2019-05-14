@@ -18,6 +18,12 @@ Unreleased.  Release 0.62.0
   of Odoo.  So, xoeuf 1.0 will be compatible with Odoo 12, and many of its
   features will work on  Odoo 10 and 11.
 
+- Fix NameError when running in Python 3+.
+
+- Allow to use xoutil_ 2.1+.
+
+.. _xoutil: https://pypi.org/project/xoutil
+
 
 2019-05-11.  Release 0.61.0
 ---------------------------
