@@ -7,13 +7,29 @@ stages:
   - build
   - publish
 
-check code smells:
-  script: merchise_lint2
+check code smells (with Bugbear and Python 3.6):
+  image: python:3.6-alpine
   stage: check
-  tags:
-    - merchise-lint
-  only:
-    - branches
+  script:
+    - pip install merchise.lint==0.11 flake8-bugbear
+    - merchise_lint
+
+
+check code smells (without Bugbear and Python 2.7):
+  image: python:2.7-alpine
+  stage: check
+  script:
+    - pip install merchise.lint==0.11
+    - merchise_lint
+
+
+check formatting with black:
+  image: python:3.6-alpine
+  stage: check
+  script:
+    - pip install black==19.3b0
+    - black --check xoeuf/
+
 
 .run_tests: &run_tests
   stage: test

@@ -7,13 +7,15 @@
 # This is free software; you can do what the LICENCE file allows you to.
 #
 
-'''Odoo API Extensons.
+"""Odoo API Extensons.
 
-'''
+"""
 
-from __future__ import (division as _py3_division,
-                        print_function as _py3_print,
-                        absolute_import as _py3_abs_import)
+from __future__ import (
+    division as _py3_division,
+    print_function as _py3_print,
+    absolute_import as _py3_abs_import,
+)
 
 from xoutil.decorator.meta import decorator as _xdecorator
 
@@ -23,26 +25,29 @@ from xoeuf.odoo import api as _odoo_api
 # TODO: `copy_members` will be deprecated in xoutil 1.8, use instead the same
 # mechanisms as `xoutil.future`.
 from xoutil.modules import copy_members as _copy_python_module_members
+
 this = _copy_python_module_members(_odoo_api)
 del _copy_python_module_members
 
 
 def contextual(func):
-    '''Decorate a function to run within a proper Odoo environment.
+    """Decorate a function to run within a proper Odoo environment.
 
     You should decorate every function that represents an "entry point" for
     working with the ORM.  A proper `Environment`:class: is entered upon
     calling the function.
 
-    '''
+    """
+
     def inner(*args, **kwargs):
         with _odoo_api.Environment.manage():
             return func(*args, **kwargs)
+
     return inner
 
 
 def requires_singleton(f):
-    '''An idiomatic alias for `api.multi()`.
+    """An idiomatic alias for `api.multi()`.
 
     This is exactly the same as `api.multi()`, however it's expected to be
     used when the code you're decorating requires a singleton recordset.
@@ -51,12 +56,12 @@ def requires_singleton(f):
     executes a command that requires such a condition to be met (for instance,
     accessing a field in ``self``.)
 
-    '''
+    """
     return _odoo_api.multi(f)
 
 
 def mimic(original):
-    '''Apply the API guess of `original` to the decorated function.
+    """Apply the API guess of `original` to the decorated function.
 
     Usage::
 
@@ -67,8 +72,9 @@ def mimic(original):
        def f2(*args, **kwargs):
            pass
 
-    '''
+    """
     import types
+
     method = _odoo_api.guess(original)
     # Odoo stores the decorator in the _api attribute.  But Odoo 10 only
     # stores the name of the API method.
@@ -81,7 +87,7 @@ def mimic(original):
 
 @_xdecorator
 def from_active_ids(f, leak_context=False):
-    '''Decorator that ensures `self` comes from 'active_ids' in the context.
+    """Decorator that ensures `self` comes from 'active_ids' in the context.
 
     The context key 'active_model' must be set and match the recordset's
     model.  If the 'active_model' key does not match the recordset's model,
@@ -105,7 +111,7 @@ def from_active_ids(f, leak_context=False):
     .. versionchanged:: 0.35.0 The `leak_context` defaults to False, and it
        does not change the 'active_model' key in the context.
 
-    '''
+    """
     from functools import wraps
     from xoutil.context import Context
 
@@ -116,9 +122,9 @@ def from_active_ids(f, leak_context=False):
         if _SKIP_ACTIVE_IDS in Context:
             this = self
         else:
-            active_model = self.env.context.get('active_model')
+            active_model = self.env.context.get("active_model")
             if active_model == model:
-                active_ids = self.env.context.get('active_ids', ())
+                active_ids = self.env.context.get("active_ids", ())
                 if active_ids:
                     this = self.browse(active_ids)
                 else:
@@ -170,8 +176,6 @@ def onupdate(*args):
     """
     if args and callable(args[0]):
         args = args[0]
-    elif any('id' in arg.split('.') for arg in args):
-        raise NotImplementedError(
-            "Updater method cannot depend on field 'id'."
-        )
-    return _odoo_api.attrsetter('_onupdates', args)
+    elif any("id" in arg.split(".") for arg in args):
+        raise NotImplementedError("Updater method cannot depend on field 'id'.")
+    return _odoo_api.attrsetter("_onupdates", args)

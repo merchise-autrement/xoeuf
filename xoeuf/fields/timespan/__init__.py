@@ -7,13 +7,15 @@
 # This is free software; you can do what the LICENCE file allows you to.
 #
 
-from __future__ import (division as _py3_division,
-                        print_function as _py3_print,
-                        absolute_import as _py3_abs_import)
+from __future__ import (
+    division as _py3_division,
+    print_function as _py3_print,
+    absolute_import as _py3_abs_import,
+)
 
 
 def TimeSpan(start_date_field, end_date_field):
-    '''Create a time span `property <xoeuf.fields.Property>`:class:.
+    """Create a time span `property <xoeuf.fields.Property>`:class:.
 
     A time span `property <xoeuf.fields.Property>`:class: is stored in the DB
     as two separate Date fields.  It's never actually stored in the DB as a
@@ -34,16 +36,13 @@ def TimeSpan(start_date_field, end_date_field):
             some_end_date = fields.Date()
             some = fields.TimeSpan('some_start_date', 'some_end_date')
 
-    '''
+    """
     from xoeuf.fields import Property
     from xoutil.future.datetime import TimeSpan
 
     @Property
     def result(self):
-        return TimeSpan(
-            getattr(self, start_date_field),
-            getattr(self, end_date_field)
-        )
+        return TimeSpan(getattr(self, start_date_field), getattr(self, end_date_field))
 
     @result.setter
     def result(self, value):

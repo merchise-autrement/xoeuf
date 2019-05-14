@@ -10,9 +10,11 @@
 # This is the implementation of the signals.  The 'signals' module remains the
 # API but we're porting this to 'openerp.signals'.
 
-from __future__ import (division as _py3_division,
-                        print_function as _py3_print,
-                        absolute_import as _py3_abs_import)
+from __future__ import (
+    division as _py3_division,
+    print_function as _py3_print,
+    absolute_import as _py3_abs_import,
+)
 
 import logging
 from functools import wraps
@@ -34,10 +36,9 @@ class HookDefinition(object):
         self.__doc__ = doc
 
     def __repr__(self):
-        return '<Signal(%r)>' % self.action
+        return "<Signal(%r)>" % self.action
 
-    def connect(self, hook, sender=None, require_registry=True,
-                framework=False):
+    def connect(self, hook, sender=None, require_registry=True, framework=False):
         """Connect hook.
 
         :param hook: A function or an instance method which is to receive
@@ -64,9 +65,10 @@ class HookDefinition(object):
             lookup_key = (_make_id(hook), _make_model_id(s))
             if not any(lookup_key == r_key for r_key, _ in self.hooks):
                 self.hooks.append(
-                    (lookup_key,
-                     HookClass(hook, sender=s,
-                               require_registry=require_registry))
+                    (
+                        lookup_key,
+                        HookClass(hook, sender=s, require_registry=require_registry),
+                    )
                 )
         return hook
 
@@ -101,12 +103,12 @@ class HookDefinition(object):
             if hook.is_installed(sender) and hook.matches(sender):
                 if registry_ready or not hook.require_registry:
                     logger.debug(
-                        'Accepting hook %s as live',
+                        "Accepting hook %s as live",
                         hook,
                         extra=dict(
                             registry_ready=registry_ready,
                             registry_required=hook.require_registry,
-                        )
+                        ),
                     )
                     result.append(hook)
         return result
@@ -116,6 +118,7 @@ class Signal(HookDefinition):
     """Base class for all signals
 
     """
+
     def send(self, sender, **kwargs):
         """Send signal from sender to all connected receivers.
 
@@ -141,7 +144,7 @@ class Signal(HookDefinition):
             responses.append((hook, response))
         return responses
 
-    def safe_send(self, sender, catched=(Exception, ), thrown=None, **kwargs):
+    def safe_send(self, sender, catched=(Exception,), thrown=None, **kwargs):
         """Send signal from sender to all connected receivers catching errors.
 
         :param sender: The sender of the signal either a model or None.
@@ -162,9 +165,10 @@ class Signal(HookDefinition):
 
         """
         from celery.exceptions import SoftTimeLimitExceeded
+
         responses = []
         if thrown and not isinstance(thrown, (list, tuple)):
-            thrown = (thrown, )
+            thrown = (thrown,)
         if not self.hooks:
             return responses
         for hook in self.live_hooks(sender):
@@ -195,40 +199,37 @@ class Wrapping(HookDefinition):
                 try:
                     next(w)
                 except StopIteration:
-                    logger.error(
-                        'Wrapper %s failed to yield once',
-                        wrapper
-                    )
+                    logger.error("Wrapper %s failed to yield once", wrapper)
                 else:
                     wrappers.append(w)
             except Exception:
-                logger.exception('Unexpected error in wrapper')
+                logger.exception("Unexpected error in wrapper")
         result = method(sender, *args, **kwargs)
         for wrapper in wrappers:
             try:
                 wrapper.send(dict(result=result))
-                logger.error('Wrapper %s failed to yield only once')
+                logger.error("Wrapper %s failed to yield only once")
             except StopIteration:
                 pass
             except Exception:
-                logger.exception('Unexpected error in wrapper')
+                logger.exception("Unexpected error in wrapper")
         return result
 
 
 class Hook(object):
-    '''Wraps a hook function, so that we can store some metadata.'''
+    """Wraps a hook function, so that we can store some metadata."""
+
     def __init__(self, func, **kwargs):
         from xoutil.objects import smart_copy
+
         hash(func)  # Fail if func is not hashable
         self.func = func
         smart_copy(
-            kwargs,
-            self.__dict__,
-            defaults={'require_registry': True, 'sender': None}
+            kwargs, self.__dict__, defaults={"require_registry": True, "sender": None}
         )
 
     def __repr__(self):
-        return '<Hook for %r>' % self.func
+        return "<Hook for %r>" % self.func
 
     def __call__(self, *args, **kwargs):
         return self.func(*args, **kwargs)
@@ -246,19 +247,20 @@ class Hook(object):
         return not self.sender or key == _make_model_id(self.sender)
 
     def is_installed(self, sender):
-        '''Check whether this receiver is installed in the DB of `sender`.
+        """Check whether this receiver is installed in the DB of `sender`.
 
         If the sender does not have an 'env' attribute it will considered
         installed as well (this is for dispatching outside the Odoo model
         framework.)
 
-        '''
+        """
         from xoeuf.modules import get_object_module
+
         module = get_object_module(self.func, typed=True)
-        env = getattr(sender, 'env', None)
+        env = getattr(sender, "env", None)
         if module and env:
-            mm = env['ir.module.module'].sudo()
-            query = [('state', '=', 'installed'), ('name', '=', module)]
+            mm = env["ir.module.module"].sudo()
+            query = [("state", "=", "installed"), ("name", "=", module)]
             with _no_signalling(pre_search), _no_signalling(post_search):
                 return bool(mm.search(query))
         else:
@@ -266,14 +268,15 @@ class Hook(object):
 
 
 class FrameworkHook(Hook):
-    '''A hook that is defined in a framework-level module.
+    """A hook that is defined in a framework-level module.
 
     Framework-level hooks are always considered installed in any DB.  So you
     should be careful no requiring addon-level stuff.
 
-    '''
+    """
+
     def is_installed(self, sender):
-        '''Check whether this receiver is installed in the DB of `sender`.'''
+        """Check whether this receiver is installed in the DB of `sender`."""
         return True
 
 
@@ -303,14 +306,16 @@ def receiver(signal, **kwargs):
                         but any type of iterable (`iter`:func:).
 
     """
+
     def _decorator(func):
         try:
             signals = iter(signal)
         except TypeError:
-            signals = [signal, ]
+            signals = [signal]
         for s in signals:
             s.connect(func, **kwargs)
         return func
+
     return _decorator
 
 
@@ -343,25 +348,25 @@ def wrapper(wrapping, **kwargs):
 
 
 def _no_signalling(signal):
-    '''Context manager that temporarily stop the signal from being called.
+    """Context manager that temporarily stop the signal from being called.
 
     Basically, we disconnect all receivers from `signal` within the scope of
     the context manager.
 
-    '''
-    return temp_attributes(signal, {'hooks': []})
+    """
+    return temp_attributes(signal, {"hooks": []})
 
 
 @contextmanager
 def no_signals(*signals):
-    '''Context manager that temporarily stop the signals from being called.
+    """Context manager that temporarily stop the signals from being called.
 
     Basically, we disconnect all receivers from `signals` within the scope of
     the context manager.
 
     .. versionadded:: 0.56.0
 
-    '''
+    """
     with ExitStack() as stack:
         for signal in signals:
             stack.enter_context(_no_signalling(signal))
@@ -369,7 +374,7 @@ def no_signals(*signals):
 
 
 def mock_replace(hook, func, **replacement_attrs):
-    '''Mock a hook.
+    """Mock a hook.
 
     Example::
 
@@ -380,9 +385,10 @@ def mock_replace(hook, func, **replacement_attrs):
     If the `receiver` is not connected to the  to `hook` it will still return
     a mock, that should never be called.
 
-    '''
+    """
     import contextlib
     from xoutil.symbols import Undefined
+
     try:
         from unittest.mock import MagicMock
     except ImportError:
@@ -422,13 +428,14 @@ def mock_replace(hook, func, **replacement_attrs):
             return Undefined
 
     def is_installed(sender):
-        '''Mocked is installed'''
+        """Mocked is installed"""
         from xoeuf.modules import get_object_module
+
         module = get_object_module(func, typed=True)
-        env = getattr(sender, 'env', None)
+        env = getattr(sender, "env", None)
         if module and env:
-            mm = env['ir.module.module'].sudo()
-            query = [('state', '=', 'installed'), ('name', '=', module)]
+            mm = env["ir.module.module"].sudo()
+            query = [("state", "=", "installed"), ("name", "=", module)]
             with _no_signalling(pre_search), _no_signalling(post_search):
                 return bool(mm.search(query))
         else:
@@ -438,7 +445,7 @@ def mock_replace(hook, func, **replacement_attrs):
 
 
 def _make_id(target):
-    if hasattr(target, '__func__'):
+    if hasattr(target, "__func__"):
         return (id(target.__self__), id(target.__func__))
     return id(target)
 
@@ -448,14 +455,14 @@ def _issubcls(which, Class):
 
 
 def _make_model_id(sender):
-    '''Creates a unique key for 'senders'.
+    """Creates a unique key for 'senders'.
 
     Since Odoo models can be spread across several classes we can't simply
     compare by class object.  So if 'sender' is a BaseModel (subclass or
     instance), the key will be the same for all classes targeting the same
     model.
 
-    '''
+    """
     BaseModel = models.BaseModel
     if isinstance(sender, BaseModel) or _issubcls(sender, BaseModel):
         return sender._name
@@ -464,10 +471,12 @@ def _make_model_id(sender):
 
 
 # **************SIGNALS DECLARATION****************
-pre_fields_view_get = Signal('pre_fields_view_get')
-post_fields_view_get = Signal('post_fields_view_get')
+pre_fields_view_get = Signal("pre_fields_view_get")
+post_fields_view_get = Signal("post_fields_view_get")
 
-pre_search = Signal('pre_search', '''
+pre_search = Signal(
+    "pre_search",
+    """
 Signal sent when the 'search' method is to be invoked.
 
 Arguments:
@@ -482,10 +491,13 @@ Arguments:
 :keyword kw_args: The rest of the arguments to 'search'.  We make it a dict as
                   if called by keyword.
 
-''')
+""",
+)
 
 
-post_search = Signal('post_search', '''
+post_search = Signal(
+    "post_search",
+    """
 Signal sent after the 'search' method was invoked.
 
 Arguments:
@@ -501,10 +513,13 @@ Arguments:
 
 :keyword result: The result of the actual 'search'.
 
-''')
+""",
+)
 
 
-pre_create = Signal('pre_create', '''
+pre_create = Signal(
+    "pre_create",
+    """
 Signal sent when the 'create' method is to be invoked.
 
 If a receiver raises an error the create is aborted, and post_create won't be
@@ -516,9 +531,12 @@ Arguments:
 
 :keyword values: The values passed to 'create'.
 
-''')
+""",
+)
 
-post_create = Signal('post_create', '''
+post_create = Signal(
+    "post_create",
+    """
 Signal sent when the 'create' method has finished but before data is committed
 to the DB.
 
@@ -537,9 +555,12 @@ Arguments:
 
 :keyword result: The result of the call to 'create'.
 :keyword values: The values passed to 'create'.
-''')
+""",
+)
 
-pre_write = Signal('pre_write', '''
+pre_write = Signal(
+    "pre_write",
+    """
 Signal sent when the 'write' method of model is to be invoked.
 
 If a receiver raises an error the write is aborted and 'post_write' is not
@@ -551,8 +572,11 @@ Arguments:
 
 :keyword values: The values passed to the write method.
 
-''')
-post_write = Signal('post_write', '''
+""",
+)
+post_write = Signal(
+    "post_write",
+    """
 Signal sent after the 'write' method of model was executed.
 
 If 'write' raises an error no receiver is invoked.  If a receiver raises an
@@ -568,9 +592,12 @@ Arguments:
 
 :keyword values: The values passed to the write method.
 
-''')
+""",
+)
 
-pre_unlink = Signal('pre_unlink', '''
+pre_unlink = Signal(
+    "pre_unlink",
+    """
 Signal sent when the 'unlink' method of model is to be invoked.
 
 If a receiver raises an error unlink is aborted and 'post_unlink' is not
@@ -580,9 +607,12 @@ Arguments:
 
 :param sender: The recordset sending the signal.
 
-''')
+""",
+)
 
-post_unlink = Signal('post_unlink', '''
+post_unlink = Signal(
+    "post_unlink",
+    """
 Signal sent when the 'unlink' method of a model was executed.
 
 If the 'unlink' raises an error no receiver is invoked.  If a receiver
@@ -596,7 +626,8 @@ Arguments:
 
 :keyword result:  The result from the unlink method.
 
-''')
+""",
+)
 
 pre_save = [pre_create, pre_write, pre_unlink]
 post_save = [post_create, post_write, post_unlink]
@@ -612,13 +643,11 @@ super_search = models.BaseModel.search
 
 @api.model
 @wraps(super_fields_view_get)
-def _fvg_for_signals(self, view_id=None, view_type='form',
-                     toolbar=False, submenu=False):
+def _fvg_for_signals(
+    self, view_id=None, view_type="form", toolbar=False, submenu=False
+):
     kwargs = dict(
-        view_id=view_id,
-        view_type=view_type,
-        toolbar=toolbar,
-        submenu=submenu
+        view_id=view_id, view_type=view_type, toolbar=toolbar, submenu=submenu
     )
     pre_fields_view_get.send(sender=self, **kwargs)
     result = super_fields_view_get(self, **kwargs)
@@ -627,7 +656,7 @@ def _fvg_for_signals(self, view_id=None, view_type='form',
 
 
 @api.model
-@api.returns('self', lambda value: value.id if value else value)
+@api.returns("self", lambda value: value.id if value else value)
 @wraps(super_create)
 def _create_for_signals(self, vals):
     pre_create.send(sender=self, values=vals)
@@ -653,10 +682,13 @@ def _unlink_for_signals(self):
     return res
 
 
-write_wrapper = Wrapping('write_wrapper', '''\
+write_wrapper = Wrapping(
+    "write_wrapper",
+    """\
 Wraps the `write` method.
 
-''')
+""",
+)
 
 
 @api.multi

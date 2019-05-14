@@ -7,13 +7,15 @@
 # This is free software; you can do what the LICENCE file allows you to.
 #
 
-'''(Old fashioned) extensions to fields in the ORM.
+"""(Old fashioned) extensions to fields in the ORM.
 
-'''
+"""
 
-from __future__ import (division as _py3_division,
-                        print_function as _py3_print,
-                        absolute_import as _py3_abs_import)
+from __future__ import (
+    division as _py3_division,
+    print_function as _py3_print,
+    absolute_import as _py3_abs_import,
+)
 
 
 from xoutil.deprecation import deprecated
@@ -29,12 +31,12 @@ import xoeuf.fields as _future
 try:
     integer_types = (int, long)
 except NameError:
-    integer_types = (int, )
+    integer_types = (int,)
 
 
 @deprecated(_future.LocalizedDatetime)
 class localized_datetime(_v7_fields.function):
-    '''A field for localized datetimes.
+    """A field for localized datetimes.
 
     Localized datetimes are actually a functional field that takes two
     underlying columns a datetime and timezone name.
@@ -54,14 +56,14 @@ class localized_datetime(_v7_fields.function):
     .. note:: At the time this field is read-only, not searchable, and
               non-storable.
 
-    '''
+    """
 
     def _ldt_write(self, obj, cr, uid, ids, field, val, args, context=None):
         tzone_field = self.__tzone_field
         dt_field = self.__dt_field
-        tz = context.get('tz', None)
+        tz = context.get("tz", None)
         if not tz:
-            user = obj.pool['res.users'].browse(cr, uid, uid, context=context)
+            user = obj.pool["res.users"].browse(cr, uid, uid, context=context)
             tz = pytz.timezone(user.tz) if user.tz else pytz.UTC
         else:
             tz = pytz.timezone(tz)
@@ -77,18 +79,14 @@ class localized_datetime(_v7_fields.function):
             # desired TZ and back to UTC.
             if val:
                 val = localtime_as_remotetime(val, tz, tzone)
-            obj.write(
-                cr, uid, [row.id],
-                {dt_field: val},
-                context=context
-            )
+            obj.write(cr, uid, [row.id], {dt_field: val}, context=context)
 
     def _ldt_read(self, obj, cr, uid, ids, field, arg, context=None):
         tzone_field = self.__tzone_field
         dt_field = self.__dt_field
-        tz = context.get('tz', None)
+        tz = context.get("tz", None)
         if not tz:
-            user = obj.pool['res.users'].browse(cr, uid, uid, context=context)
+            user = obj.pool["res.users"].browse(cr, uid, uid, context=context)
             tz = pytz.timezone(user.tz) if user.tz else pytz.UTC
         else:
             tz = pytz.timezone(tz)
@@ -116,8 +114,7 @@ class localized_datetime(_v7_fields.function):
         self.__dt_field = dt_field
         self.__tzone_field = tzone_field
         super(localized_datetime, self).__init__(
-            self._ldt_read, None, fnct_inv=self._ldt_write, store=False,
-            **kwargs
+            self._ldt_read, None, fnct_inv=self._ldt_write, store=False, **kwargs
         )
 
 

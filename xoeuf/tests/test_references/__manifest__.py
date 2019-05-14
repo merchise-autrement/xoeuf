@@ -8,9 +8,9 @@
 #
 
 {
-    'name': 'test_References',
-    'version': '1.0',
-    'depends': ['base', ],
-    'auto_install': False,
-    'installable': MAJOR_ODOO_VERSION > 10,  # noqa
+    "name": "test_References",
+    "version": "1.0",
+    "depends": ["base"],
+    "auto_install": False,
+    "installable": MAJOR_ODOO_VERSION > 10,  # noqa
 }

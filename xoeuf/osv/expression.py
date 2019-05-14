@@ -6,7 +6,7 @@
 #
 # This is free software; you can do what the LICENCE file allows you to.
 #
-'''Extensions to `odoo.osv.expression`.
+"""Extensions to `odoo.osv.expression`.
 
 This module reexport all symbols from the `odoo.osv.expression` so it can be
 used a replacement.
@@ -25,15 +25,17 @@ Additions and changes:
   find the proof (we return False) which should be True; but if we return
   True, there's a proof.
 
-'''
-from __future__ import (division as _py3_division,
-                        print_function as _py3_print,
-                        absolute_import as _py3_abs_import)
+"""
+from __future__ import (
+    division as _py3_division,
+    print_function as _py3_print,
+    absolute_import as _py3_abs_import,
+)
 
 import operator
 from itertools import chain
 from xoeuf.odoo.osv import expression as _odoo_expression
-from xoutil.eight import string_types
+from xoeuf.eight import string_types
 
 from . import ql
 
@@ -41,6 +43,7 @@ from . import ql
 # TODO: `copy_members` will be deprecated in xoutil 1.8, use instead the same
 # mechanisms as `xoutil.future`.
 from xoutil.modules import copy_members as _copy_python_module_members
+
 this = _copy_python_module_members(_odoo_expression)
 del _copy_python_module_members
 del _odoo_expression
@@ -49,8 +52,9 @@ del _odoo_expression
 try:
     from xoutil.objects import crossmethod  # TODO: migrate
 except ImportError:
+
     class crossmethod(object):
-        '''Decorate a function as static or instance level.
+        """Decorate a function as static or instance level.
 
         Example:
 
@@ -71,7 +75,8 @@ except ImportError:
                   always receive the implicit argument (either `cls` or
                   `self`).
 
-        '''
+        """
+
         def __init__(self, func):
             self.func = func
 
@@ -84,8 +89,8 @@ except ImportError:
 
 UNARY_OPERATORS = [this.NOT_OPERATOR]
 BINARY_OPERATORS = [this.AND_OPERATOR, this.OR_OPERATOR]
-KIND_OPERATOR = 'OPERATOR'
-KIND_TERM = 'TERM'
+KIND_OPERATOR = "OPERATOR"
+KIND_TERM = "TERM"
 
 
 # Exports normalize_leaf so that we can replace 'from xoeuf.odoo.
@@ -93,14 +98,14 @@ def normalize_leaf(term):
     if this.is_leaf(term):
         left, operator, right = this.normalize_leaf(term)
         # Avoid no hashable values in domain terms
-        if not getattr(right, '__hash__', False) and hasattr(right, '__iter__'):  # noqa
+        if not getattr(right, "__hash__", False) and hasattr(right, "__iter__"):  # noqa
             right = tuple(right)
         return left, operator, right
     return term
 
 
 class Domain(list):
-    '''A predicate expressed as an Odoo domain.
+    """A predicate expressed as an Odoo domain.
 
     .. note:: This is an *operational* wrapper around normal Odoo domains
               (lists) with methods to do logical manipulation of such values.
@@ -111,12 +116,14 @@ class Domain(list):
 
     __ https://en.wikipedia.org/wiki/Liskov_substitution_principle
 
-    '''
+    """
+
     def __init__(self, seq=None):
         # TODO: Can you do some sanity check to avoid common mistakes?  For
         # me, it's normal that I do ``Model.search(['field', '=', value])``
         # and forget the tuple...
         from xoeuf.odoo.tools.safe_eval import const_eval
+
         seq = seq or ()
         # some times the domains are saved in db in char or text fields.
         if isinstance(seq, string_types):
@@ -124,7 +131,7 @@ class Domain(list):
         super(Domain, self).__init__(seq)
 
     def implies(self, other):
-        '''Check if a domain implies another.
+        """Check if a domain implies another.
 
         For any two domains `A` and `B`, the following rules are always true:
 
@@ -133,13 +140,13 @@ class Domain(list):
         - ``A.implies(A | B)``.
         - ``not B.implies(A) == (A | B).implies(A)``
 
-        '''
+        """
         other = DomainTree(Domain(other).second_normal_form)
         return DomainTree(self.second_normal_form).implies(other)
 
     @property
     def first_normal_form(self):
-        '''The first normal form.
+        """The first normal form.
 
         The first normal form is the same domain with all `and` operators
         explicit.
@@ -155,12 +162,12 @@ class Domain(list):
             >>> domain.first_normal_form
             ['&', ('field_y', 'not in', False), ('field_x', '!=', 'value')]
 
-        '''
+        """
         return Domain(this.normalize_domain(self))
 
     @property
     def second_normal_form(self):
-        '''The second normal form.
+        """The second normal form.
 
         After obtaining the `first_normal_from`:attr:, change terms to its
         canonical form, and distribute the `not` logical operator inside
@@ -214,14 +221,14 @@ class Domain(list):
                 ('field_z', '>', 1)
             ]
 
-        '''
+        """
         res = self.first_normal_form
         res = Domain((normalize_leaf(item) for item in res))
         return res.distribute_not()
 
     @property
     def simplified(self):
-        '''A simplified second normal form of the domain.
+        """A simplified second normal form of the domain.
 
         Examples:
 
@@ -270,11 +277,11 @@ class Domain(list):
             >>> domain3.simplified
             ['&', ('field_x', 'in', (1,)), ('field_y', '!=', False)]
 
-        '''
+        """
         return DomainTree(self.second_normal_form).get_simplified_domain()
 
     def distribute_not(self):
-        '''Return a new domain without `not` operators.
+        """Return a new domain without `not` operators.
 
         For instance, having ``domain`` value like::
 
@@ -296,42 +303,42 @@ class Domain(list):
                 ('field_w', '<=', 1)
             ]
 
-        '''
+        """
         return Domain(this.distribute_not(self.first_normal_form))
 
     @crossmethod
     def AND(*domains):
-        '''Join given domains using `and` operator.
+        """Join given domains using `and` operator.
 
         :return: A domain if first normal form.
 
-        '''
-        return Domain(this.AND(
-            [Domain(domain).second_normal_form for domain in domains]
-        ))
+        """
+        return Domain(
+            this.AND([Domain(domain).second_normal_form for domain in domains])
+        )
 
     __and__ = __rand__ = AND
 
     @crossmethod
     def OR(*domains):
-        '''Join given domains using `or` operator.
+        """Join given domains using `or` operator.
 
         :return: A domain if first normal form.
 
-        '''
-        return Domain(this.OR(
-            [Domain(domain).second_normal_form for domain in domains]
-        ))
+        """
+        return Domain(
+            this.OR([Domain(domain).second_normal_form for domain in domains])
+        )
 
     __or__ = __ror__ = OR
 
     def __invert__(self):
-        return Domain(['!'] + self.second_normal_form)
+        return Domain(["!"] + self.second_normal_form)
 
     def __eq__(self, other):
-        '''Two domains are equivalent if both have similar DomainTree.
+        """Two domains are equivalent if both have similar DomainTree.
 
-        '''
+        """
         # TODO: In logic, we can identify two predicates if: a implies
         # b and b implies a, although this has nothing to do with them being
         # the *same* predicate.  However, since this implementation only
@@ -346,8 +353,8 @@ class Domain(list):
     def __hash__(self):
         return hash(DomainTree(self.second_normal_form))
 
-    def asfilter(self, this='this'):
-        '''Return a callable which is equivalent to the domain.
+    def asfilter(self, this="this"):
+        """Return a callable which is equivalent to the domain.
 
         This method translates the domain to a `ast.Lambda <ast>`:mod: and
         compiles it.
@@ -393,10 +400,10 @@ class Domain(list):
         .. versionchanged:: 0.55.0 Change the behavior of fields traversal, so
            that filters over x2many fields work.
 
-        '''
-        return eval(compile(self._get_filter_ast(this), '<domain>', 'eval'))
+        """
+        return eval(compile(self._get_filter_ast(this), "<domain>", "eval"))
 
-    def _get_filter_ast(self, this='this'):
+    def _get_filter_ast(self, this="this"):
         return DomainTree(self.second_normal_form)._get_filter_ast(this)
 
 
@@ -437,24 +444,24 @@ class DomainTerm(object):
         if self.original == self.normalized:
             return repr(self.original)
         else:
-            return '%r => %r' % (self.original, self.normalized)
+            return "%r => %r" % (self.original, self.normalized)
 
     operators_implication = {
-        '=?': lambda x, y: operator.eq(x, y) or y is False,
-        '>': operator.ge,
-        '>=': operator.ge,
-        '<': operator.le,
-        '<=': operator.le,
-        'in': lambda x, y: all(i in y for i in x),
-        'not in': lambda x, y: all(i in x for i in y),
-        'like': lambda x, y: x.find(y) >= 0,
+        "=?": lambda x, y: operator.eq(x, y) or y is False,
+        ">": operator.ge,
+        ">=": operator.ge,
+        "<": operator.le,
+        "<=": operator.le,
+        "in": lambda x, y: all(i in y for i in x),
+        "not in": lambda x, y: all(i in x for i in y),
+        "like": lambda x, y: x.find(y) >= 0,
         # TODO: asd_g imply asdfg `_` == any character
-        '=like': lambda x, y: x.find(y) >= 0,
-        'not like': lambda x, y: y.find(x) >= 0,
-        'ilike': lambda x, y: x.lower().find(y.lower()) >= 0,
+        "=like": lambda x, y: x.find(y) >= 0,
+        "not like": lambda x, y: y.find(x) >= 0,
+        "ilike": lambda x, y: x.lower().find(y.lower()) >= 0,
         # TODO: asd_g imply asdfg `_` == any character
-        '=ilike': lambda x, y: x.lower().find(y.lower()) >= 0,
-        'not ilike': lambda x, y: y.lower().find(x.lower()) >= 0,
+        "=ilike": lambda x, y: x.lower().find(y.lower()) >= 0,
+        "not ilike": lambda x, y: y.lower().find(x.lower()) >= 0,
     }
 
     def implies(self, other):
@@ -484,7 +491,7 @@ class DomainTerm(object):
 
 
 class DomainTree(object):
-    '''Tree structure to express Odoo domains.
+    """Tree structure to express Odoo domains.
 
     .. warning:: This class in not a public API of this model.  Its attributes
        may change in incompatible ways from one release to the other.
@@ -521,7 +528,8 @@ class DomainTree(object):
 
     .. warning:: The domain must be in the second normal form.
 
-    '''
+    """
+
     def __init__(self, domain, parent=None):
         term = domain.pop(0)
         self.term = DomainTerm(term)
@@ -585,21 +593,15 @@ class DomainTree(object):
 
     def get_simplified_domain(self):
         if self.parent:
-            res = Domain(
-                self.term.original for x in range(1, len(self.children) or 2)
-            )
+            res = Domain(self.term.original for x in range(1, len(self.children) or 2))
         elif self.is_leaf:
             res = Domain([self.term.original])
         else:
             # Initials `&` aren't needed.
-            res = Domain(
-                [self.term.original] if self.term == this.OR_OPERATOR else []
-            )
+            res = Domain([self.term.original] if self.term == this.OR_OPERATOR else [])
         if not self.is_leaf:
             res.extend(
-                chain(
-                    *(x.get_simplified_domain() for x in self.sorted_children)
-                )
+                chain(*(x.get_simplified_domain() for x in self.sorted_children))
             )
         return res
 
@@ -607,7 +609,7 @@ class DomainTree(object):
         if self.is_leaf:
             return repr(self.term)
         else:
-            return '(%s)' % (' %r ' % self.term).join(
+            return "(%s)" % (" %r " % self.term).join(
                 repr(child) for child in self.sorted_children
             )
 
@@ -616,7 +618,9 @@ class DomainTree(object):
             if self.is_leaf:
                 return self.term == other.term
             else:
-                return self.term == other.term and not self.children ^ other.children  # noqa
+                return (
+                    self.term == other.term and not self.children ^ other.children
+                )  # noqa
         return False
 
     def __ne__(self, other):
@@ -629,8 +633,9 @@ class DomainTree(object):
             if self.term.implies(other.term):
                 return True
             # A => A | B
-            if other.is_operator and funct(self.implies(child)
-                                           for child in other.sorted_children):
+            if other.is_operator and funct(
+                self.implies(child) for child in other.sorted_children
+            ):
                 return True
         elif self.is_operator:
             funct2 = any if self.term == this.AND_OPERATOR else all
@@ -638,17 +643,18 @@ class DomainTree(object):
             if funct2(child.implies(other) for child in self.sorted_children):
                 return True
             # A & B => A | B
-            if funct(funct2(child.implies(other_child)
-                            for child in self.sorted_children)
-                     for other_child in other.sorted_children):
+            if funct(
+                funct2(child.implies(other_child) for child in self.sorted_children)
+                for other_child in other.sorted_children
+            ):
                 return True
         return False
 
     def __hash__(self):
         return hash(tuple([self.term] + self.sorted_children))
 
-    def _get_filter_ast(self, this='this'):
-        'Get compilable AST of the lambda obtained by `get_filter`:func:.'
+    def _get_filter_ast(self, this="this"):
+        "Get compilable AST of the lambda obtained by `get_filter`:func:."
         stack = []
         for kind, term in self.walk():
             if kind == KIND_TERM:
@@ -665,14 +671,13 @@ class DomainTree(object):
                 stack.append(constructor(*args))
         node = stack.pop()
         assert not stack, "Remaining nodes in the stack: {}".format(stack)
-        fn = ql.ensure_compilable(ql.Expression(ql.Lambda(
-            ql.make_arguments(this),
-            node
-        )))
+        fn = ql.ensure_compilable(
+            ql.Expression(ql.Lambda(ql.make_arguments(this), node))
+        )
         return fn
 
     def walk(self):
-        '''Performs a post-fix walk of the tree.
+        """Performs a post-fix walk of the tree.
 
         Yields tuples of ``(kind, what)``.  `kind` can be either 'TERM' or
         'OPERATOR'.  `what` will be the term or operator.  For `term` it will
@@ -698,7 +703,7 @@ class DomainTree(object):
            all operators are commutative, the order of the children may differ
            widely from run to the other.
 
-        '''
+        """
         if self.is_leaf:
             yield (KIND_TERM, self.term.original)
         else:
@@ -735,14 +740,14 @@ def _constructor_or(*operands):
 
 
 def _get_mapped(node, fieldname):
-    attrs, field = fieldname.rsplit('.', 1)
-    mapped_fn = ql.make_attr(node, 'mapped')
+    attrs, field = fieldname.rsplit(".", 1)
+    mapped_fn = ql.make_attr(node, "mapped")
     return (ql.make_call(mapped_fn, _constructor_from_value(attrs)), field)
 
 
 def _constructor_getattr(node, fieldname):
     if isinstance(fieldname, string_types):
-        if '.' in fieldname:
+        if "." in fieldname:
             result = _get_mapped(node, fieldname)
         else:
             result = ql.make_attr(node, fieldname)
@@ -752,7 +757,7 @@ def _constructor_getattr(node, fieldname):
 
 
 def _get_constructor(qst):
-    '''Return a constructor for AST for a term `(fielname, <op>, value)`.
+    """Return a constructor for AST for a term `(fielname, <op>, value)`.
 
     :param qst: Any of the operators AST classes available for comparisons.
 
@@ -784,7 +789,7 @@ def _get_constructor(qst):
             lambda r: r.state == 'open'
         )
 
-    '''
+    """
 
     def result(this, fieldname, value):
         node = _constructor_getattr(ql.Name(this, ql.Load()), fieldname)
@@ -794,14 +799,14 @@ def _get_constructor(qst):
             # node.filtered(lambda x: x.field <CMP> <value>)
             mapped, field = node
             lambda_ast = ql.Lambda(
-                ql.make_arguments('x'),
+                ql.make_arguments("x"),
                 ql.Compare(
-                    ql.make_attr(ql.Name('x', ql.Load()), field),
+                    ql.make_attr(ql.Name("x", ql.Load()), field),
                     [qst()],
-                    [_constructor_from_value(value)]
-                )
+                    [_constructor_from_value(value)],
+                ),
             )
-            filtered_fn = ql.make_attr(mapped, 'filtered')
+            filtered_fn = ql.make_attr(mapped, "filtered")
             return ql.make_call(filtered_fn, lambda_ast)
 
     return result
@@ -816,13 +821,13 @@ _constructor_gt = _get_constructor(ql.Gt)
 
 
 def _constructor_in(this, fieldname, value, qst=ql.In):
-    '''Create the AST for a term `(fielname, '[not ]in', value)`.
+    """Create the AST for a term `(fielname, '[not ]in', value)`.
 
     The difference with `standard <_get_constructor>`:func: constructors is
     that, to comply with Odoo's interpretation of 'in' and 'not in', this
     function removes any 0 or False in `value`.
 
-    '''
+    """
     # Filtering False is the same Odoo does; which causes 0 to be removed
     # also.  See https://github.com/odoo/odoo/pull/31408
     assert qst in (ql.In, ql.NotIn)
@@ -835,7 +840,7 @@ def _constructor_not_in(this, fieldname, value):
 
 
 def _constructor_like(this, fieldname, value, qst=ql.In):
-    '''Create the AST for a term `(fielname, '[not ]like', value)`.
+    """Create the AST for a term `(fielname, '[not ]like', value)`.
 
     We use 'in' ('not in') Python operators; so the procedure AST are those
     matching syntax 'value in this.fieldname' when fieldname doesn't contain a
@@ -844,29 +849,25 @@ def _constructor_like(this, fieldname, value, qst=ql.In):
        headattrs, lastattr = fiedname.rsplit('.', 1)
        this.mapped(headattrs).filtered(lambda r: value in getattr(r, lastattr))
 
-    '''
+    """
     assert qst in (ql.In, ql.NotIn)
     node = _constructor_getattr(ql.Name(this, ql.Load()), fieldname)
     if isinstance(node, tuple):
         # this.mapped(attrs).filtered(lambda r: value in r.field)
         mapped, field = node
         lambda_arg = ql.Lambda(
-            ql.make_arguments('r'),
+            ql.make_arguments("r"),
             ql.Compare(
                 _constructor_from_value(value),
                 [qst()],
-                [ql.make_attr(ql.Name('r', ql.Load()), field)]
-            )
+                [ql.make_attr(ql.Name("r", ql.Load()), field)],
+            ),
         )
-        fn = ql.make_attr(mapped, 'filtered')
+        fn = ql.make_attr(mapped, "filtered")
         return ql.make_call(fn, lambda_arg)
     else:
         # ``value in this.fieldname``
-        return ql.Compare(
-            _constructor_from_value(value),
-            [qst()],
-            [node]
-        )
+        return ql.Compare(_constructor_from_value(value), [qst()], [node])
 
 
 def _constructor_not_like(this, fieldname, value):
@@ -880,30 +881,33 @@ def _constructor_ilike(this, fieldname, value, qst=ql.In):
         # this.mapped(attrs).filtered(lambda r: value.lower() in r.field.lower())``
         mapped, field = node
         lambda_arg = ql.Lambda(
-            ql.make_arguments('r'),
+            ql.make_arguments("r"),
             ql.Compare(
                 ql.make_argless_call(
-                    _constructor_getattr(_constructor_from_value(value), "lower"),
+                    _constructor_getattr(_constructor_from_value(value), "lower")
                 ),
                 [qst()],
-                [ql.make_argless_call(
-                    ql.make_attr(ql.make_attr(ql.Name('r', ql.Load()), field),
-                                 'lower')
-                )]
-            )
+                [
+                    ql.make_argless_call(
+                        ql.make_attr(
+                            ql.make_attr(ql.Name("r", ql.Load()), field), "lower"
+                        )
+                    )
+                ],
+            ),
         )
-        fn = ql.make_attr(mapped, 'filtered')
+        fn = ql.make_attr(mapped, "filtered")
         return ql.make_call(fn, lambda_arg)
     else:
         # ``value.lower() in this.fieldname.lower()``
-        node = _constructor_getattr(node, 'lower')
+        node = _constructor_getattr(node, "lower")
         fn = ql.make_argless_call(node)
         return ql.Compare(
             ql.make_argless_call(
-                _constructor_getattr(_constructor_from_value(value), "lower"),
+                _constructor_getattr(_constructor_from_value(value), "lower")
             ),
             [qst()],
-            [fn]
+            [fn],
         )
 
 
@@ -917,22 +921,22 @@ def _constructor_from_value(value):
 
 
 _TERM_CONSTRUCTOR = {
-    '!': _constructor_not,
-    '&': _constructor_and,
-    '|': _constructor_or,
-    '=': _constructor_eq,
-    '==': _constructor_eq,
-    '=?': _constructor_eq,
-    '!=': _constructor_ne,
-    '<>': _constructor_ne,
-    '<=': _constructor_le,
-    '<': _constructor_lt,
-    '>=': _constructor_ge,
-    '>': _constructor_gt,
-    'in': _constructor_in,
-    'not in': _constructor_not_in,
-    'like': _constructor_like,
-    'ilike': _constructor_ilike,
-    'not like': _constructor_not_like,
-    'not ilike': _constructor_not_ilike,
+    "!": _constructor_not,
+    "&": _constructor_and,
+    "|": _constructor_or,
+    "=": _constructor_eq,
+    "==": _constructor_eq,
+    "=?": _constructor_eq,
+    "!=": _constructor_ne,
+    "<>": _constructor_ne,
+    "<=": _constructor_le,
+    "<": _constructor_lt,
+    ">=": _constructor_ge,
+    ">": _constructor_gt,
+    "in": _constructor_in,
+    "not in": _constructor_not_in,
+    "like": _constructor_like,
+    "ilike": _constructor_ilike,
+    "not like": _constructor_not_like,
+    "not ilike": _constructor_not_ilike,
 }

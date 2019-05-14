@@ -8,10 +8,10 @@
 #
 
 {
-    'name': 'test_domain',
-    'author': 'Merchise Autrement [~º/~] and Contributors',
-    'description': 'Test for the domain type',
-    'depends': ['base', ],
-    'installable': True,
-    'auto_install': False,
+    "name": "test_domain",
+    "author": "Merchise Autrement [~º/~] and Contributors",
+    "description": "Test for the domain type",
+    "depends": ["base"],
+    "installable": True,
+    "auto_install": False,
 }

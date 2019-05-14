@@ -6,13 +6,15 @@
 #
 # This is free software; you can do what the LICENCE file allows you to.
 #
-from __future__ import (division as _py3_division,
-                        print_function as _py3_print,
-                        absolute_import as _py3_abs_import)
+from __future__ import (
+    division as _py3_division,
+    print_function as _py3_print,
+    absolute_import as _py3_abs_import,
+)
 
 from datetime import datetime, time
 from functools import partial
-from xoutil.eight import string_types
+from xoeuf.eight import string_types
 
 from odoo.fields import Selection, Datetime, Float, Default as DEFAULT
 
@@ -28,16 +30,13 @@ class TimeField(_TimeRangeObject):
 
 
 class TimeRangeSelector(object):
-    def __init__(self, choices=[]):
+    def __init__(self, choices=()):
         self.ranges = [TimeField(c[2], c[3], c[0]) for c in choices]
 
     def get_range(self, _time=time.min):
         if isinstance(_time, datetime):
             _time = _time.time()
-        return next(
-            (_range for _range in self.ranges if _time in _range),
-            None
-        )
+        return next((_range for _range in self.ranges if _time in _range), None)
 
 
 # TODO: This is not actually a Selection.  In a selection the user is allowed
@@ -65,24 +64,17 @@ class TimeRange(Selection):
                           if your extending an existing model's field.
 
     """
-    type = 'timerange'
 
-    _slots = {
-        'time_field': None,
-        'readonly': True,
-    }
+    type = "timerange"
+
+    _slots = {"time_field": None, "readonly": True}
 
     def __init__(self, time_field, selection=DEFAULT, *args, **kwargs):
         from xoutil.symbols import Unset
-        kwargs = dict(
-            dict(copy=False, readonly=True),
-            **kwargs
-        )
+
+        kwargs = dict(dict(copy=False, readonly=True), **kwargs)
         super(TimeRange, self).__init__(
-            time_field=time_field or Unset,
-            selection=selection,
-            *args,
-            **kwargs
+            time_field=time_field or Unset, selection=selection, *args, **kwargs
         )
         self.time_field = time_field or Unset
 
@@ -99,8 +91,8 @@ class TimeRange(Selection):
         field = model._fields[time_field]
         if not isinstance(field, (Datetime, Float)):
             raise TypeError(
-                'Type of time_field must be Datetime or Float, '
-                'instead of %s.' % type(field)
+                "Type of time_field must be Datetime or Float, "
+                "instead of %s." % type(field)
             )
 
     def _setup_regular_full(self, env):
@@ -125,9 +117,12 @@ class TimeRange(Selection):
         if env.lang:
             name = "%s,%s" % (self.model_name, self.name)
             translate = partial(
-                env['ir.translation']._get_source, name, 'selection', env.lang)
-            return [(value, translate(label), start, end if label else label)
-                    for value, label, start, end in selection]
+                env["ir.translation"]._get_source, name, "selection", env.lang
+            )
+            return [
+                (value, translate(label), start, end if label else label)
+                for value, label, start, end in selection
+            ]
         else:
             return selection
 
@@ -137,10 +132,7 @@ class TimeRange(Selection):
         if env.lang and isinstance(selection, list):
             name = "%s,%s" % (self.model_name, self.name)
             translate = partial(
-                env['ir.translation']._get_source,
-                name,
-                'selection',
-                env.lang
+                env["ir.translation"]._get_source, name, "selection", env.lang
             )
             return {
                 value: translate(label) if label else label
@@ -150,10 +142,7 @@ class TimeRange(Selection):
             selection = getattr(env[self.model_name], selection)()
         if callable(selection):
             selection = selection(env[self.model_name])
-        return {
-            value: label
-            for value, label, start, end in selection
-        }
+        return {value: label for value, label, start, end in selection}
 
     def get_values(self, env):
         """ return a list of the possible values """

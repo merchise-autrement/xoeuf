@@ -7,9 +7,11 @@
 # This is free software; you can do what the LICENCE file allows you to.
 #
 
-from __future__ import (division as _py3_division,
-                        print_function as _py3_print,
-                        absolute_import as _py3_abs_import)
+from __future__ import (
+    division as _py3_division,
+    print_function as _py3_print,
+    absolute_import as _py3_abs_import,
+)
 
 import pytz
 
@@ -18,7 +20,7 @@ from xoeuf.tools import localtime_as_remotetime
 
 
 class LocalizedDatetime(fields.Datetime):
-    '''A field for localized datetimes.
+    """A field for localized datetimes.
 
     Localized datetimes are actually a functional field that takes two
     underlying columns a datetime and timezone name.
@@ -37,23 +39,18 @@ class LocalizedDatetime(fields.Datetime):
 
     .. note:: At the time this field is not searchable, and non-storable.
 
-    '''
+    """
 
-    _slots = {
-        'dt_field': '',
-        'tzone_field': '',
-        'store': False,
-    }
+    _slots = {"dt_field": "", "tzone_field": "", "store": False}
 
     def __init__(self, dt_field=None, tzone_field=None, **kwargs):
         # Include store=False if is not include in kwargs
         if not dt_field or not tzone_field:
-            raise TypeError('LocalizedDatetime requires the surrogates fields')
+            raise TypeError("LocalizedDatetime requires the surrogates fields")
         self.dt_field = dt_field
         self.tzone_field = tzone_field
         kwargs = dict(
-            dict(store=False, copy=False, dt_field=dt_field,
-                 tzone_field=tzone_field),
+            dict(store=False, copy=False, dt_field=dt_field, tzone_field=tzone_field),
             **kwargs
         )
         super(LocalizedDatetime, self).__init__(**kwargs)
@@ -71,9 +68,7 @@ class LocalizedDatetime(fields.Datetime):
         # with a localized datetime.  In such a case, we don't override the
         # compute method.
         super(LocalizedDatetime, self)._setup_regular_full(model)
-        self.depends = tuple(
-            f for f in (self.dt_field, self.tzone_field) if f
-        )
+        self.depends = tuple(f for f in (self.dt_field, self.tzone_field) if f)
         self.compute = self._compute
         if not self.readonly:
             self.inverse = self._inverse
@@ -82,7 +77,7 @@ class LocalizedDatetime(fields.Datetime):
     def _compute(self, records):
         tzone_field = self.tzone_field
         dt_field = self.dt_field
-        tz = records._context.get('tz', None)
+        tz = records._context.get("tz", None)
         if not tz:
             user = records.env.user
             tz = pytz.timezone(user.tz) if user.tz else pytz.UTC
@@ -104,7 +99,7 @@ class LocalizedDatetime(fields.Datetime):
     def _inverse(self, records):
         tzone_field = self.tzone_field
         dt_field = self.dt_field
-        tz = records._context.get('tz', None)
+        tz = records._context.get("tz", None)
         if not tz:
             user = records.env.user
             tz = pytz.timezone(user.tz) if user.tz else pytz.UTC

@@ -8,10 +8,10 @@
 #
 
 {
-    'name': 'test_property',
-    'author': 'Merchise Autrement [~º/~] and Contributors',
-    'description': 'Test for the field.Property extension',
-    'depends': ['base', ],
-    'installable': True,
-    'auto_install': False,
+    "name": "test_property",
+    "author": "Merchise Autrement [~º/~] and Contributors",
+    "description": "Test for the field.Property extension",
+    "depends": ["base"],
+    "installable": True,
+    "auto_install": False,
 }

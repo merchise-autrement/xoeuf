@@ -7,15 +7,17 @@
 # This is free software; you can do what the LICENCE file allows you to.
 #
 
-'''Profiling tools.
+"""Profiling tools.
 
 For development only purposes.
 
-'''
+"""
 
-from __future__ import (division as _py3_division,
-                        print_function as _py3_print,
-                        absolute_import as _py3_abs_import)
+from __future__ import (
+    division as _py3_division,
+    print_function as _py3_print,
+    absolute_import as _py3_abs_import,
+)
 
 
 from xoutil.decorator.meta import decorator
@@ -23,11 +25,12 @@ from xoutil.decorator.meta import decorator
 
 try:
     from line_profiler import LineProfiler
+
     profiler = LineProfiler()
 
     @decorator
     def profile(func, model=True, stream=None):
-        '''Decorate `func` to activate the line profiler.
+        """Decorate `func` to activate the line profiler.
 
         :param func: The function to decorate
 
@@ -37,14 +40,15 @@ try:
         :param stream:  The stream into which print the collected stats.  The
                         default is whatever LineProfiler has as default.
 
-        '''
+        """
         from xoeuf import api
+
         if model:
-            f = getattr(func, '_orig', func)
+            f = getattr(func, "_orig", func)
             wraps = api.mimic
         else:
             f = func
-            wraps = lambda f: lambda x: x   # noqa
+            wraps = lambda f: lambda x: x  # noqa
 
         profiler.add_function(f)
 
@@ -59,19 +63,21 @@ try:
 
         return inner
 
+
 except ImportError:
     import warnings
+
     profiler = None
 
     @decorator
     def profile(func, model=None, stream=None):
-        '''Decorate `func` to activate the line profiler.
+        """Decorate `func` to activate the line profiler.
 
-        '''
+        """
         warnings.warn(
-            'Trying to the profiler without the line_profiler package.  '
-            'Are you trying to use the profiler in production?! '
-            'Don\'t do that EVER AGAIN!!'
+            "Trying to the profiler without the line_profiler package.  "
+            "Are you trying to use the profiler in production?! "
+            "Don't do that EVER AGAIN!!"
         )
         return func
 

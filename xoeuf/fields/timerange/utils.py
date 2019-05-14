@@ -6,18 +6,20 @@
 #
 # This is free software; you can do what the LICENCE file allows you to.
 #
-from __future__ import (division as _py3_division,
-                        print_function as _py3_print,
-                        absolute_import as _py3_abs_import)
+from __future__ import (
+    division as _py3_division,
+    print_function as _py3_print,
+    absolute_import as _py3_abs_import,
+)
 
 try:
     from xoutil.future.datetime import TimeRange  # TODO: migrate
 except ImportError:
-    from xoutil.eight import string_types
+    from xoeuf.eight import string_types
     from datetime import datetime, time
 
     class TimeField(object):
-        '''A descriptor for a `datetime.time`:class:.
+        """A descriptor for a `datetime.time`:class:.
 
         You may set either `datetime.time`:class: values or strings with the
         'HH:MM[:SS[.µs]]' format.
@@ -30,7 +32,8 @@ except ImportError:
 
         .. note:: tzinfo is not supported.
 
-        '''
+        """
+
         def __init__(self, name, nullable=True):
             self.name = name
             self.nullable = nullable
@@ -45,19 +48,19 @@ except ImportError:
             if value in (None, False):
                 if not self.nullable:
                     raise ValueError(
-                        'Setting None to a non nullable attribute %r' % self.name
+                        "Setting None to a non nullable attribute %r" % self.name
                     )
             elif isinstance(value, string_types):
-                if '.' in value:
-                    fmt = '%H:%M:%S.%f'
-                elif len(value) > len('99:99'):
-                    fmt = '%H:%M:%S'
+                if "." in value:
+                    fmt = "%H:%M:%S.%f"
+                elif len(value) > len("99:99"):
+                    fmt = "%H:%M:%S"
                 else:
-                    fmt = '%H:%M'
+                    fmt = "%H:%M"
                 value = datetime.strptime(value, fmt).time()
             elif not isinstance(value, time):
                 raise TypeError(
-                    'Either time or str expected. Got %r' % type(value).__name__
+                    "Either time or str expected. Got %r" % type(value).__name__
                 )
             instance.__dict__[self.name] = value
 
@@ -65,24 +68,26 @@ except ImportError:
             del instance.__dict__[self.name]
 
     class TimeRange(object):
-        '''A continuous `datetime.time`:class: range.
+        """A continuous `datetime.time`:class: range.
 
         Both `start` and `end` are inclusive.
 
         .. note:: So far we don't support unbounded ranges.
 
-        '''
-        start = TimeField('start', False)
-        end = TimeField('end', False)
+        """
+
+        start = TimeField("start", False)
+        end = TimeField("end", False)
 
         def __init__(self, start, end):
             self.start = start
             self.end = end
             if self.start > self.end:
-                raise ValueError('start must be earlier than end.')
+                raise ValueError("start must be earlier than end.")
 
         def __bool__(self):
             return True
+
         __nonzero__ = __bool__
 
         def __contains__(self, value):
@@ -90,15 +95,16 @@ except ImportError:
 
         def __repr__(self):
             start, end = self.start, self.end
-            return 'TimeRange(%r, %r)' % (
+            return "TimeRange(%r, %r)" % (
                 self._format_time(start),
-                self._format_time(end)
+                self._format_time(end),
             )
 
         @staticmethod
         def _format_time(time):
             from xoutil.string import cut_suffix
-            return cut_suffix(time.isoformat(), ':00')
+
+            return cut_suffix(time.isoformat(), ":00")
 
         def __eq__(self, other):
             if isinstance(other, TimeRange):

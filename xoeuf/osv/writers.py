@@ -7,23 +7,27 @@
 # This is free software; you can do what the LICENCE file allows you to.
 #
 
-'''Helpers to generate ``BaseModel.write`` commands.
+"""Helpers to generate ``BaseModel.write`` commands.
 
-'''
+"""
 
-from __future__ import (division as _py3_division,
-                        print_function as _py3_print,
-                        absolute_import as _py3_abs_import)
+from __future__ import (
+    division as _py3_division,
+    print_function as _py3_print,
+    absolute_import as _py3_abs_import,
+)
 
 
 class _BaseWriter(object):
-    '''Core of the function for `ORMWriter`:class: and `ORMCreator`:class:.
+    """Core of the function for `ORMWriter`:class: and `ORMCreator`:class:.
 
     .. warning:: Currently we don't support nested context managers.
 
-    '''
+    """
+
     def __init__(self, model):
         from xoutil.future.collections import StackedDict
+
         self.model = model
         self._commands = StackedDict()
         self.result = None
@@ -35,35 +39,40 @@ class _BaseWriter(object):
 
     def _is_many2many(self, attrname):
         from xoeuf.odoo.fields import Many2many
-        rel_types = (Many2many, )
+
+        rel_types = (Many2many,)
         try:
             from openerp.osv.fields import many2many
-            rel_types += (many2many, )
+
+            rel_types += (many2many,)
         except ImportError:
             pass
         return isinstance(self[attrname], rel_types)
 
     def _is_one2many(self, attrname):
         from xoeuf.odoo.fields import One2many
+
         # XXX: Don't understand next
         try:
             from openerp.osv.fields import one2many
         except ImportError:
+
             class one2many(object):
                 # I have no instances
                 pass
+
         return isinstance(self[attrname], (one2many, One2many))
 
     @property
     def commands(self):
-        '''The current stack of commands at the current level.
+        """The current stack of commands at the current level.
 
         Since commands could be nested, this will only return the
         top-of-the-stack commands.
 
         :rtype: dict
 
-        '''
+        """
         # TODO: Deal with nested writers properly.
         return self._commands.peek()
 
@@ -72,20 +81,21 @@ class _BaseWriter(object):
         return self
 
     def __exit__(self, ex_type, exc_value, exc_tb):
-        raise NotImplemented
+        raise NotImplementedError
 
     def create(self, attrname, **values):
-        '''Issues a command to create a newly related object with given `values` for
+        """Issues a command to create a newly related object with given `values` for
         the many2many/one2many column `attrname`.
 
-        '''
+        """
         assert self._is_many2many(attrname) or self._is_one2many(attrname)
         from .orm import CREATE_RELATED
+
         cmds = self._commands.setdefault(attrname, [])
         cmds.append(CREATE_RELATED(**values))
 
     def update(self, *replacement, **values):
-        '''Issues update commands.
+        """Issues update commands.
 
         There are two possible signatures for this method:
 
@@ -99,9 +109,10 @@ class _BaseWriter(object):
           attributes of a single related object.  In this case `attrname` must
           be either a many2many or one2many column.
 
-        '''
+        """
         from xoutil.future.types import is_collection
         from .orm import UPDATE_RELATED
+
         commands = self._commands
         if replacement:
             attrname, id = replacement
@@ -116,67 +127,74 @@ class _BaseWriter(object):
                     elif is_collection(val):
                         self.replace(attrname, *tuple(val))
                     else:
-                        raise TypeError("Malformed value '%s' for "
-                                        "attribute %s" % (val, attrname))
+                        raise TypeError(
+                            "Malformed value '%s' for " "attribute %s" % (val, attrname)
+                        )
                 elif self._is_one2many(attrname):
-                    raise TypeError("'update' does not allow one2many keyword"
-                                    "arguments.")
+                    raise TypeError(
+                        "'update' does not allow one2many keyword" "arguments."
+                    )
                 else:
                     commands[attrname] = val
 
     def remove(self, attrname, *ids):
-        '''Issues several "remove related object" commands for the attribute
+        """Issues several "remove related object" commands for the attribute
         named `attrname`.
 
-        '''
+        """
         assert self._is_many2many(attrname) or self._is_one2many(attrname)
         from .orm import REMOVE_RELATED
+
         cmds = self._commands.setdefault(attrname, [])
         cmds.extend(REMOVE_RELATED(id) for id in ids)
 
     def forget(self, attrname, *ids):
-        '''Issues several "forget related object" commands for the attribute
+        """Issues several "forget related object" commands for the attribute
         named `attrname`.
 
-        '''
+        """
         assert self._is_many2many(attrname)
         from .orm import FORGET_RELATED
+
         cmds = self._commands.setdefault(attrname, [])
         cmds.extend(FORGET_RELATED(id) for id in ids)
 
     def forgetall(self, attrname):
-        '''Issues a "forget all related objects" command for the attribute
+        """Issues a "forget all related objects" command for the attribute
         named `attrname`.
 
-        '''
+        """
         assert self._is_many2many(attrname)
         from .orm import UNLINKALL_RELATED
+
         cmds = self._commands.setdefault(attrname, [])
         cmds.append(UNLINKALL_RELATED())
 
     def replace(self, attrname, *ids):
-        '''Issues a "replace related objects" command for the attribute named
+        """Issues a "replace related objects" command for the attribute named
         `attrname`.
 
-        '''
+        """
         assert self._is_many2many(attrname)
         from .orm import REPLACEWITH_RELATED
+
         cmds = self._commands.setdefault(attrname, [])
         cmds.append(REPLACEWITH_RELATED(*ids))
 
     def add(self, attrname, *ids):
-        '''Issues several "link to" commands to the attribute named
+        """Issues several "link to" commands to the attribute named
         `attrname`.
 
-        '''
+        """
         from .orm import LINK_RELATED
+
         assert self._is_many2many(attrname)
         cmds = self._commands.setdefault(attrname, [])
         cmds.extend(LINK_RELATED(id) for id in ids)
 
 
 class ORMWriter(_BaseWriter):
-    '''A context manager that eases writing objects with the Odoo's ORM.
+    """A context manager that eases writing objects with the Odoo's ORM.
 
     Two possible signatures:
 
@@ -207,21 +225,22 @@ class ORMWriter(_BaseWriter):
        If the OpenERP does not understand the commands you produce is not our
        fault.
 
-    '''
+    """
+
     def __init__(self, *args, **kwargs):
         try:
             if kwargs or len(args) > 1:
-                context = kwargs.pop('context', None)
+                context = kwargs.pop("context", None)
                 _self, cr, uid, ids = args
                 recordset = _self.browse(cr, uid, ids, context=context)
             elif len(args) == 1:
                 recordset = args[0]
                 if not recordset.ids:
-                    raise ValueError('Invalid record set for get_writer')
+                    raise ValueError("Invalid record set for get_writer")
             else:
-                raise TypeError('Invalid signature for get_writer')
+                raise TypeError("Invalid signature for get_writer")
         except (KeyError, ValueError):
-            raise TypeError('Invalid signature for get_writer')
+            raise TypeError("Invalid signature for get_writer")
         super(ORMWriter, self).__init__(recordset)
 
     def __exit__(self, exc_type, exc_value, exc_tb):
@@ -232,7 +251,7 @@ class ORMWriter(_BaseWriter):
 
 
 class ORMCreator(_BaseWriter):
-    '''A context manager that eases creation of objects with Odoo's ORM.
+    """A context manager that eases creation of objects with Odoo's ORM.
 
     Two possible signatures:
 
@@ -253,11 +272,12 @@ class ORMCreator(_BaseWriter):
     created.  If you use the old API call style, you'll get the id of created
     record.
 
-    '''
+    """
+
     def __init__(self, *args, **kwargs):
         try:
             if kwargs or len(args) > 1:
-                context = kwargs.pop('context', None)
+                context = kwargs.pop("context", None)
                 _self, cr, uid = args
                 self.downgrade = True
                 model = _self.browse(cr, uid, [], context=context)
@@ -265,9 +285,9 @@ class ORMCreator(_BaseWriter):
                 self.downgrade = False
                 model = args[0]
             else:
-                raise TypeError('Invalid signature for get_creator')
+                raise TypeError("Invalid signature for get_creator")
         except (KeyError, ValueError):
-            raise TypeError('Invalid signature for get_creator')
+            raise TypeError("Invalid signature for get_creator")
         super(ORMCreator, self).__init__(model)
 
     def __exit__(self, exc_type, exc_value, exc_tb):

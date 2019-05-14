@@ -7,15 +7,17 @@
 # This is free software; you can do what the LICENCE file allows you to.
 #
 
-from __future__ import (division as _py3_division,
-                        print_function as _py3_print,
-                        absolute_import as _py3_abs_import)
+from __future__ import (
+    division as _py3_division,
+    print_function as _py3_print,
+    absolute_import as _py3_abs_import,
+)
 
 from xoeuf.odoo.fields import Monetary as Base
 
 
 class Monetary(Base):
-    '''A monetary field.
+    """A monetary field.
 
     This is the same as Odoo's original `odoo.fields.Monetary`:class:, with an
     additional attribute:
@@ -25,10 +27,9 @@ class Monetary(Base):
                      Which means you can only operate it with commensurable
                      monetary values.
 
-    '''
-    _slots = {
-        'concrete': False,
-    }
+    """
+
+    _slots = {"concrete": False}
 
     # Putting the concrete quantity in the cache (i.e implementing the
     # convert_to_cache) may lead to unwanted type errors (TypeError:
@@ -37,6 +38,7 @@ class Monetary(Base):
     # descriptor.
     def __get__(self, instance, owner):
         from xoutil.dim.currencies import currency as Currency
+
         result = super(Monetary, self).__get__(instance, owner)
         if instance and self.concrete:
             result *= Currency(instance[self.currency_field].name)

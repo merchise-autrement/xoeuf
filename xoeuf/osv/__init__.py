@@ -7,23 +7,25 @@
 # This is free software; you can do what the LICENCE file allows you to.
 #
 
-'''Xœuf services for access Open Object (OpenERP) models.
+"""Xœuf services for access Open Object (OpenERP) models.
 
 Implement the network protocols that the Xœuf applications that access OpenERP
 databases uses to communicate with its clients.
 
-'''
+"""
 
-from __future__ import (division as _py3_division,
-                        print_function as _py3_print,
-                        absolute_import as _py3_abs_import)
+from __future__ import (
+    division as _py3_division,
+    print_function as _py3_print,
+    absolute_import as _py3_abs_import,
+)
 
 import pytz
 from xoeuf.tools import dt_as_timezone
 
 
 def savepoint(cr, name=None):
-    '''A context manager that enters a new savepoint.
+    """A context manager that enters a new savepoint.
 
     If `name` is not provided a random one is generated.
 
@@ -31,13 +33,16 @@ def savepoint(cr, name=None):
               This function will fallback to it in this case.  However, the
               argument `name` will be ignored in this case.
 
-    '''
+    """
     from xoutil.symbols import Unset
-    _savepoint = getattr(cr, 'savepoint', Unset)
+
+    _savepoint = getattr(cr, "savepoint", Unset)
     if _savepoint is Unset:
         from contextlib import contextmanager
+
         if not name:
             from xoutil.uuid import uuid
+
             name = uuid(True)
 
         @contextmanager
@@ -50,6 +55,7 @@ def savepoint(cr, name=None):
                 raise
             else:
                 cr.execute('RELEASE SAVEPOINT "%s"' % name)
+
     return _savepoint()
 
 
@@ -61,6 +67,7 @@ def datetime_user_to_server_tz(cr, uid, userdate, tz_name=None, context=None):
     :return: UTC datetime for server-side use
     """
     from xoeuf import api
+
     utc = pytz.UTC
     if userdate.tzinfo:
         return utc.normalize(userdate)
@@ -76,8 +83,7 @@ def datetime_user_to_server_tz(cr, uid, userdate, tz_name=None, context=None):
     return utc.normalize(dt)
 
 
-def datetime_server_to_user_tz(cr, uid, serverdate, tz_name=None,
-                               context=None):
+def datetime_server_to_user_tz(cr, uid, serverdate, tz_name=None, context=None):
     """ Convert date values expressed in server-side UTC timestamp to
     user's timezone.
 
@@ -85,6 +91,7 @@ def datetime_server_to_user_tz(cr, uid, serverdate, tz_name=None,
     :return: datetime on user's timezone
     """
     from xoeuf import api
+
     dt = dt_as_timezone(serverdate)  # datetime in UTC
     if not tz_name:
         env = api.Environment(cr, uid, context or {})

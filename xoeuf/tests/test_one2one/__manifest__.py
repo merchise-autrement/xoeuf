@@ -7,8 +7,8 @@
 # This is free software; you can do what the LICENCE file allows you to.
 #
 {
-    'name': 'test_one2one',
-    'author': 'Merchise Autrement [~º/~]',
-    'installable': True,
-    'auto_install': False,
+    "name": "test_one2one",
+    "author": "Merchise Autrement [~º/~]",
+    "installable": True,
+    "auto_install": False,
 }

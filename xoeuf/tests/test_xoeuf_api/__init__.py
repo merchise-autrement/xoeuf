@@ -7,15 +7,17 @@
 # This is free software; you can do what the LICENCE file allows you to.
 #
 
-from __future__ import (division as _py3_division,
-                        print_function as _py3_print,
-                        absolute_import as _py3_abs_import)
+from __future__ import (
+    division as _py3_division,
+    print_function as _py3_print,
+    absolute_import as _py3_abs_import,
+)
 
 from xoeuf import api, fields, models
 
 
 class APIModel(models.Model):
-    _name = 'xoeuf.tests.test_api.model'
+    _name = "xoeuf.tests.test_api.model"
 
     @api.from_active_ids(leak_context=True)
     def return_self_ids(self):
@@ -31,16 +33,16 @@ class APIModel(models.Model):
 
 
 class Users(models.Model):
-    _inherit = 'res.users'
+    _inherit = "res.users"
 
     text_field = fields.Char()
 
     # 'name' and 'partner_id.name' are the same thing.
-    @api.onupdate('partner_id', 'name', 'partner_id.name', )
+    @api.onupdate("partner_id", "name", "partner_id.name")
     def update_text_field(self):
         for record in self:
             record.text_field = record.get_text_field()
 
     @api.requires_singleton
     def get_text_field(self):
-        return 's2 %s' % self.name
+        return "s2 %s" % self.name

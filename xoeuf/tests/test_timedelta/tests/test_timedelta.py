@@ -7,9 +7,11 @@
 # This is free software; you can do what the LICENCE file allows you to.
 #
 
-from __future__ import (division as _py3_division,
-                        print_function as _py3_print,
-                        absolute_import as _py3_abs_import)
+from __future__ import (
+    division as _py3_division,
+    print_function as _py3_print,
+    absolute_import as _py3_abs_import,
+)
 
 from datetime import timedelta
 from hypothesis import strategies, given
@@ -23,13 +25,11 @@ ALMOST_A_SECOND = timedelta(seconds=1, microseconds=-0.0001)
 class TestTimedelta(TransactionCase):
     def setUp(self):
         super(TestTimedelta, self).setUp()
-        self.Value = self.env['test.timedelta.value']
+        self.Value = self.env["test.timedelta.value"]
 
     @given(timedeltas)
     def test_create(self, value):
-        obj = self.Value.create({
-            'delta': value
-        })
+        obj = self.Value.create({"delta": value})
         id = obj.id
         self.Value.invalidate_cache()
         obj = self.Value.browse(id)
@@ -37,9 +37,7 @@ class TestTimedelta(TransactionCase):
 
     @given(timedeltas)
     def test_create2(self, value):
-        obj = self.Value.create({
-            'delta': value.total_seconds()
-        })
+        obj = self.Value.create({"delta": value.total_seconds()})
         id = obj.id
         self.Value.invalidate_cache()
         obj = self.Value.browse(id)

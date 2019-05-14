@@ -8,9 +8,9 @@
 #
 
 {
-    'name': 'test_localized_dt',
-    'version': '1.0',
-    'depends': ['base', ],
-    'auto_install': False,
-    'installable': True
+    "name": "test_localized_dt",
+    "version": "1.0",
+    "depends": ["base"],
+    "auto_install": False,
+    "installable": True,
 }

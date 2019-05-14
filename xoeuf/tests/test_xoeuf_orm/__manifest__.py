@@ -7,9 +7,9 @@
 # This is free software; you can do what the LICENCE file allows you to.
 #
 {
-    'name': 'test_xoeuf_orm',
-    'author': 'Merchise Autrement [~º/~]',
-    'description': 'Test ORM',
-    'depends': ['base', ],
-    'data': ['data/nodes.xml'],
+    "name": "test_xoeuf_orm",
+    "author": "Merchise Autrement [~º/~]",
+    "description": "Test ORM",
+    "depends": ["base"],
+    "data": ["data/nodes.xml"],
 }

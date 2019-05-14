@@ -7,7 +7,7 @@
 # This is free software; you can do what the LICENCE file allows you to.
 #
 
-'''Extends/Overrides the OpenERP's logging system to Sentry-based approach.
+"""Extends/Overrides the OpenERP's logging system to Sentry-based approach.
 
 Sentry_ aggregates logs and lets you inspect the server's health by a web
 application.
@@ -15,11 +15,13 @@ application.
 To configure, simply set the global `conf`:obj: dictionary and call
 `patch_logging`:func:.
 
-'''
+"""
 
-from __future__ import (division as _py3_division,
-                        print_function as _py3_print,
-                        absolute_import as _py3_abs_import)
+from __future__ import (
+    division as _py3_division,
+    print_function as _py3_print,
+    absolute_import as _py3_abs_import,
+)
 
 import raven
 from raven.transport.http import HTTPTransport
@@ -54,28 +56,30 @@ _sentry_client = None
 
 def get_client():
     from xoeuf.odoo.tools import config
+
     global _sentry_client
-    overrides = config.misc.get('sentry', {})
+    overrides = config.misc.get("sentry", {})
     conf.update(overrides)
-    if not _sentry_client and 'dsn' in conf:
-        releasetag = conf.pop('release-tag', '')
-        if 'release' not in conf:
+    if not _sentry_client and "dsn" in conf:
+        releasetag = conf.pop("release-tag", "")
+        if "release" not in conf:
             from xoeuf.odoo.release import version
-            conf['release'] = '%s/%s' % (version, releasetag)
-        transport = conf.get('transport', None)
-        if transport == 'sync':
+
+            conf["release"] = "%s/%s" % (version, releasetag)
+        transport = conf.get("transport", None)
+        if transport == "sync":
             transport = HTTPTransport
-        elif transport == 'gevent':
+        elif transport == "gevent":
             transport = GeventedHTTPTransport
         else:
             transport = ThreadedHTTPTransport
-        conf['transport'] = transport
+        conf["transport"] = transport
         _sentry_client = raven.Client(**conf)
     return _sentry_client
 
 
 def patch_logging(override=True, force=False):
-    '''Patch openerp's logging.
+    """Patch openerp's logging.
 
     :param override: If True suppress all normal logging.  All logs will be
            sent to the Sentry instead of being logged to the console.  If
@@ -91,26 +95,28 @@ def patch_logging(override=True, force=False):
 
     The Sentry will only receive the error-level messages.
 
-    '''
+    """
     try:
         from xoeuf.odoo import sentrylog  # noqa
     except ImportError:
         sentrylog = None
     if sentrylog and not force:
-        return   # Bail out
+        return  # Bail out
     elif sentrylog:
         override = True
 
     import logging
     from raven.handlers.logging import SentryHandler as Base
     from xoeuf.odoo.netsvc import init_logger
+
     init_logger()
 
     def _require_httprequest(func):
         def inner(self, record):
             try:
                 from xoeuf.odoo.http import request
-                httprequest = getattr(request, 'httprequest', None)
+
+                httprequest = getattr(request, "httprequest", None)
                 if httprequest:
                     return func(self, record, httprequest)
             except ImportError:
@@ -120,6 +126,7 @@ def patch_logging(override=True, force=False):
                 # When upgrading a DB the request may exists but the bound to
                 # it does not.
                 pass
+
         return inner
 
     class SentryHandler(Base):
@@ -146,64 +153,61 @@ def patch_logging(override=True, force=False):
         def _get_http_context(self, record, request):
             urlparts = _urlparse.urlsplit(request.url)
             return {
-                'url': '%s://%s%s' % (urlparts.scheme, urlparts.netloc,
-                                      urlparts.path),
-                'query_string': urlparts.query,
-                'method': request.method,
-                'data': self._get_http_request_data(request),
-                'headers': dict(get_headers(request.environ)),
-                'env': dict(get_environ(request.environ)),
+                "url": "%s://%s%s" % (urlparts.scheme, urlparts.netloc, urlparts.path),
+                "query_string": urlparts.query,
+                "method": request.method,
+                "data": self._get_http_request_data(request),
+                "headers": dict(get_headers(request.environ)),
+                "env": dict(get_environ(request.environ)),
             }
 
         @_require_httprequest
         def _get_user_context(self, record, request):
-            return {
-                'id': getattr(request, 'session', {}).get('login', None)
-            }
+            return {"id": getattr(request, "session", {}).get("login", None)}
 
         def _handle_cli_tags(self, record):
             import sys
             from itertools import takewhile
-            tags = setdefaultattr(record, 'tags', {})
+
+            tags = setdefaultattr(record, "tags", {})
             if sys.argv:
-                cmd = ' '.join(
-                    takewhile(lambda arg: not arg.startswith('-'),
-                              sys.argv)
-                )
+                cmd = " ".join(takewhile(lambda arg: not arg.startswith("-"), sys.argv))
             else:
                 cmd = None
             if cmd:
                 import os
+
                 cmd = os.path.basename(cmd)
             if cmd:
-                tags['cmd'] = cmd
+                tags["cmd"] = cmd
 
         @_require_httprequest
         def _handle_browser_tags(self, record, request):
-            tags = setdefaultattr(record, 'tags', {})
+            tags = setdefaultattr(record, "tags", {})
             ua = request.user_agent
             if ua:
-                tags['os'] = ua.platform.capitalize()
-                browser = str(ua.browser).capitalize() + ' ' + str(ua.version)
-                tags['browser'] = browser
+                tags["os"] = ua.platform.capitalize()
+                browser = str(ua.browser).capitalize() + " " + str(ua.version)
+                tags["browser"] = browser
 
         @_require_httprequest
         def _handle_db_tags(self, record, request):
-            db = getattr(request, 'session', {}).get('db', None)
+            db = getattr(request, "session", {}).get("db", None)
             if db:
-                tags = setdefaultattr(record, 'tags', {})
-                tags['db'] = db
+                tags = setdefaultattr(record, "tags", {})
+                tags["db"] = db
 
         def _handle_fingerprint(self, record):
             from xoutil.names import nameof
+
             exc_info = record.exc_info
             if exc_info:
                 _type, value, _tb = exc_info
                 exc = nameof(_type, inner=True, full=True)
-                if exc.startswith('psycopg2.'):
+                if exc.startswith("psycopg2."):
                     fingerprint = [exc]
                 else:
-                    fingerprint = getattr(value, '_sentry_fingerprint', None)
+                    fingerprint = getattr(value, "_sentry_fingerprint", None)
                 if fingerprint:
                     if not isinstance(fingerprint, list):
                         fingerprint = [fingerprint]
@@ -212,6 +216,7 @@ def patch_logging(override=True, force=False):
         def _get_http_request_data(self, request):
             from xoeuf.odoo.http import JsonRequest, HttpRequest
             from xoeuf.odoo.http import request  # Let it raise
+
             # We can't simply use `isinstance` cause request is actual a
             # 'werkzeug.local.LocalProxy' instance.
             if request._request_type == JsonRequest._request_type:
@@ -229,22 +234,22 @@ def patch_logging(override=True, force=False):
             if not exc_info:
                 return res
             from xoeuf.odoo.exceptions import Warning
-            ignored = (Warning, )
+
+            ignored = (Warning,)
             try:
                 from xoeuf.odoo.exceptions import RedirectWarning
-                ignored += (RedirectWarning, )
+
+                ignored += (RedirectWarning,)
             except ImportError:
                 pass
             from xoeuf.odoo.exceptions import except_orm
-            ignored += (except_orm, )
+
+            ignored += (except_orm,)
             _type, value, _tb = exc_info
             return not isinstance(value, ignored)
 
         def set_record_tags(self, record):
-            methods = (
-                getattr(self, m)
-                for m in dir(self) if m.startswith('_handle_')
-            )
+            methods = (getattr(self, m) for m in dir(self) if m.startswith("_handle_"))
             for method in methods:
                 method(record)
 
@@ -252,7 +257,7 @@ def patch_logging(override=True, force=False):
     if not client:
         return
 
-    level = conf.get('report_level', 'ERROR')
+    level = conf.get("report_level", "ERROR")
 
     def sethandler(logger, override=override, level=level):
         handler = SentryHandler(client=client)
@@ -262,6 +267,6 @@ def patch_logging(override=True, force=False):
         else:
             logger.handlers.append(handler)
 
-    for name in (None, 'openerp'):
+    for name in (None, "openerp"):
         logger = logging.getLogger(name)
         sethandler(logger)

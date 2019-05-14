@@ -8,11 +8,11 @@
 #
 
 {
-    'name': 'test_signals',
-    'author': 'Merchise Autrement [~º/~] and Contributors',
-    'description': 'Test for signals (as implemented in xoeuf)',
-    'depends': ['base', ],
-    'data': ['views/views.xml', ],
-    'installable': True,
-    'auto_install': False,
+    "name": "test_signals",
+    "author": "Merchise Autrement [~º/~] and Contributors",
+    "description": "Test for signals (as implemented in xoeuf)",
+    "depends": ["base"],
+    "data": ["views/views.xml"],
+    "installable": True,
+    "auto_install": False,
 }

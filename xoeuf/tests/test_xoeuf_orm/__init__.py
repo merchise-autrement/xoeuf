@@ -11,6 +11,6 @@ from xoeuf import models, fields
 
 
 class Node(models.Model):
-    _name = 'test_xoeuf_orm.node'
+    _name = "test_xoeuf_orm.node"
     parent = fields.Many2one(_name)
-    children = fields.One2many(_name, 'parent')
+    children = fields.One2many(_name, "parent")

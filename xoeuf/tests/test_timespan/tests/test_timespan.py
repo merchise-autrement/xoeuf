@@ -7,9 +7,11 @@
 # This is free software; you can do what the LICENCE file allows you to.
 #
 
-from __future__ import (division as _py3_division,
-                        print_function as _py3_print,
-                        absolute_import as _py3_abs_import)
+from __future__ import (
+    division as _py3_division,
+    print_function as _py3_print,
+    absolute_import as _py3_abs_import,
+)
 from xoutil.future.datetime import TimeSpan, parse_date
 
 from datetime import date
@@ -30,7 +32,7 @@ def timespans(draw):
 class TestTimespan(TransactionCase):
     def setUp(self):
         super(TestTimespan, self).setUp()
-        self.Value = self.env['test.timespan.value']
+        self.Value = self.env["test.timespan.value"]
 
     def assertDateEqual(self, value1, value2):
         if value1 and value2:
@@ -49,27 +51,19 @@ class TestTimespan(TransactionCase):
             else:
                 v2 = parse_date(value2)
                 date2 = value2
-            self.assertTrue(
-                v1 == v2,
-                '%r is not equal to %r' % (date1, date2)
-            )
+            self.assertTrue(v1 == v2, "%r is not equal to %r" % (date1, date2))
         else:
             return value1 in (False, None) and value2 in (False, None)
 
     @given(timespans())
     def test_create(self, value):
-        obj = self.Value.create({
-            'period': value
-        })
+        obj = self.Value.create({"period": value})
         self.assertDateEqual(obj.start_date, value.start_date)
         self.assertDateEqual(obj.end_date, value.end_date)
 
     @given(maybe_dates, maybe_dates)
     def test_create2(self, start, end):
-        obj = self.Value.create({
-            'start_date': start,
-            'end_date': end,
-        })
+        obj = self.Value.create({"start_date": start, "end_date": end})
         self.assertEqual(obj.period, TimeSpan(start, end))
 
     @given(timespans())

@@ -7,7 +7,7 @@
 # This is free software; you can do what the LICENCE file allows you to.
 #
 
-'''Some tools to improve `OpenERP` security.
+"""Some tools to improve `OpenERP` security.
 
 - :func:`reset_all_passwords`: to reset all passwords in a data-base.
 
@@ -20,34 +20,41 @@ method.  Each level implies all other with an inferior numerical value.  See
 `xoutil.crypto.generate_password` for more information about defined
 constants of security level.
 
-'''
+"""
 
-from __future__ import (division as _py3_division,
-                        print_function as _py3_print,
-                        absolute_import as _py3_abs_import)
+from __future__ import (
+    division as _py3_division,
+    print_function as _py3_print,
+    absolute_import as _py3_abs_import,
+)
 
 
-from xoutil.crypto import (PASS_PHRASE_LEVEL_BASIC,  # noqa
-                           PASS_PHRASE_LEVEL_MAPPED,
-                           PASS_PHRASE_LEVEL_MAPPED_MIXED,
-                           PASS_PHRASE_LEVEL_MAPPED_DATED,
-                           PASS_PHRASE_LEVEL_STRICT,
-                           DEFAULT_PASS_PHRASE_LEVEL as _DEF_LEVEL)
+from xoutil.crypto import (  # noqa
+    PASS_PHRASE_LEVEL_BASIC,
+    PASS_PHRASE_LEVEL_MAPPED,
+    PASS_PHRASE_LEVEL_MAPPED_MIXED,
+    PASS_PHRASE_LEVEL_MAPPED_DATED,
+    PASS_PHRASE_LEVEL_STRICT,
+    DEFAULT_PASS_PHRASE_LEVEL as _DEF_LEVEL,
+)
 
 
 from xoutil.names import strlist as strs
-__all__ = strs('PASS_PHRASE_LEVEL_BASIC',
-               'PASS_PHRASE_LEVEL_MAPPED',
-               'PASS_PHRASE_LEVEL_MAPPED_MIXED',
-               'PASS_PHRASE_LEVEL_MAPPED_DATED',
-               'PASS_PHRASE_LEVEL_STRICT',
-               'reset_all_passwords',
-               'reset_invalid_passwords')
+
+__all__ = strs(
+    "PASS_PHRASE_LEVEL_BASIC",
+    "PASS_PHRASE_LEVEL_MAPPED",
+    "PASS_PHRASE_LEVEL_MAPPED_MIXED",
+    "PASS_PHRASE_LEVEL_MAPPED_DATED",
+    "PASS_PHRASE_LEVEL_STRICT",
+    "reset_all_passwords",
+    "reset_invalid_passwords",
+)
 del strs
 
 
 def _reset_passwords(self, security_level, verbose, check=None):
-    '''Internal module function to reset passwords in a data-base.
+    """Internal module function to reset passwords in a data-base.
 
     This function is used by :func:`reset_all_passwords` and
     :func:`reset_invalid_passwords` functions.
@@ -70,27 +77,33 @@ def _reset_passwords(self, security_level, verbose, check=None):
              data-base cursor, `id` the user data-base id to check, and
              `login` the user login identifier.
 
-    '''
+    """
     from xoutil.crypto import generate_password
     from xoutil.future.codecs import safe_encode
+
     users = self.search([])
     for user in users:
         login = user.login
         if check is None or check(user):
             user.password = password = generate_password(login, security_level)
             if verbose:
-                print(safe_encode(
-                    ">>> id: %(id)s, login: %(login)s, "
-                    "name: %(name)s, "
-                    "password: '%(password)s'" % dict(id=user.id,
-                                                      login=user.login,
-                                                      name=user.name,
-                                                      password=password)
-                ))
+                print(
+                    safe_encode(
+                        ">>> id: %(id)s, login: %(login)s, "
+                        "name: %(name)s, "
+                        "password: '%(password)s'"
+                        % dict(
+                            id=user.id,
+                            login=user.login,
+                            name=user.name,
+                            password=password,
+                        )
+                    )
+                )
 
 
 def reset_all_passwords(self, security_level=_DEF_LEVEL, verbose=True):
-    '''Reset all passwords in a data-base.
+    """Reset all passwords in a data-base.
 
     :param self: The res.users model.
 
@@ -106,12 +119,12 @@ def reset_all_passwords(self, security_level=_DEF_LEVEL, verbose=True):
 
     See module documentation for more info.
 
-    '''
+    """
     _reset_passwords(self, security_level, verbose)
 
 
 def reset_invalid_passwords(self, security_level=_DEF_LEVEL):
-    '''Reset all invalid passwords in a data-base.
+    """Reset all invalid passwords in a data-base.
 
     :param self: The res.users model.
 
@@ -128,9 +141,11 @@ def reset_invalid_passwords(self, security_level=_DEF_LEVEL):
 
     See module documentation for more info.
 
-    '''
+    """
+
     def check(self):
         from xoeuf.odoo.exceptions import AccessDenied
+
         try:
             self.sudo(self.id).check_credentials(self.login)
             return True

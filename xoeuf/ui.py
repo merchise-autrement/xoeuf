@@ -7,13 +7,15 @@
 # This is free software; you can do what the LICENCE file allows you to.
 #
 
-'''User interface stuff.
+"""User interface stuff.
 
-'''
+"""
 
-from __future__ import (division as _py3_division,
-                        print_function as _py3_print,
-                        absolute_import as _py3_abs_import)
+from __future__ import (
+    division as _py3_division,
+    print_function as _py3_print,
+    absolute_import as _py3_abs_import,
+)
 
 
 class _const(dict):
@@ -22,11 +24,11 @@ class _const(dict):
 
 
 # Return this to close a window
-CLOSE_WINDOW = _const({'type': 'ir.actions.act_window_close'})
+CLOSE_WINDOW = _const({"type": "ir.actions.act_window_close"})
 
 
 # Return this to reload the interface
-RELOAD_UI = _const({'type': 'ir.actions.client', 'tag': 'reload'})
+RELOAD_UI = _const({"type": "ir.actions.client", "tag": "reload"})
 
 
 # The do nothing action.

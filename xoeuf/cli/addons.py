@@ -7,34 +7,38 @@
 # This is free software; you can do what the LICENCE file allows you to.
 #
 
-from __future__ import (division as _py3_division,
-                        print_function as _py3_print,
-                        absolute_import as _py3_abs_import)
+from __future__ import (
+    division as _py3_division,
+    print_function as _py3_print,
+    absolute_import as _py3_abs_import,
+)
 
 from . import Command
 
 
 class Addons(Command):
-    '''List all non-uninstallable addons found in the DB.
+    """List all non-uninstallable addons found in the DB.
 
-    '''
+    """
+
     @classmethod
     def get_arg_parser(cls):
-        res = getattr(cls, '_arg_parser', None)
+        res = getattr(cls, "_arg_parser", None)
         if not res:
             from argparse import ArgumentParser
+
             res = ArgumentParser()
             cls._arg_parser = res
-            res.add_argument('-f', '--filter',
-                             dest='filters',
-                             default=[],
-                             action='append')
+            res.add_argument(
+                "-f", "--filter", dest="filters", default=[], action="append"
+            )
         return res
 
     @classmethod
     def database_factory(cls, database):
         import importlib
-        module = 'xoeuf.pool.%s' % database
+
+        module = "xoeuf.pool.%s" % database
         return importlib.import_module(module)
 
     def run(self, args=None):
@@ -50,6 +54,7 @@ class Addons(Command):
 
     def get_addons(self, filters):
         from xoeuf.odoo.modules import get_modules
+
         return [
             addon
             for addon in get_modules()
