@@ -5,7 +5,7 @@
 Beta releases (series 0.X)
 ==========================
 
-Unreleased.  Release 0.62.0
+2019-05-14.  Release 0.62.0
 ---------------------------
 
 - We're approaching a final 1.0 release.  We're stopping adding new features
