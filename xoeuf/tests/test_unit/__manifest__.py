@@ -7,10 +7,10 @@
 # This is free software; you can do what the LICENCE file allows you to.
 #
 {
-    'name': 'test_unit',
-    'author': 'Merchise Autrement [~º/~] and Contributors',
-    'description': 'Unit tests',
-    'depends': ['base', ],
-    'installable': True,
-    'auto_install': False,
+    "name": "test_unit",
+    "author": "Merchise Autrement [~º/~] and Contributors",
+    "description": "Unit tests",
+    "depends": ["base"],
+    "installable": True,
+    "auto_install": False,
 }

@@ -8,10 +8,10 @@
 #
 
 {
-    'name': 'test_api',
-    'author': 'Merchise Autrement [~º/~] and Contributors',
-    'description': 'Test for our API functions',
-    'depends': ['base', ],
-    'installable': True,
-    'auto_install': False,
+    "name": "test_api",
+    "author": "Merchise Autrement [~º/~] and Contributors",
+    "description": "Test for our API functions",
+    "depends": ["base"],
+    "installable": True,
+    "auto_install": False,
 }

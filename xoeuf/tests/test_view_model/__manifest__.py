@@ -8,9 +8,9 @@
 #
 
 {
-    'name': 'test_view_model',
-    'version': '1.0',
-    'depends': ['base', ],
-    'auto_install': False,
-    'installable': True
+    "name": "test_view_model",
+    "version": "1.0",
+    "depends": ["base"],
+    "auto_install": False,
+    "installable": True,
 }

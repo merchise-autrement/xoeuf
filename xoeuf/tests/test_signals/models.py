@@ -6,42 +6,42 @@
 #
 # This is free software; you can do what the LICENCE file allows you to.
 #
-from __future__ import (division as _py3_division,
-                        print_function as _py3_print,
-                        absolute_import as _py3_abs_import)
+from __future__ import (
+    division as _py3_division,
+    print_function as _py3_print,
+    absolute_import as _py3_abs_import,
+)
 
 from xoeuf import api, models, fields, signals
 from lxml import etree
 
 
 class FVG(models.AbstractModel):
-    _name = 'test_signals.fvg'
+    _name = "test_signals.fvg"
 
     @api.model
-    def fields_view_get(self, view_id=None, view_type='form', toolbar=False,
-                        submenu=False):
+    def fields_view_get(
+        self, view_id=None, view_type="form", toolbar=False, submenu=False
+    ):
         result = super(FVG, self).fields_view_get(
-            view_id=view_id,
-            view_type=view_type,
-            toolbar=toolbar,
-            submenu=submenu
+            view_id=view_id, view_type=view_type, toolbar=toolbar, submenu=submenu
         )
-        if view_type == 'form':
-            doc = etree.XML(result['arch'])
+        if view_type == "form":
+            doc = etree.XML(result["arch"])
             for node in doc.xpath('//field[@name="name"]'):
-                node.set('fgv-is-present', 'yes')
-            result['arch'] = etree.tostring(doc)
+                node.set("fgv-is-present", "yes")
+            result["arch"] = etree.tostring(doc)
         return result
 
 
 class SignalingModel(models.Model):
-    _name = 'test_signals.signaling_model'
-    _inherit = ['test_signals.fvg']
+    _name = "test_signals.signaling_model"
+    _inherit = ["test_signals.fvg"]
 
     name = fields.Char()
 
 
-@signals.receiver(signals.post_save, sender='test_signals.signaling_model')
+@signals.receiver(signals.post_save, sender="test_signals.signaling_model")
 def post_save_receiver(sender, signal, **kwargs):
     pass
 
@@ -51,22 +51,21 @@ def post_save_receiver_all_models(sender, signal, **kwargs):
     pass
 
 
-@signals.receiver(signals.pre_save, sender='test_signals.signaling_model')
+@signals.receiver(signals.pre_save, sender="test_signals.signaling_model")
 def pre_save_receiver(sender, signal, **kwargs):
     pass
 
 
-@signals.wrapper(signals.write_wrapper, sender='test_signals.signaling_model')
+@signals.wrapper(signals.write_wrapper, sender="test_signals.signaling_model")
 def wrap_nothing(sender, wrapping, *args, **kwargs):
     yield
 
 
-@signals.receiver(signals.pre_search, sender='test_signals.signaling_model')
+@signals.receiver(signals.pre_search, sender="test_signals.signaling_model")
 def pre_search_receiver(sender, signal, **kwargs):
     pass
 
 
-@signals.receiver(signals.pre_fields_view_get,
-                  sender='test_signals.signaling_model')
+@signals.receiver(signals.pre_fields_view_get, sender="test_signals.signaling_model")
 def pre_fvg_receiver(sender, signal, **kwargs):
     pass

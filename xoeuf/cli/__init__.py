@@ -7,16 +7,19 @@
 # This is free software; you can do what the LICENCE file allows you to.
 #
 
-from __future__ import (division as _py3_division,
-                        print_function as _py3_print,
-                        absolute_import as _py3_abs_import)
+from __future__ import (
+    division as _py3_division,
+    print_function as _py3_print,
+    absolute_import as _py3_abs_import,
+)
 
 
-DEFAULT_COMMAND = str('server')
+DEFAULT_COMMAND = str("server")
 
 # Makes sure modules are patched before any command-related code is
 # invoked.
 from xoeuf.modules import patch_modules
+
 patch_modules()
 
 
@@ -25,19 +28,20 @@ from xoeuf.eight.meta import metaclass
 
 
 class CommandsProxy(BaseCommand):
-    '''Define a proxy to register all OpenERP CLI commands to "xoutil.cli".
+    """Define a proxy to register all OpenERP CLI commands to "xoutil.cli".
 
-    '''
+    """
+
     __new__ = None  # Can't be instantiated
 
     @classmethod
     def __commands__(cls):
-        '''Get all OpenERP registered commands.
+        """Get all OpenERP registered commands.
 
         Discard add-ons that raise errors when importing them.
 
-        '''
-        name = '__commands_cache__'
+        """
+        name = "__commands_cache__"
         res = getattr(cls, name, None)
         if not res:
             try:
@@ -56,11 +60,13 @@ class CommandsProxy(BaseCommand):
     @staticmethod
     def _discover_addons_path():
         import sys
+
         args = sys.argv[1:]
-        prefix = '--addons-path='
+        prefix = "--addons-path="
         addons_path = next((a for a in args if a.startswith(prefix)), None)
         if addons_path:
             from xoeuf.odoo.tools import config
+
             config.parse_config([addons_path])
 
 
@@ -70,26 +76,28 @@ BaseCommand.set_default_command(DEFAULT_COMMAND)
 class CommandType(type(BaseCommand)):
     def __new__(cls, name, bases, attrs):
         from xoeuf.api import contextual
-        run = attrs.get('run', None)
+
+        run = attrs.get("run", None)
         if run:
-            attrs['run'] = contextual(run)
+            attrs["run"] = contextual(run)
         return super(CommandType, cls).__new__(cls, name, bases, attrs)
 
 
 class Command(metaclass(CommandType), BaseCommand):
     @staticmethod
     def invalidate_logging(base=None):
-        '''Force the logger `base` to report only CRITICAL messages.
+        """Force the logger `base` to report only CRITICAL messages.
 
         :param base: The name of logger to invalidate.  None is the root
                      logger *and* the "openerp" logger.
 
-        '''
+        """
         import logging
+
         logger = logging.getLogger(base)
         logger.setLevel(logging.CRITICAL)
         if not base:
-            Command.invalidate_logging('openerp')
+            Command.invalidate_logging("openerp")
 
 
 del BaseCommand
@@ -99,4 +107,5 @@ del BaseCommand
 from . import migration
 from . import secure as _secure
 from . import addons as _addons
+
 del _secure, _addons, migration

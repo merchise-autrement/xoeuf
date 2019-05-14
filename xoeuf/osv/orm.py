@@ -6,10 +6,12 @@
 #
 # This is free software; you can do what the LICENCE file allows you to.
 #
-'''Xœuf basic ORM extensions for Open Object (OpenERP) models.'''
-from __future__ import (division as _py3_division,
-                        print_function as _py3_print,
-                        absolute_import)
+"""Xœuf basic ORM extensions for Open Object (OpenERP) models."""
+from __future__ import (
+    division as _py3_division,
+    print_function as _py3_print,
+    absolute_import,
+)
 
 from xoeuf.tools import add_symbols_to_xmls
 from xoeuf.models import get_modelname as _get_modelname
@@ -19,33 +21,35 @@ from xoutil.deprecation import deprecated
 from xoeuf.eight import integer_types
 
 
-get_modelname = deprecated('xoeuf.models.get_modelname')(_get_modelname)
+get_modelname = deprecated("xoeuf.models.get_modelname")(_get_modelname)
 del _get_modelname, deprecated
 
 
-def guess_id(which, attr='id'):
-    '''Guess the id of an object.
+def guess_id(which, attr="id"):
+    """Guess the id of an object.
 
     If `which` is an integer, it is returned unchanged.  If it is a dict
     or a browse_record the attribute/key given by `attr` is look up and
     return.  If not found an AttibuteError is raised.  Any other type is a
     TypeError.
 
-    '''
+    """
     from xoeuf.odoo.osv.orm import browse_record
     from xoutil.future.collections import Mapping
+
     if isinstance(which, integer_types):
         return which
     elif isinstance(which, (Mapping, browse_record)):
         from xoutil.objects import smart_getter
+
         get = smart_getter(which, strict=True)
         return get(attr)
     else:
-        raise TypeError('Object %r of invalid type' % which)
+        raise TypeError("Object %r of invalid type" % which)
 
 
 def store_identity(self, cr, uid, ids, context=None):
-    '''To be used in ``store`` parameter for functional fields when monitor
+    """To be used in ``store`` parameter for functional fields when monitor
     is needed for fields in a local model.
 
     For example::
@@ -54,7 +58,7 @@ def store_identity(self, cr, uid, ids, context=None):
             fields.function(_get_active, type='boolean', string='Active?',
                 store={_name: (store_identity, ['contract_ids'], 10), }),
 
-    '''
+    """
     return ids
 
 
@@ -104,7 +108,7 @@ FORGET_RELATED = _Command(3, lambda id: (3, id))
 LINK_RELATED = _Command(4, lambda id: (4, id))
 
 #: Returns a single command to unlink all
-UNLINKALL_RELATED = _Command(5, lambda: (5, ))
+UNLINKALL_RELATED = _Command(5, lambda: (5,))
 
 #: Returns a single command to replace all related with existing ids
 REPLACEWITH_RELATED = _Command(6, lambda *ids: (6, 0, list(ids)))

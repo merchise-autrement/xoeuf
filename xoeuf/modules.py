@@ -6,12 +6,14 @@
 #
 # This is free software; you can do what the LICENCE file allows you to.
 #
-'''External OpenERP's addons
+"""External OpenERP's addons
 
-'''
-from __future__ import (division as _py3_division,
-                        print_function as _py3_print,
-                        absolute_import as _py3_abs_import)
+"""
+from __future__ import (
+    division as _py3_division,
+    print_function as _py3_print,
+    absolute_import as _py3_abs_import,
+)
 
 import sys
 import logging
@@ -26,18 +28,17 @@ from xoeuf.eight import string_types
 
 
 # In Odoo 10, they allow to import from both 'odoo' and 'openerp'
-_ADDONS_NAMESPACE = re.compile(
-    r'^(?:odoo|openerp)\.addons\.(?P<module>[^\.]+)\.'
-)
+_ADDONS_NAMESPACE = re.compile(r"^(?:odoo|openerp)\.addons\.(?P<module>[^\.]+)\.")
 
-XOEUF_EXTERNAL_ADDON_GROUP = 'xoeuf.addons'
+XOEUF_EXTERNAL_ADDON_GROUP = "xoeuf.addons"
 
 
 # XXX: @manu, probably the prefix 'xoeuf.' could be avoided.
 class OdooHook(object):
-    '''Hook for 'odoo' (or 'openerp') package to be available as 'xoeuf.odoo'.
+    """Hook for 'odoo' (or 'openerp') package to be available as 'xoeuf.odoo'.
 
-    '''
+    """
+
     try:
         import openerp as _mod
     except ImportError:
@@ -47,10 +48,11 @@ class OdooHook(object):
         import odoo as _mod
     NAME = _mod.__name__
     del _mod
-    REGEX = r'^xoeuf[.](?:openerp|odoo)\b'
+    REGEX = r"^xoeuf[.](?:openerp|odoo)\b"
 
     def find_module(self, name, path=None):
         import re
+
         if re.match(self.REGEX, name):
             return self
 
@@ -58,9 +60,10 @@ class OdooHook(object):
         import sys
         import re
         import importlib
+
         assert name not in sys.modules
-        regex = self.REGEX + r'(.*)'
-        canonical = re.sub(regex, self.NAME + '\g<1>', name)
+        regex = self.REGEX + r"(.*)"
+        canonical = re.sub(regex, self.NAME + "\g<1>", name)
         if canonical in sys.modules:
             mod = sys.modules[canonical]
         else:
@@ -82,6 +85,7 @@ class _PatchesRegistry(object):
 
     def __call__(self, func):
         from xoutil.names import nameof
+
         name = nameof(func, inner=True, full=False)
         self._registry[name] = func
         return func
@@ -91,11 +95,12 @@ class _PatchesRegistry(object):
 
     def apply(self):
         from xoeuf.odoo.modules import module
-        patched = getattr(module, '__xoeuf_patched__', False)
+
+        patched = getattr(module, "__xoeuf_patched__", False)
         if patched:
             # This is an Odoo that's being patched by us.
             return
-        bootstraped = getattr(self, 'bootstraped', False)
+        bootstraped = getattr(self, "bootstraped", False)
         if not bootstraped:
             for name, func in self._registry.items():
                 self._wrapped[name] = getattr(module, name)
@@ -111,7 +116,7 @@ patch = _PatchesRegistry()
 @modulemethod
 @lru_cache(1)
 def find_external_addons(self):
-    '''Finds all externally installed addons.
+    """Finds all externally installed addons.
 
     Externally installed addons are modules that are distributed with
     setuptools' distributions.
@@ -128,10 +133,11 @@ def find_external_addons(self):
        [xoeuf.addons]
        xopgi_account = xopgi.addons.xopgi_account
 
-    '''
+    """
     import os
     from pkg_resources import iter_entry_points
     from xoutil.future.itertools import delete_duplicates
+
     res = []
     for entry in iter_entry_points(XOEUF_EXTERNAL_ADDON_GROUP):
         if not entry.attrs:
@@ -140,15 +146,15 @@ def find_external_addons(self):
             # is configured, but if you load an OpenERP addon you will be
             # importing openerp somehow and enacting configuration
             loc = entry.dist.location
-            relpath = entry.module_name.replace('.', os.path.sep)
+            relpath = entry.module_name.replace(".", os.path.sep)
             # The parent directory is the one!
-            abspath = os.path.abspath(os.path.join(loc, relpath, '..'))
+            abspath = os.path.abspath(os.path.join(loc, relpath, ".."))
             if os.path.isdir(abspath):
                 res.append(abspath)
                 name = entry.module_name
-                pos = name.rfind('.')
+                pos = name.rfind(".")
                 if pos >= 0:
-                    name = name[pos+1:]  # noqa
+                    name = name[pos + 1 :]  # noqa
     return delete_duplicates(res)
 
 
@@ -157,8 +163,9 @@ def find_external_addons(self):
 def initialize_sys_path(self):
     from xoutil.objects import setdefaultattr
     from xoeuf.odoo.modules import module
-    _super = patch.get_super('initialize_sys_path')
-    external_addons = setdefaultattr(self, '__addons', [])
+
+    _super = patch.get_super("initialize_sys_path")
+    external_addons = setdefaultattr(self, "__addons", [])
     if not external_addons:
         _super()
         result = module.ad_paths
@@ -171,28 +178,30 @@ def initialize_sys_path(self):
 
 
 def patch_modules():
-    '''Patches OpenERP `modules.module` to work with external addons.
+    """Patches OpenERP `modules.module` to work with external addons.
 
-    '''
+    """
     patch.apply()
 
 
 def _get_registry(db_name):
-    '''Helper method to get the registry for a `db_name`.'''
+    """Helper method to get the registry for a `db_name`."""
     from odoo.modules.registry import Registry
+
     if isinstance(db_name, string_types):
         db = Registry(db_name)
     elif isinstance(db_name, Registry):
         db = db_name
     else:
         import sys
+
         caller = sys.getframe(1).f_code.co_name
         raise TypeError('"%s" requires a string or a Registry' % caller)
     return db
 
 
 def get_dangling_modules(db):
-    '''Get registered modules that are no longer available.
+    """Get registered modules that are no longer available.
 
     Returns the recordset of dangling modules.  This is a recordset of the
     model `ir.module.module`.
@@ -208,65 +217,67 @@ def get_dangling_modules(db):
     .. warning:: We create a new cursor to the DB and the returned recordset
                  uses it.
 
-    '''
+    """
     from xoeuf import api
     from xoeuf.odoo import SUPERUSER_ID
     from xoeuf.odoo.modules.module import get_modules
+
     registry = _get_registry(db)
     cr = registry.cursor()
     env = api.Environment(cr, SUPERUSER_ID, {})
-    Module = env['ir.module.module']
+    Module = env["ir.module.module"]
     available = get_modules()
-    return Module.search([('name', 'not in', available)])
+    return Module.search([("name", "not in", available)])
 
 
 def mark_dangling_modules(db):
-    '''Mark `dangling <get_dangling_modules>`:func: as uninstallable.
+    """Mark `dangling <get_dangling_modules>`:func: as uninstallable.
 
     Parameters and return value are the same as in function
     :func:`get_dangling_modules`.
 
-    '''
+    """
     dangling = get_dangling_modules(db)
-    dangling.write(dict(state='uninstallable'))
+    dangling.write(dict(state="uninstallable"))
     dangling.env.cr.commit()
     return dangling
 
 
 def get_object_module(obj, typed=False):
-    '''Return the name of the OpenERP addon the `obj` has been defined.
+    """Return the name of the OpenERP addon the `obj` has been defined.
 
     If the `obj` is not defined (imported) from the "openerp.addons."
     namespace, return None.
 
-    '''
+    """
     from xoutil.names import nameof
+
     name = nameof(obj, inner=True, full=True, typed=typed)
     match = _ADDONS_NAMESPACE.match(name)
     if match:
-        module = match.groupdict()['module']
+        module = match.groupdict()["module"]
         return module
     else:
         return None
 
 
 def is_object_installed(self, object):
-    '''Detects if `object` is installed in the DB.
+    """Detects if `object` is installed in the DB.
 
     `self` must be an Odoo model (recordset, but it may be empty).
 
-    '''
+    """
     module = get_object_module(object)
     if module:
-        mm = self.env['ir.module.module'].sudo()
-        query = [('state', '=', 'installed'), ('name', '=', module)]
+        mm = self.env["ir.module.module"].sudo()
+        query = [("state", "=", "installed"), ("name", "=", module)]
         return bool(mm.search(query))
     else:
         return False
 
 
 def get_caller_addon(depth=0, max_depth=5):
-    '''Guess the caller addon.
+    """Guess the caller addon.
 
     :param depth: Skip that many levels in the call stack.
 
@@ -279,17 +290,17 @@ def get_caller_addon(depth=0, max_depth=5):
 
     .. versionchanged:: 0.51.0 Added `max_depth` argument.
 
-    '''
+    """
     res = None
     frame = sys._getframe(1 + depth)
     while depth < max_depth and frame is not None and not res:
-        module = frame.f_globals['__name__']
-        if module.startswith('odoo.addons.'):
-            module = cut_prefix(module, 'odoo.addons.')
-            res = module.split('.', 1)[0]
-        elif module.startswith('openerp.addons.'):
-            module = cut_prefix(module, 'openerp.addons.')
-            res = module.split('.', 1)[0]
+        module = frame.f_globals["__name__"]
+        if module.startswith("odoo.addons."):
+            module = cut_prefix(module, "odoo.addons.")
+            res = module.split(".", 1)[0]
+        elif module.startswith("openerp.addons."):
+            module = cut_prefix(module, "openerp.addons.")
+            res = module.split(".", 1)[0]
         depth += 1
         frame = frame.f_back
     return res

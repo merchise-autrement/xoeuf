@@ -7,7 +7,7 @@
 # This is free software; you can do what the LICENCE file allows you to.
 #
 
-'''Transparently import models.
+"""Transparently import models.
 
 Example usage (in xoeuf' shell)::
 
@@ -29,10 +29,12 @@ Example usage (in xoeuf' shell)::
     res.users(...)
 
 
-'''
-from __future__ import (division as _py3_division,
-                        print_function as _py3_print,
-                        absolute_import as _py3_abs_import)
+"""
+from __future__ import (
+    division as _py3_division,
+    print_function as _py3_print,
+    absolute_import as _py3_abs_import,
+)
 
 
 import re
@@ -41,7 +43,8 @@ from types import ModuleType
 from . import _proxy
 
 import warnings
-warnings.warn('xoeuf.model.proxy is deprecated and will be removed before 1.0')
+
+warnings.warn("xoeuf.model.proxy is deprecated and will be removed before 1.0")
 
 
 class ModelImporter(object):
@@ -54,7 +57,7 @@ class ModelImporter(object):
 
     @classmethod
     def find_module(cls, name, path=None):
-        base, _sep, name = name.rpartition(str('.'))
+        base, _sep, name = name.rpartition(str("."))
         if base == __name__:
             return cls(name, base)
         else:
@@ -62,12 +65,13 @@ class ModelImporter(object):
             raise ImportError(msg % (name, __name__))
 
     def load_module(self, fullname):
-        '''Returns the loaded module or raises an exception.'''
+        """Returns the loaded module or raises an exception."""
         import sys
+
         self._check(fullname)
         res = sys.modules.get(fullname, None)
         if res is None:
-            res = ModelProxy(fullname.rsplit(str('.'), 1)[-1])
+            res = ModelProxy(fullname.rsplit(str("."), 1)[-1])
             res.__path__ = __path__
             sys.modules[fullname] = res
         return res
@@ -78,11 +82,11 @@ class ModelImporter(object):
 
     @property
     def fullname(self):
-        sep = str('.')
+        sep = str(".")
         return sep.join((self.__base, self.__name))
 
     def _check(self, fullname, asserting=False):
-        'Check `fullname` and raise an error if not correct.'
+        "Check `fullname` and raise an error if not correct."
         local = self.fullname
         if local == fullname:
             return fullname
@@ -103,5 +107,6 @@ __path__ = [splitext(__file__)[0]]
 
 
 import sys
+
 sys.path_hooks.append(ModelImporter.hook)
 del sys, ModelImporter, splitext, re

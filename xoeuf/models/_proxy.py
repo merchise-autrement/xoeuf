@@ -7,13 +7,15 @@
 # This is free software; you can do what the LICENCE file allows you to.
 #
 
-'''Implementation for 'xoeuf.models.proxy'.
+"""Implementation for 'xoeuf.models.proxy'.
 
-'''
+"""
 
-from __future__ import (division as _py3_division,
-                        print_function as _py3_print,
-                        absolute_import as _py3_abs_import)
+from __future__ import (
+    division as _py3_division,
+    print_function as _py3_print,
+    absolute_import as _py3_abs_import,
+)
 
 
 import re
@@ -29,7 +31,7 @@ except ImportError:
 class ModelProxy(object):
     @memoized_property
     def _instances_(self):
-        '''All the *possible* instances of this model.
+        """All the *possible* instances of this model.
 
         The result is an object that allows for containment tests.  The
         containment test would be equivalent to an `isinstance` check.
@@ -42,12 +44,13 @@ class ModelProxy(object):
         .. warning:: This may shadow an attribute '_instances_' in the proxied
            model.
 
-        '''
+        """
         model = self.__model
 
         class Instances(object):
             def __contains__(_, who):
                 from xoeuf import models
+
                 return isinstance(who, models.BaseModel) and who._name == model
 
         return Instances()
@@ -60,6 +63,7 @@ class ModelProxy(object):
     def _proxy_request(self):
         try:
             from xoeuf.odoo.http import request
+
             if request.env:  # An HTTP request may not be bound to a single DB.
                 return request
         except RuntimeError:
@@ -71,18 +75,19 @@ class ModelProxy(object):
         if self._proxy_request:
             return self._proxy_request.env
         import sys
+
         f = sys._getframe(1)
         try:
             this, tries = None, 5
             while this is None and tries and f:
-                this = f.f_locals.get('self', None)
+                this = f.f_locals.get("self", None)
                 if not isinstance(this, models.BaseModel):
                     this = cr = uid = None
-                elif not hasattr(this, 'env'):
+                elif not hasattr(this, "env"):
                     # We still need to support possible old-API methods
-                    cr = f.f_locals.get('cr', None)
-                    uid = f.f_locals.get('uid', None)
-                    context = f.f_locals.get('context', None)
+                    cr = f.f_locals.get("cr", None)
+                    uid = f.f_locals.get("uid", None)
+                    context = f.f_locals.get("context", None)
                     this = this.browse(cr, uid, context=context)
                 f = f.f_back
                 tries -= 1
@@ -101,35 +106,35 @@ class ModelProxy(object):
             return getattr(this[self.__model], attr)
         else:
             raise RuntimeError(
-                'Cannot find attribute %r in proxy model. This is most '
-                'likely due to an invalid call site.' % attr
+                "Cannot find attribute %r in proxy model. This is most "
+                "likely due to an invalid call site." % attr
             )
 
     def __repr__(self):
-        return '<ModelProxy: %r>' % self.__model
+        return "<ModelProxy: %r>" % self.__model
 
 
 def _get_model(name):
-    if '.' in name:
+    if "." in name:
         return name
     words, last = [], 0
     for i, match in enumerate(UPPERS.finditer(name)):
         pos = match.start()
         if i == 0:
-            assert pos == 0, 'The first char must an upper case'
+            assert pos == 0, "The first char must an upper case"
         else:
             words.append(name[last:pos].lower())
         last = pos
     words.append(name[last:].lower())
-    return '.'.join(words)
+    return ".".join(words)
 
 
-UPPERS = re.compile('[A-Z]')
+UPPERS = re.compile("[A-Z]")
 
 
 # Attributes which others might think all modules should have and that
 # shouldn't be delegated to the underlying model.
-MODULE_ATTRS = ('__file__', '__module__', )
+MODULE_ATTRS = ("__file__", "__module__")
 
 
 del memoized_property

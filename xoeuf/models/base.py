@@ -7,9 +7,11 @@
 # This is free software; you can do what the LICENCE file allows you to.
 #
 
-from __future__ import (division as _py3_division,
-                        print_function as _py3_print,
-                        absolute_import as _py3_abs_import)
+from __future__ import (
+    division as _py3_division,
+    print_function as _py3_print,
+    absolute_import as _py3_abs_import,
+)
 
 from collections import defaultdict
 from inspect import getmembers
@@ -19,7 +21,7 @@ from xoeuf.modules import get_caller_addon
 
 
 def get_modelname(model):
-    '''Gets the ORM object's name for a model class/object.
+    """Gets the ORM object's name for a model class/object.
 
     Main usage::
 
@@ -34,9 +36,10 @@ def get_modelname(model):
     .. versionchanged:: 0.61.0 Calling with a `model proxy
        <xoeuf.models.proxy>`:mod: is an error.
 
-    '''
+    """
     from xoeuf.eight import string_types
     from xoeuf.odoo.models import BaseModel
+
     if not isinstance(model, BaseModel) and not issubclass(model, BaseModel):
         msg = "Invalid argument '%s' for param 'model'" % model
         raise TypeError(msg)
@@ -45,8 +48,7 @@ def get_modelname(model):
         # This is the case of a model class having no _name defined, but then
         # it must have the _inherit and _name is regarded the same by OpenERP.
         result = model._inherit
-    assert isinstance(result, string_types), ('Got an invalid name for %r' %
-                                              model)
+    assert isinstance(result, string_types), "Got an invalid name for %r" % model
     return result
 
 
@@ -55,7 +57,7 @@ def _onupdate_methods(self):
     """ Return a list of updater methods. """
 
     def is_onupdate(func):
-        return callable(func) and hasattr(func, '_onupdates')
+        return callable(func) and hasattr(func, "_onupdates")
 
     cls = type(self)
     methods = []
@@ -115,7 +117,7 @@ def resolve_deps(self, method):
     result = []
     # add self's own dependencies
     for dotnames in method._onupdates:
-        model, path = self, dotnames.split('.')
+        model, path = self, dotnames.split(".")
         for i, fname in enumerate(path):
             field = model._fields[fname]
             result.append((model, field, path[:i]))
@@ -144,11 +146,8 @@ def setup_triggers(self):
     """ Add the necessary triggers to execute updater methods. """
     for update_method in self._onupdate_methods:
         for model, field, path in self.resolve_deps(update_method):
-            path_str = None if path is None else ('.'.join(path) or 'id')
-            model._method_triggers.add(
-                field,
-                (update_method, self._name, path_str)
-            )
+            path_str = None if path is None else (".".join(path) or "id")
+            model._method_triggers.add(field, (update_method, self._name, path_str))
 
 
 models.BaseModel.setup_triggers = setup_triggers
@@ -181,12 +180,12 @@ def execute_onupdate(self, fnames):
         # process stored fields
         if paths:
             # determine records of model_name linked by any of paths to self
-            if any(path == 'id' for path in paths):
+            if any(path == "id" for path in paths):
                 target = self
             else:
-                env = self.sudo().with_context({'active_test': False}).env
+                env = self.sudo().with_context({"active_test": False}).env
                 target = env[model_name].search(
-                    Domain.OR(*([(path, 'in', self.ids)] for path in paths))
+                    Domain.OR(*([(path, "in", self.ids)] for path in paths))
                 )
                 target = target.with_env(self.env)
             # prepare recomputation for each field on linked records
@@ -231,7 +230,7 @@ def ViewModel(name, model_name, table=None, mixins=None):
 
     """
     if not table:
-        table = model_name.replace('.', '_')
+        table = model_name.replace(".", "_")
     if not mixins:
         mixins = []
 

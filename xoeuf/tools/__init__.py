@@ -7,12 +7,14 @@
 # This is free software; you can do what the LICENCE file allows you to.
 #
 
-'''Xœuf tools for Open Object (OpenERP) models.
+"""Xœuf tools for Open Object (OpenERP) models.
 
-'''
-from __future__ import (division as _py3_division,
-                        print_function as _py3_print,
-                        absolute_import as _py3_abs_import)
+"""
+from __future__ import (
+    division as _py3_division,
+    print_function as _py3_print,
+    absolute_import as _py3_abs_import,
+)
 
 from typing import Union  # noqa
 from datetime import datetime as _dt, date as _d, time as _t
@@ -34,27 +36,27 @@ try:
 except ImportError:
     # This allows to generate the documentation without actually installing
     # Odoo
-    _SVR_DATE_FMT = '%Y-%m-%d'
-    _SVR_DATETIME_FMT = '%Y-%m-%d %H:%M:%S'
+    _SVR_DATE_FMT = "%Y-%m-%d"
+    _SVR_DATETIME_FMT = "%Y-%m-%d %H:%M:%S"
 
 import pytz
 
 utc = pytz.UTC
 
-_SVR_DATETIME_FMT2 = _SVR_DATETIME_FMT + '.%f'
+_SVR_DATETIME_FMT2 = _SVR_DATETIME_FMT + ".%f"
 
 
 def strip_tzinfo(dt):
     # type: (datetime) -> datetime
-    '''Return the given datetime value with tzinfo removed.
+    """Return the given datetime value with tzinfo removed.
 
     .. deprecated:: 0.50.0  Use the replace method of datetime.
 
-    '''
+    """
     return dt.replace(tzinfo=None)
 
 
-def localize_datetime(self, datetime_value=None, from_tz='UTC', to_tz='UTC'):
+def localize_datetime(self, datetime_value=None, from_tz="UTC", to_tz="UTC"):
     """Convert datetime value from a timezone to another.
 
     We assume `datetime_value` is expressed in the timezone given in
@@ -68,12 +70,13 @@ def localize_datetime(self, datetime_value=None, from_tz='UTC', to_tz='UTC'):
 
     """
     from xoeuf.odoo import fields
+
     if not from_tz:
-        from_tz = self.env.user.tz or 'UTC'
+        from_tz = self.env.user.tz or "UTC"
     if not to_tz:
-        to_tz = self.env.user.tz or 'UTC'
+        to_tz = self.env.user.tz or "UTC"
     if not datetime_value:
-        if from_tz != 'UTC':
+        if from_tz != "UTC":
             datetime_value = fields.Date.context_today(self)
         else:
             datetime_value = fields.Datetime.now()
@@ -82,12 +85,12 @@ def localize_datetime(self, datetime_value=None, from_tz='UTC', to_tz='UTC'):
 
 def date2str(d):
     # type: (date) -> str
-    '''Convert a date to a string using `OpenERP` default date format.
+    """Convert a date to a string using `OpenERP` default date format.
 
     If the argument is not a `datetime.date`:class:, normalize it first with
     `normalize_datetime`:func:.
 
-    '''
+    """
     if not isinstance(d, _d):
         d = normalize_datetime(d)
     return d.strftime(_SVR_DATE_FMT)
@@ -98,13 +101,13 @@ normalize_datestr = date2str
 
 def dt2str(dt):
     # type: (datetime) -> str
-    '''Convert a date-time to a string using `OpenERP` default datetime
+    """Convert a date-time to a string using `OpenERP` default datetime
     format.
 
     If the argument is not a `datetime.datetime`:class:, normalize it first
     with `normalize_datetime`:func:.
 
-    '''
+    """
     if not isinstance(dt, _dt):
         dt = normalize_datetime(dt)
     return dt.strftime(_SVR_DATETIME_FMT)
@@ -115,7 +118,7 @@ normalize_datetimestr = dt2str
 
 def str2dt(s):
     # type: (str) -> datetime
-    'Convert a string to a date-time using `OpenERP` default datetime format.'
+    "Convert a string to a date-time using `OpenERP` default datetime format."
     try:
         return _dt.strptime(s, _SVR_DATETIME_FMT)
     except ValueError:
@@ -130,7 +133,7 @@ parse_datetime = str2dt
 
 def str2date(s):
     # type: (str) -> date
-    'Convert a string to a date-time using `OpenERP` default date format.'
+    "Convert a string to a date-time using `OpenERP` default date format."
     return _dt.strptime(s, _SVR_DATE_FMT)
 
 
@@ -139,7 +142,7 @@ parse_date = str2date
 
 def normalize_datetime(which):
     # type: (Any) -> datetime
-    '''Normalizes `which` to a datetime.
+    """Normalizes `which` to a datetime.
 
     If `which` is a `datetime`, we ensure it will yield a valid string
     (matches the OpenERP datetime format).
@@ -180,8 +183,9 @@ def normalize_datetime(which):
           ...
        ValueError: ...
 
-    '''
+    """
     from xoeuf.eight import string_types
+
     if isinstance(which, _dt):
         return str2dt(dt2str(which))
     elif isinstance(which, _d):
@@ -192,13 +196,14 @@ def normalize_datetime(which):
         except ValueError:
             return parse_date(which)
     else:
-        raise TypeError("Expected a string, date or date but a '%s' was given"
-                        % type(which))
+        raise TypeError(
+            "Expected a string, date or date but a '%s' was given" % type(which)
+        )
 
 
 def normalize_date(which):
     # type: (Any) -> date
-    '''Normalizes `which` to a date.
+    """Normalizes `which` to a date.
 
     If `which` is a `date` is returned unchanged.  If is a `datetime`, then
     its `~datetime.date`:func: method is used.  Otherwise, it must be a string
@@ -234,8 +239,9 @@ def normalize_date(which):
           ...
        ValueError: ...
 
-    '''
+    """
     from xoeuf.eight import string_types
+
     if isinstance(which, _dt):
         return which.date()
     elif isinstance(which, _d):
@@ -246,8 +252,9 @@ def normalize_date(which):
         except ValueError:
             return parse_datetime(which).date()
     else:
-        raise TypeError("Expected a string, date or date but a '%s' was given"
-                        % type(which))
+        raise TypeError(
+            "Expected a string, date or date but a '%s' was given" % type(which)
+        )
 
 
 def dt_as_timezone(dt, tz_name=None):
@@ -341,9 +348,9 @@ def get_time_string(time, up_24=True, include_seconds=False):
 
     """
     if up_24:
-        result = time.strftime('%T' if include_seconds else '%R')
+        result = time.strftime("%T" if include_seconds else "%R")
     else:
-        result = time.strftime('%r' if include_seconds else '%I:%M %p')
+        result = time.strftime("%r" if include_seconds else "%I:%M %p")
     return result
 
 
@@ -376,9 +383,7 @@ def get_time_string_from_float(value, up_24=True, include_seconds=False):
 
     """
     return get_time_string(
-        get_time_from_float(value),
-        up_24=up_24,
-        include_seconds=include_seconds
+        get_time_from_float(value), up_24=up_24, include_seconds=include_seconds
     )
 
 
@@ -386,7 +391,7 @@ _SAFE_EVAL_SYMBOLS = {}
 
 
 def add_symbols_to_xmls(*objs, **symbols):
-    '''Allow to use the provided symbols in XMLs.
+    """Allow to use the provided symbols in XMLs.
 
     Technically this replaces the function `safe_eval` in module
     `odoo.tools.convert` to include the symbols in the context.
@@ -403,7 +408,7 @@ def add_symbols_to_xmls(*objs, **symbols):
 
     .. versionchanged:: 0.43.0 Added the `objs` variable positional arguments.
 
-    '''
+    """
     if objs:
         symbols.update({nameof(obj, inner=True, full=False): obj for obj in objs})
     _SAFE_EVAL_SYMBOLS.update(symbols)
@@ -411,6 +416,7 @@ def add_symbols_to_xmls(*objs, **symbols):
 
 # HACK to make TERM_RELATIONSHIP_KIND available in XMLs.
 from xoeuf.odoo.tools import convert
+
 _safe_eval = convert.safe_eval
 
 

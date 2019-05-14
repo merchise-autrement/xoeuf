@@ -8,10 +8,10 @@
 #
 
 {
-    'name': 'test_enumeration',
-    'author': 'Merchise Autrement [~º/~] and Contributors',
-    'description': 'Test for the field.Enumeration extension',
-    'depends': ['base', ],
-    'installable': True,
-    'auto_install': False,
+    "name": "test_enumeration",
+    "author": "Merchise Autrement [~º/~] and Contributors",
+    "description": "Test for the field.Enumeration extension",
+    "depends": ["base"],
+    "installable": True,
+    "auto_install": False,
 }

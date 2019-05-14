@@ -6,9 +6,11 @@
 #
 # This is free software; you can do what the LICENCE file allows you to.
 #
-from __future__ import (division as _py3_division,
-                        print_function as _py3_print,
-                        absolute_import as _py3_abs_import)
+from __future__ import (
+    division as _py3_division,
+    print_function as _py3_print,
+    absolute_import as _py3_abs_import,
+)
 
 from xoutil.symbols import Unset
 
@@ -18,7 +20,7 @@ from xoeuf.eight.meta import metaclass
 
 
 class PropertyField(Base):
-    '''A property-like field.
+    """A property-like field.
 
     This is always non-store field.  In fact, you may only pass the getter,
     setter and deleter functions.
@@ -74,23 +76,25 @@ class PropertyField(Base):
 
     .. versionchanged:: 0.58.0 Added keyword parameter `memoize`.
 
-    '''
+    """
+
     # This is the best of the three major versions of Odoo we support.  This
     # create a __slot__ and avoids that these values go to the
     # __getattr__/__setattr__ mechanism in fields.Field.  But it also, means
     # that we need to do some tricks in the `__init__`:meth: to make all
     # versions happy.
     _slots = {
-        'property_getter': None,
-        'property_setter': None,
-        'property_deleter': None,
-        'property_onsetup': None,
-        'memoize_result': False,
+        "property_getter": None,
+        "property_setter": None,
+        "property_deleter": None,
+        "property_onsetup": None,
+        "memoize_result": False,
     }
-    type = 'python-property'  # needed to satisfy ir.models.field
+    type = "python-property"  # needed to satisfy ir.models.field
 
-    def __init__(self, getter, setter=None, deleter=None, onsetup=None,
-                 memoize=False, **kwargs):
+    def __init__(
+        self, getter, setter=None, deleter=None, onsetup=None, memoize=False, **kwargs
+    ):
         # Notice we don't abide by the expected fields signature.  Instead, we
         # require one that is compatible with `property`; but we ensure that
         # Odoo sees this Property as normal field with custom attributes.  We
@@ -98,9 +102,9 @@ class PropertyField(Base):
         # is done via a related field, but otherwise custom `write/create`
         # that treat properties could be ignored.
         kw = {
-            'inherited': kwargs.get('inherited', None),
-            'related': kwargs.get('related', None),
-            'related_sudo': kwargs.get('related_sudo', False),
+            "inherited": kwargs.get("inherited", None),
+            "related": kwargs.get("related", None),
+            "related_sudo": kwargs.get("related_sudo", False),
         }
         super(PropertyField, self).__init__(
             # Odoo ignores arguments which are None, therefore, let's force
@@ -117,7 +121,6 @@ class PropertyField(Base):
             property_deleter=deleter or Unset,
             property_onsetup=onsetup or Unset,
             memoize_result=memoize,
-
             compute=getter,
             store=False,
             copy=False,
@@ -133,11 +136,11 @@ class PropertyField(Base):
     def new(self, **kwargs):
         # Ensure the property getter, setter and deleter are provided.  This
         # is used in `setter`:meth: and `deleter`:meth:.
-        getter = kwargs.pop('getter', self.property_getter)
-        setter = kwargs.pop('setter', self.property_setter)
-        deleter = kwargs.pop('deleter', self.property_deleter)
-        onsetup = kwargs.pop('onsetup', self.property_onsetup)
-        memoize = kwargs.pop('memoize', self.memoize_result)
+        getter = kwargs.pop("getter", self.property_getter)
+        setter = kwargs.pop("setter", self.property_setter)
+        deleter = kwargs.pop("deleter", self.property_deleter)
+        onsetup = kwargs.pop("onsetup", self.property_onsetup)
+        memoize = kwargs.pop("memoize", self.memoize_result)
         return type(self)(
             getter=getter,
             setter=setter,
@@ -186,7 +189,7 @@ class PropertyField(Base):
             if self.memoize_result:
                 _set_to_cache(instance, self, value)
         else:
-            raise TypeError('Setting to read-only Property')
+            raise TypeError("Setting to read-only Property")
 
     def __delete__(self, instance):
         if self.property_deleter:
@@ -195,7 +198,7 @@ class PropertyField(Base):
             if self.memoize_result:
                 _del_from_cache(instance, self)
         else:
-            raise TypeError('Deleting undeletable Property')
+            raise TypeError("Deleting undeletable Property")
 
 
 class _PropertyType(type):
@@ -205,21 +208,32 @@ class _PropertyType(type):
     def __subclasscheck__(self, klass):
         return issubclass(klass, PropertyField)
 
-    def __call__(self, getter=None, setter=None, deleter=None, onsetup=None,
-                 **kwargs):
-        memoize = kwargs.pop('memoize', Unset)
+    def __call__(self, getter=None, setter=None, deleter=None, onsetup=None, **kwargs):
+        memoize = kwargs.pop("memoize", Unset)
         if memoize is Unset and getter is None:
-            raise TypeError('getter must be provided')
+            raise TypeError("getter must be provided")
         elif getter is None:
+
             def result(getter):
-                return PropertyField(getter, setter=setter, deleter=deleter,
-                                     onsetup=onsetup, memoize=bool(memoize),
-                                     **kwargs)
+                return PropertyField(
+                    getter,
+                    setter=setter,
+                    deleter=deleter,
+                    onsetup=onsetup,
+                    memoize=bool(memoize),
+                    **kwargs
+                )
+
             return result
         else:
-            return PropertyField(getter, setter=setter, deleter=deleter,
-                                 onsetup=onsetup, memoize=bool(memoize),
-                                 **kwargs)
+            return PropertyField(
+                getter,
+                setter=setter,
+                deleter=deleter,
+                onsetup=onsetup,
+                memoize=bool(memoize),
+                **kwargs
+            )
 
 
 class Property(metaclass(_PropertyType)):
@@ -231,6 +245,7 @@ Property.__doc__ = PropertyField.__doc__
 
 
 if MAJOR_ODOO_VERSION < 11:
+
     def _get_from_cache(record, field, default):
         return record.env.cache[field].get(record.id, default)
 
@@ -240,7 +255,9 @@ if MAJOR_ODOO_VERSION < 11:
     def _del_from_cache(record, field):
         del record.env.cache[field][record.id]
 
+
 else:
+
     def _get_from_cache(record, field, default):
         return record.env.cache.get_value(record, field, default)
 

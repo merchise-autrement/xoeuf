@@ -7,9 +7,11 @@
 # This is free software; you can do what the LICENCE file allows you to.
 #
 
-from __future__ import (division as _py3_division,
-                        print_function as _py3_print,
-                        absolute_import as _py3_abs_import)
+from __future__ import (
+    division as _py3_division,
+    print_function as _py3_print,
+    absolute_import as _py3_abs_import,
+)
 
 from itertools import product
 import unittest
@@ -26,16 +28,16 @@ from xoeuf.osv.expression import Domain, DomainTree
 
 from xoeuf.odoo.tests.common import TransactionCase
 
-names = s.text(alphabet='abdefgh', min_size=1, max_size=5)
-operators = s.sampled_from(['=', '!=', '<', '>', '<>'])
+names = s.text(alphabet="abdefgh", min_size=1, max_size=5)
+operators = s.sampled_from(["=", "!=", "<", ">", "<>"])
 all_operators = s.sampled_from(
-    ['=', '!=', '<', '>', '<>', 'like', 'ilike', 'not like', 'not ilike']
+    ["=", "!=", "<", ">", "<>", "like", "ilike", "not like", "not ilike"]
 )
 ages = s.integers(min_value=0, max_value=120)
 
 # Logical connectors with the amount of terms it connects.  Notice that ''
 # takes two arguments because it's the same as '&'.
-connectors = s.sampled_from([('', 2), ('&', 2), ('!', 1), ('|', 2)])
+connectors = s.sampled_from([("", 2), ("&", 2), ("!", 1), ("|", 2)])
 
 logger = logging.getLogger(__name__)
 
@@ -51,11 +53,7 @@ def terms(draw, fields=None, values=s.integers(min_value=-10, max_value=10)):
 
 @s.composite
 def domains(draw, fields=None, min_size=1, max_size=10):
-    leaves = draw(s.lists(
-        terms(fields),
-        min_size=min_size,
-        max_size=max_size,
-    ))
+    leaves = draw(s.lists(terms(fields), min_size=min_size, max_size=max_size))
     result = []
     while leaves:
         connector, many = draw(connectors)
@@ -73,15 +71,13 @@ class TestDomain(unittest.TestCase):
     @given(domains())
     def test_first_normal_form_idempotency(self, domain):
         self.assertEqual(
-            domain.first_normal_form,
-            domain.first_normal_form.first_normal_form
+            domain.first_normal_form, domain.first_normal_form.first_normal_form
         )
 
     @given(domains())
     def test_second_normal_form_idempotency(self, domain):
         self.assertEqual(
-            domain.second_normal_form,
-            domain.second_normal_form.second_normal_form
+            domain.second_normal_form, domain.second_normal_form.second_normal_form
         )
 
     @given(domains())
@@ -91,14 +87,10 @@ class TestDomain(unittest.TestCase):
             domain,
             domain.simplified,
             domain.first_normal_form,
-            domain.second_normal_form
+            domain.second_normal_form,
         ]
         for version1, version2 in product(all_versions, all_versions):
-            self.assertEqual(
-                version1,
-                version2,
-                msg="%r != %r" % (version1, version2)
-            )
+            self.assertEqual(version1, version2, msg="%r != %r" % (version1, version2))
 
     @given(domains())
     def test_simplified(self, domain):
@@ -106,31 +98,26 @@ class TestDomain(unittest.TestCase):
         self.assertNotEqual(
             domain.simplified[0],
             expr.AND_OPERATOR,
-            msg="%r start with &" % domain.simplified
+            msg="%r start with &" % domain.simplified,
         )
         # The simplified domain must be the shortest.
-        all_versions = [
-            domain,
-            domain.first_normal_form,
-            domain.second_normal_form
-        ]
+        all_versions = [domain, domain.first_normal_form, domain.second_normal_form]
         for version in all_versions:
             self.assertLessEqual(
                 len(domain.simplified),
                 len(version),
-                msg="len(%r) > len(%r)" % (domain.simplified, version)
+                msg="len(%r) > len(%r)" % (domain.simplified, version),
             )
         self.assertTrue(
-            all(odoo_expr.is_leaf(term) or odoo_expr.is_operator(term)
-                for term in domain.simplified)
+            all(
+                odoo_expr.is_leaf(term) or odoo_expr.is_operator(term)
+                for term in domain.simplified
+            )
         )
 
     @given(domains())
     def test_simplified_idempotency(self, domain):
-        self.assertEqual(
-            domain.simplified,
-            domain.simplified.simplified
-        )
+        self.assertEqual(domain.simplified, domain.simplified.simplified)
 
     @given(s.lists(domains(), min_size=2, max_size=10))
     def test_expr_replacement(self, domains):
@@ -138,9 +125,7 @@ class TestDomain(unittest.TestCase):
         odoo_expr.AND(domains)
 
     def test_eq(self):
-        A = Domain([
-            ('field_x', '=', 1)
-        ])
+        A = Domain([("field_x", "=", 1)])
         # A == A
         self.assertTrue(A == A)
 
@@ -148,22 +133,15 @@ class TestDomain(unittest.TestCase):
         self.assertTrue(~A == ~A)
 
         # (x = 1)  == ! (x <> 1)
-        A1 = Domain([
-            '!',
-            ('field_x', '<>', 1)
-        ])
+        A1 = Domain(["!", ("field_x", "<>", 1)])
         self.assertTrue(A == A1)
 
     def test_implies(self):
         # Basic implications.
         # -------------------
 
-        A = Domain([
-            ('field_x', '=', 1)
-        ])
-        B = Domain([
-            ('field_y', '!=', False)
-        ])
+        A = Domain([("field_x", "=", 1)])
+        B = Domain([("field_y", "!=", False)])
 
         # A => A
         self.assertTrue(A.implies(A))
@@ -184,54 +162,32 @@ class TestDomain(unittest.TestCase):
         # -------------------------
 
         # (x = 1)  => (x = 1)
-        A = Domain([
-            ('field_x', '=', 1)
-        ])
-        A1 = Domain([
-            ('field_x', '=', 1)
-        ])
+        A = Domain([("field_x", "=", 1)])
+        A1 = Domain([("field_x", "=", 1)])
         self.assertTrue(A.implies(A1))
 
         # (x != 1)  => (x <> 1)
-        A = Domain([
-            ('field_x', '!=', 1)
-        ])
-        A1 = Domain([
-            ('field_x', '<>', 1)
-        ])
+        A = Domain([("field_x", "!=", 1)])
+        A1 = Domain([("field_x", "<>", 1)])
         self.assertTrue(A.implies(A1))
 
         # (x > 1) => (x > 0)
-        A = Domain([
-            ('field_x', '>', 10)
-        ])
-        A1 = Domain([
-            ('field_x', '>', 1)
-        ])
+        A = Domain([("field_x", ">", 10)])
+        A1 = Domain([("field_x", ">", 1)])
         self.assertTrue(A.implies(A1))
 
         # (x in (1,2,3)) => (x in (1,2,3,4))
-        A = Domain([
-            ('field_x', 'in', (1, 2, 3))
-        ])
-        A1 = Domain([
-            ('field_x', 'in', (1, 2, 3, 4))
-        ])
+        A = Domain([("field_x", "in", (1, 2, 3))])
+        A1 = Domain([("field_x", "in", (1, 2, 3, 4))])
         self.assertTrue(A.implies(A1))
         #
 
         # Compound implications.
         # ----------------------
         # A => B & C iff (A => B) & (A => C)
-        A = Domain([
-            ('field_x', 'in', (1, 4))
-        ])
-        B = Domain([
-            ('field_x', 'in', (1, 2, 4))
-        ])
-        C = Domain([
-            ('field_x', 'in', (1, 3, 4))
-        ])
+        A = Domain([("field_x", "in", (1, 4))])
+        B = Domain([("field_x", "in", (1, 2, 4))])
+        C = Domain([("field_x", "in", (1, 3, 4))])
         self.assertTrue(A.implies(B))
         self.assertTrue(A.implies(C))
         self.assertTrue(A.implies(B & C))
@@ -239,50 +195,57 @@ class TestDomain(unittest.TestCase):
         # More complex implications
         # -------------------------
 
-        x = Domain([
-            '|',
-            ('field_y', '!=', False),
-            ('field_x', '=', 'value'),
-            ('field_z', 'in', (1,))
-        ])
-        y = Domain([
-            '|',
-            ('field_y', '!=', False),
-            ('field_x', '=', 'value'),
-            ('field_z', 'in', (1, 2, 3)),
-            '|',
-            ('field_x', '=', 'value'),
-            ('field_y', '!=', False)
-        ])
+        x = Domain(
+            [
+                "|",
+                ("field_y", "!=", False),
+                ("field_x", "=", "value"),
+                ("field_z", "in", (1,)),
+            ]
+        )
+        y = Domain(
+            [
+                "|",
+                ("field_y", "!=", False),
+                ("field_x", "=", "value"),
+                ("field_z", "in", (1, 2, 3)),
+                "|",
+                ("field_x", "=", "value"),
+                ("field_y", "!=", False),
+            ]
+        )
         assert x.implies(y)
 
-        x = Domain([
-            ('field_y', '!=', False),
-            ('field_z', 'in', (1,)),
-            ('field_z', 'in', (1, 2)),
-            '|',
-            ('field_y', '!=', False),
-            '|',
-            ('field_z', 'in', (1,)),
-            ('field_z', 'in', (2,))
-        ])
-        y = Domain([
-            ('field_y', '!=', False),
-            ('field_z', 'in', (1, 2, 3))
-        ])
+        x = Domain(
+            [
+                ("field_y", "!=", False),
+                ("field_z", "in", (1,)),
+                ("field_z", "in", (1, 2)),
+                "|",
+                ("field_y", "!=", False),
+                "|",
+                ("field_z", "in", (1,)),
+                ("field_z", "in", (2,)),
+            ]
+        )
+        y = Domain([("field_y", "!=", False), ("field_z", "in", (1, 2, 3))])
         assert x.implies(y)
 
     def test_walk(self):
-        y = Domain([
-            '|',
-            ('a', '!=', False),
-            ('b', '=', 'value'),
-            ('c', 'in', (1, 2, 3)),
-            '|', '|', '!',
-            ('d', '=', 'value'),
-            ('f', '!=', False),
-            ('g', '=', 'h')
-        ])
+        y = Domain(
+            [
+                "|",
+                ("a", "!=", False),
+                ("b", "=", "value"),
+                ("c", "in", (1, 2, 3)),
+                "|",
+                "|",
+                "!",
+                ("d", "=", "value"),
+                ("f", "!=", False),
+                ("g", "=", "h"),
+            ]
+        )
         DomainTree(y.second_normal_form)
         # expected = [
         #     ('TERM', ('c', 'in', (1, 2, 3))),
@@ -301,49 +264,51 @@ class TestDomain(unittest.TestCase):
 
     def test_get_filter_ast_simple_one_term_with_in(self):
         self.assertEqual(
-            DomainTree(Domain([('state', 'in', [1, 2])]))._get_filter_ast(),
-            ql.Expression(ql.Lambda(
-                ql.make_arguments('this'),
-                expr._constructor_in('this', 'state', [1, 2])
-            ))
+            DomainTree(Domain([("state", "in", [1, 2])]))._get_filter_ast(),
+            ql.Expression(
+                ql.Lambda(
+                    ql.make_arguments("this"),
+                    expr._constructor_in("this", "state", [1, 2]),
+                )
+            ),
         )
-        Domain([('state', 'in', [1, 2])]).asfilter()
+        Domain([("state", "in", [1, 2])]).asfilter()
 
     def test_empty_domain(self):
         self.assertTrue(Domain([]).asfilter()(0))
 
 
 def get_model_domain_machine(this):
-    Model = this.env['test_domain.model']
+    Model = this.env["test_domain.model"]
 
     class ModelDomainMachine(RuleBasedStateMachine):
-        objects = Bundle('objects')
+        objects = Bundle("objects")
 
         @rule(target=objects, name=names, age=ages)
         def create_object(self, name, age):
             logger.info("Creating object name: %s, age: %s", name, age)
-            return Model.create({'name': name, 'age': age})
+            return Model.create({"name": name, "age": age})
 
         @rule(target=objects, name=names, age=ages, parent=objects)
         def create_child_object(self, name, age, parent):
-            return Model.create({
-                'name': name,
-                'age': age,
-                'parent_id': parent.id
-            })
+            return Model.create({"name": name, "age": age, "parent_id": parent.id})
 
         @rule(age=ages, op=operators)
         def find_by_age(self, age, op):
-            query = Domain([('age', op, age)])
+            query = Domain([("age", op, age)])
             res = Model.search(query)
             logger.info("Check filter/domain: %s; count: %s", query, len(res))
             this.assertEqualRecordset(res.filtered(query.asfilter()), res)
 
-        @rule(age=ages, op=operators,
-              path=s.lists(s.sampled_from(['parent_id', 'children_ids']),
-                           min_size=1, max_size=4))
+        @rule(
+            age=ages,
+            op=operators,
+            path=s.lists(
+                s.sampled_from(["parent_id", "children_ids"]), min_size=1, max_size=4
+            ),
+        )
         def find_by_parent_age(self, age, op, path):
-            attr = '.'.join(path) + '.age'
+            attr = ".".join(path) + ".age"
             query = Domain([(attr, op, age)])
             res = Model.search(query)
             logger.info("Check filter/domain: %s; count: %s", query, len(res))
@@ -351,39 +316,45 @@ def get_model_domain_machine(this):
 
         @rule(ages=s.lists(ages))
         def find_by_ages(self, ages):
-            query = Domain([('age', 'in', ages)])
+            query = Domain([("age", "in", ages)])
             res = Model.search(query)
             logger.info("Check filter/domain: %s; count: %s", query, len(res))
             this.assertEqualRecordset(res.filtered(query.asfilter()), res)
 
-        @rule(ages=s.lists(ages),
-              path=s.lists(s.sampled_from(['parent_id', 'children_ids']),
-                           min_size=1, max_size=4))
+        @rule(
+            ages=s.lists(ages),
+            path=s.lists(
+                s.sampled_from(["parent_id", "children_ids"]), min_size=1, max_size=4
+            ),
+        )
         def find_by_parent_ages(self, ages, path):
-            attr = '.'.join(path) + '.age'
-            query = Domain([(attr, 'in', ages)])
+            attr = ".".join(path) + ".age"
+            query = Domain([(attr, "in", ages)])
             res = Model.search(query)
             logger.info("Check filter/domain: %s; count: %s", query, len(res))
             this.assertEqualRecordset(res.filtered(query.asfilter()), res)
 
         @rule(ages=s.lists(ages))
         def find_by_not_ages(self, ages):
-            query = Domain([('age', 'not in', ages)])
+            query = Domain([("age", "not in", ages)])
             res = Model.search(query)
             logger.info("Check filter/domain: %s; count: %s", query, len(res))
             this.assertEqualRecordset(res.filtered(query.asfilter()), res)
 
-        @rule(ages=s.lists(ages),
-              path=s.lists(s.sampled_from(['parent_id', 'children_ids']),
-                           min_size=1, max_size=4))
+        @rule(
+            ages=s.lists(ages),
+            path=s.lists(
+                s.sampled_from(["parent_id", "children_ids"]), min_size=1, max_size=4
+            ),
+        )
         def find_by_path_not_ages(self, ages, path):
-            attr = '.'.join(path) + '.age'
-            query = Domain([(attr, 'not in', ages)])
+            attr = ".".join(path) + ".age"
+            query = Domain([(attr, "not in", ages)])
             res = Model.search(query)
             logger.info("Check filter/domain: %s; count: %s", query, len(res))
             this.assertEqualRecordset(res.filtered(query.asfilter()), res)
 
-        @rule(domain=domains(fields=s.just('age')))
+        @rule(domain=domains(fields=s.just("age")))
         def find_by_arbitrary_domain(self, domain):
             res = Model.search(domain)
             logger.info("Check filter/domain: %s; count: %s", domain, len(res))
@@ -391,16 +362,20 @@ def get_model_domain_machine(this):
 
         @rule(name=names, op=all_operators)
         def find_by_name(self, name, op):
-            query = Domain([('name', op, name)])
+            query = Domain([("name", op, name)])
             res = Model.search(query)
             logger.info("Check filter/domain: %s; count: %s", query, len(res))
             this.assertEqualRecordset(res.filtered(query.asfilter()), res)
 
-        @rule(name=names, op=all_operators,
-              path=s.lists(s.sampled_from(['parent_id', 'children_ids']),
-                           min_size=1, max_size=4))
+        @rule(
+            name=names,
+            op=all_operators,
+            path=s.lists(
+                s.sampled_from(["parent_id", "children_ids"]), min_size=1, max_size=4
+            ),
+        )
         def find_by_path_name(self, name, op, path):
-            attr = '.'.join(path) + '.name'
+            attr = ".".join(path) + ".name"
             query = Domain([(attr, op, name)])
             res = Model.search(query)
             logger.info("Check filter/domain: %s; count: %s", query, len(res))
@@ -408,34 +383,40 @@ def get_model_domain_machine(this):
 
         @rule(names=s.lists(names))
         def find_by_names(self, names):
-            query = Domain([('name', 'in', names)])
+            query = Domain([("name", "in", names)])
             res = Model.search(query)
             logger.info("Check filter/domain: %s; count: %s", query, len(res))
             this.assertEqualRecordset(res.filtered(query.asfilter()), res)
 
-        @rule(names=s.lists(names),
-              path=s.lists(s.sampled_from(['parent_id', 'children_ids']),
-                           min_size=1, max_size=4))
+        @rule(
+            names=s.lists(names),
+            path=s.lists(
+                s.sampled_from(["parent_id", "children_ids"]), min_size=1, max_size=4
+            ),
+        )
         def find_by_path_names(self, names, path):
-            attr = '.'.join(path) + '.name'
-            query = Domain([(attr, 'in', names)])
+            attr = ".".join(path) + ".name"
+            query = Domain([(attr, "in", names)])
             res = Model.search(query)
             logger.info("Check filter/domain: %s; count: %s", query, len(res))
             this.assertEqualRecordset(res.filtered(query.asfilter()), res)
 
         @rule(names=s.lists(names))
         def find_by_not_names(self, names):
-            query = Domain([('name', 'not in', names)])
+            query = Domain([("name", "not in", names)])
             res = Model.search(query)
             logger.info("Check filter/domain: %s; count: %s", query, len(res))
             this.assertEqualRecordset(res.filtered(query.asfilter()), res)
 
-        @rule(names=s.lists(names),
-              path=s.lists(s.sampled_from(['parent_id', 'children_ids']),
-                           min_size=1, max_size=4))
+        @rule(
+            names=s.lists(names),
+            path=s.lists(
+                s.sampled_from(["parent_id", "children_ids"]), min_size=1, max_size=4
+            ),
+        )
         def find_by_path_not_names(self, names, path):
-            attr = '.'.join(path) + '.name'
-            query = Domain([(attr, 'not in', names)])
+            attr = ".".join(path) + ".name"
+            query = Domain([(attr, "not in", names)])
             res = Model.search(query)
             logger.info("Check filter/domain: %s; count: %s", query, len(res))
             this.assertEqualRecordset(res.filtered(query.asfilter()), res)
@@ -448,9 +429,7 @@ class TestConsistencyOfFilters(TransactionCase):
         ours = rs1 - rs2
         theirs = rs2 - rs1
         self.assertEqual(
-            rs1,
-            rs2,
-            msg="ours: {0!r}; theirs: {1!r}".format(ours, theirs)
+            rs1, rs2, msg="ours: {0!r}; theirs: {1!r}".format(ours, theirs)
         )
 
     def test_consistency_of_domains(self):

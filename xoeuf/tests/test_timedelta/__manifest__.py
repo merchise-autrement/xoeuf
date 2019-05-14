@@ -13,10 +13,10 @@
 # Created on 2017-08-01
 
 {
-    'name': 'test_timedelta',
-    'author': 'Merchise Autrement [~º/~] and Contributors',
-    'description': 'Test for the field.Timedelta extension',
-    'depends': ['base', ],
-    'installable': True,
-    'auto_install': False,
+    "name": "test_timedelta",
+    "author": "Merchise Autrement [~º/~] and Contributors",
+    "description": "Test for the field.Timedelta extension",
+    "depends": ["base"],
+    "installable": True,
+    "auto_install": False,
 }

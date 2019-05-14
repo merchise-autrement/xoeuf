@@ -6,18 +6,19 @@
 #
 # This is free software; you can do what the LICENCE file allows you to.
 #
-'''Tools for "Query Language".
+"""Tools for "Query Language".
 
 Most of this has been extracted from `xotl.ql` (but we must support Python
 2.7).
 
-'''
+"""
 from __future__ import division, print_function, absolute_import
 
 import ast as pyast
 from xoutil.future.types import new_class
 
 import sys
+
 _py_version = sys.version_info
 _py3 = _py_version >= (3, 0)
 del sys
@@ -31,13 +32,13 @@ del sys
 class PyASTNode(object):
     def __eq__(self, other):
         from operator import eq
+
         Unset = object()  # xoutil's Unset is equal to 0!
         res = True
         i = 0
         # Explicitly deal with NameConstant None.
         if is_constant(self, None):
-            return other is None or is_constant(other, None) \
-                or other == LOAD_NONE
+            return other is None or is_constant(other, None) or other == LOAD_NONE
         elif is_constant(other, None):
             return self is None or self == LOAD_NONE
         attrs = self._fields
@@ -46,7 +47,7 @@ class PyASTNode(object):
             # name (_ast.Load and qst.Load, etc.) and one must a subclass of
             # the other.
             self, other = type(self), type(other)
-            attrs = ('__name__', )
+            attrs = ("__name__",)
             res = issubclass(self, other) or issubclass(other, self)
         get_from_source = lambda a: getattr(self, a, Unset)
         get_from_target = lambda a: getattr(other, a, Unset)
@@ -71,21 +72,20 @@ class PyASTNode(object):
     def __str__(self):
         def r(who):
             if isinstance(who, pyast.AST):
-                return '<ast: %s>' % type(who).__name__
+                return "<ast: %s>" % type(who).__name__
             else:
                 return repr(who)
+
         res = []
         children = [(self, None, 0)]
         while children:
             child, field, depth = children.pop(0)
             if field:
-                res.append(' ' * 3 * depth + '{}: '.format(field) + r(child))
+                res.append(" " * 3 * depth + "{}: ".format(field) + r(child))
             else:
-                res.append(' ' * 3 * depth + r(child))
-            fields = getattr(child, '_fields', [])
-            grandchildren = [
-                (getattr(child, f), f, depth + 1) for f in fields
-            ]
+                res.append(" " * 3 * depth + r(child))
+            fields = getattr(child, "_fields", [])
+            grandchildren = [(getattr(child, f), f, depth + 1) for f in fields]
             if grandchildren:
                 # If any grandchild is a list 'expand it', this helps to get a
                 # nicer visualization.
@@ -94,18 +94,19 @@ class PyASTNode(object):
                     val, f, d = grandchildren[i]
                     if isinstance(val, (list, tuple)):
                         j = len(val)
-                        grandchildren[i:i + 1] = [
-                            (v, f + '[%d]' % k, d) for k, v in enumerate(val)
+                        grandchildren[i : i + 1] = [
+                            (v, f + "[%d]" % k, d) for k, v in enumerate(val)
                         ]
                         i += j
                     else:
                         i += 1
                 children[0:0] = grandchildren
-        return '\n'.join(res)
+        return "\n".join(res)
 
     @classmethod
     def from_pyast(cls, node):
-        '''Convert an `ast.AST`:py:class: node into the equivalent qst node.'''
+        """Convert an `ast.AST`:py:class: node into the equivalent qst node."""
+
         def _convert(value):
             if value:
                 type_ = globals().get(type(value).__name__, None)
@@ -130,9 +131,19 @@ class PyASTNode(object):
 
 
 __all__ = []
-_nodes = [pyast.Expression, pyast.expr, pyast.boolop, pyast.unaryop,
-          pyast.keyword, pyast.slice, pyast.operator, pyast.cmpop,
-          pyast.comprehension, pyast.arguments, pyast.expr_context]
+_nodes = [
+    pyast.Expression,
+    pyast.expr,
+    pyast.boolop,
+    pyast.unaryop,
+    pyast.keyword,
+    pyast.slice,
+    pyast.operator,
+    pyast.cmpop,
+    pyast.comprehension,
+    pyast.arguments,
+    pyast.expr_context,
+]
 
 if _py3:
     _nodes.append(pyast.arg)
@@ -142,11 +153,12 @@ while _current < len(_nodes):
     _node = _nodes[_current]
     _more = _node.__subclasses__()  # Don't place this after the new class.
 
-    globals()['_PyAst_%s' % _node.__name__] = _node
+    globals()["_PyAst_%s" % _node.__name__] = _node
     # Has a constructor create the class for comparing
-    globals()[_node.__name__] = cls = new_class(_node.__name__,
-                                                bases=(_node, PyASTNode))
-    cls.__module__ = 'qst'
+    globals()[_node.__name__] = cls = new_class(
+        _node.__name__, bases=(_node, PyASTNode)
+    )
+    cls.__module__ = "qst"
     __all__.append(_node.__name__)
 
     if _more:
@@ -164,16 +176,17 @@ if (3, 6) <= _py_version:
     class comprehension(comprehension):  # noqa
         def __init__(self, *args):
             if 0 < len(args) < 4:
-                args += (False, )
+                args += (False,)
             super().__init__(*args)
 
 
 # This None as a name.  Only use this for comparison, not as a return value.
-LOAD_NONE = Name('None', Load())   # noqa
+LOAD_NONE = Name("None", Load())  # noqa
 
 try:
-    NONE_CT = NameConstant(None)       # noqa
+    NONE_CT = NameConstant(None)  # noqa
 except NameError:
+
     class NameConstant(object):
         def __init__(self, value):
             self.value = value
@@ -185,14 +198,14 @@ except NameError:
 
 
 def is_constant(which, value):
-    'Test if which is a NameConstant for `value`.'
+    "Test if which is a NameConstant for `value`."
     return isinstance(which, NameConstant) and which.value is value  # noqa
 
 
-def parse(source, filename='<unknown>', mode='eval'):
-    assert mode == 'eval'
+def parse(source, filename="<unknown>", mode="eval"):
+    assert mode == "eval"
     res = pyast.parse(source, filename, mode)
-    return Expression.from_pyast(res)    # noqa
+    return Expression.from_pyast(res)  # noqa
 
 
 def ensure_compilable(st):
@@ -207,6 +220,7 @@ class SetAttributesVisitor(pyast.NodeVisitor):
 
     def generic_visit(self, node):
         from xoutil.symbols import Unset
+
         get = lambda a: getattr(node, a, Unset)
         for attr, val in self.attrs.items():
             if get(attr) is Unset:
@@ -219,31 +233,35 @@ def make_argless_call(fn):
 
 
 def make_call(fn, *args, **kwargs):
-    kws = [keyword(name, val) for name, val in kwargs.items()]   # noqa
+    kws = [keyword(name, val) for name, val in kwargs.items()]  # noqa
     if _py3:
-        return Call(fn, list(args), kws)   # noqa
+        return Call(fn, list(args), kws)  # noqa
     else:
-        return Call(fn, list(args), kws, None, None)   # noqa
+        return Call(fn, list(args), kws, None, None)  # noqa
 
 
 def make_arguments(*names):
     if _py3:
         if _py_version >= (3, 4):
-            return arguments(                                      # noqa
-                [arg(name, None) for name in names],               # noqa
-                None, [], [], None, []
+            return arguments(  # noqa
+                [arg(name, None) for name in names], None, [], [], None, []  # noqa
             )
         else:
-            return arguments(                                      # noqa
-                [arg(name, None) for name in names],               # noqa
-                None, None, [], None, None, [], []
+            return arguments(  # noqa
+                [arg(name, None) for name in names],  # noqa
+                None,
+                None,
+                [],
+                None,
+                None,
+                [],
+                [],
             )
     else:
-        return arguments(                                          # noqa
-            [Name(name, Param()) for name in names],               # noqa
-            None, None, []
+        return arguments(  # noqa
+            [Name(name, Param()) for name in names], None, None, []  # noqa
         )
 
 
 def make_attr(node, attr):
-    return Attribute(node, attr, Load())   # noqa
+    return Attribute(node, attr, Load())  # noqa

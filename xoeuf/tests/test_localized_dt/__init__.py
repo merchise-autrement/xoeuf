@@ -6,26 +6,28 @@
 #
 # This is free software; you can do what the LICENCE file allows you to.
 #
-from __future__ import (division as _py3_division,
-                        print_function as _py3_print,
-                        absolute_import as _py3_abs_import)
+from __future__ import (
+    division as _py3_division,
+    print_function as _py3_print,
+    absolute_import as _py3_abs_import,
+)
 
 from xoeuf import fields, models
 
 
 class Mixin(models.AbstractModel):
-    _name = 'test_localized_dt.mixin'
+    _name = "test_localized_dt.mixin"
 
-    tzone = fields.Char(default='America/Havana')
+    tzone = fields.Char(default="America/Havana")
     dt = fields.Datetime()
-    dt_at_tzone = fields.LocalizedDatetime('dt', 'tzone')
+    dt_at_tzone = fields.LocalizedDatetime("dt", "tzone")
 
 
 class ModelA(models.Model):
-    _name = 'test_localizated_dt.model'
-    _inherit = ['test_localized_dt.mixin']
+    _name = "test_localizated_dt.model"
+    _inherit = ["test_localized_dt.mixin"]
 
 
 class ModelB(models.Model):
-    _name = 'test_localized_dt.inherited'
-    _inherits = {models.get_modelname(ModelA): 'a_id'}
+    _name = "test_localized_dt.inherited"
+    _inherits = {models.get_modelname(ModelA): "a_id"}

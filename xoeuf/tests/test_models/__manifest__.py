@@ -8,11 +8,11 @@
 #
 
 {
-    'name': 'test_xoeuf_models',
-    'author': 'Merchise Autrement [~º/~] and Contributors',
-    'description': 'Test the module xoeuf.models',
-    'depends': ['base', ],
-    'data': ['data/data.xml', ],
-    'installable': True,
-    'auto_install': False,
+    "name": "test_xoeuf_models",
+    "author": "Merchise Autrement [~º/~] and Contributors",
+    "description": "Test the module xoeuf.models",
+    "depends": ["base"],
+    "data": ["data/data.xml"],
+    "installable": True,
+    "auto_install": False,
 }

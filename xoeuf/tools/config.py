@@ -7,7 +7,7 @@
 # This is free software; you can do what the LICENCE file allows you to.
 #
 
-'''Xœuf Configuration Service.
+"""Xœuf Configuration Service.
 
 Define the class :class:`MetaOptions` which is a singleton that wraps
 ``openerp.tools.config``, it's instanced automatically at the end of this
@@ -22,17 +22,19 @@ and its arguments are parsed and it's executed.
 You can update or load all options by calling in any time either the method
 :meth:`!options.load` or the method :meth:`!options.update`.
 
-'''
-from __future__ import (division as _py3_division,
-                        print_function as _py3_print,
-                        absolute_import as _py3_abs_import)
+"""
+from __future__ import (
+    division as _py3_division,
+    print_function as _py3_print,
+    absolute_import as _py3_abs_import,
+)
 
 from collections import MutableMapping
 from xoeuf.eight.meta import metaclass
 
 
-DEFAULT_COMMAND = str('server')
-_SECTION_SEP = str('.')
+DEFAULT_COMMAND = str("server")
+_SECTION_SEP = str(".")
 
 
 class MetaOptions(type):
@@ -41,21 +43,25 @@ class MetaOptions(type):
     def __new__(cls, name, bases, attrs):
         if cls.__singleton__ is None:
             from xoeuf.odoo.tools import config
-            attrs['__new__'] = None     # can't be instantiated!
-            attrs['wrapped'] = config
+
+            attrs["__new__"] = None  # can't be instantiated!
+            attrs["wrapped"] = config
             self = super(MetaOptions, cls).__new__(cls, name, bases, attrs)
             cls.__singleton__ = self
             return self
         else:
-            msg = ('Only one configuration instance allowed:\n'
-                   '\tdefining "%s", already defined "%s"!')
+            msg = (
+                "Only one configuration instance allowed:\n"
+                '\tdefining "%s", already defined "%s"!'
+            )
             TypeError(msg % (name, cls.__singleton__.__name__))
 
     def __dir__(self):
-        return (list(self.wrapped.options) + list(self.__dict__))
+        return list(self.wrapped.options) + list(self.__dict__)
 
     def __hash__(self):
         from xoutil.names import nameof
+
         return hash(nameof(self, inner=True, full=True))
 
     def __eq__(self, other):
@@ -93,13 +99,14 @@ class MetaOptions(type):
 
     def __setitem__(self, option, value):
         from xoeuf.eight import string_types
+
         if isinstance(option, string_types):
             option = str(option)
-            if value in ('True', 'true'):
+            if value in ("True", "true"):
                 value = True
-            elif value in ('False', 'false'):
+            elif value in ("False", "false"):
                 value = False
-            elif value == 'None':
+            elif value == "None":
                 value = None
             if _SECTION_SEP in option:
                 section, option = option.split(_SECTION_SEP)
@@ -108,6 +115,7 @@ class MetaOptions(type):
                 self.wrapped[option] = value
         else:
             from xoeuf.eight import typeof
+
             msg = 'option name must be str, "%s" of type "%s" is provided!'
             raise TypeError(msg % (option, typeof(option).__name__))
 
@@ -122,6 +130,7 @@ class MetaOptions(type):
 
     def __getattr__(self, name):
         from xoutil.symbols import Unset
+
         res = self.wrapped.options.get(name, Unset)
         if res is not Unset:
             return res
@@ -136,13 +145,14 @@ class MetaOptions(type):
             super(MetaOptions, self).__setattr__(name, value)
 
     def get(self, option, default=None):
-        '''returns options[option] if option in options, else default
+        """returns options[option] if option in options, else default
 
             default is None if not given.
 
-        '''
+        """
         if _SECTION_SEP in option:
             from xoutil.symbols import Unset
+
             section, option = option.split(_SECTION_SEP)
             misc = self.wrapped.misc.get(section, Unset)
             return default if misc is Unset else misc.get(option, default)
@@ -150,30 +160,34 @@ class MetaOptions(type):
             return self.wrapped.options.get(option, default)
 
     def keys(self):
-        '''return a set-like object providing a view on options' keys'''
+        """return a set-like object providing a view on options' keys"""
         from collections import KeysView
+
         return KeysView(self)
 
     def items(self):
-        '''return a set-like object providing a view on options' items'''
+        """return a set-like object providing a view on options' items"""
         from collections import ItemsView
+
         return ItemsView(self)
 
     def values(self):
-        '''return an object providing a view on options' values'''
+        """return an object providing a view on options' values"""
         from collections import ValuesView
+
         return ValuesView(self)
 
     def pop(self, option, *args):
-        '''options.pop(option[,default]) -> remove specified option name and
+        """options.pop(option[,default]) -> remove specified option name and
         return the corresponding option value.
 
         If option is not found, default is returned if given, otherwise
         KeyError is raised.
-        '''
+        """
         count = len(args)
         if count <= 1:
             from xoutil.symbols import Unset
+
             default = Unset if count == 0 else args[0]
             if _SECTION_SEP in option:
                 section, option = option.split(_SECTION_SEP)
@@ -191,11 +205,11 @@ class MetaOptions(type):
                 else:
                     return self.wrapped.option.pop(option, default)
         else:
-            msg = 'pop expected at most 2 arguments, got %s'
+            msg = "pop expected at most 2 arguments, got %s"
             raise TypeError(msg % count + 1)
 
     def update(self, *args, **kwargs):
-        '''Update options from dict/iterable or keyword arguments
+        """Update options from dict/iterable or keyword arguments
 
         If a positional argument (other) is present:
 
@@ -211,12 +225,12 @@ class MetaOptions(type):
             for option in kwargs:
                 options[option] = kwargs[option]
 
-        '''
+        """
         count = len(args)
         if count <= 1:
             if args:
                 other = args[0]
-                if hasattr(other, 'keys'):
+                if hasattr(other, "keys"):
                     for option in other:
                         self[option] = other[option]
                 else:
@@ -225,20 +239,21 @@ class MetaOptions(type):
             for option in kwargs:
                 self[option] = kwargs[option]
         else:
-            msg = 'update expected at most 1 positional argument, got %s'
+            msg = "update expected at most 1 positional argument, got %s"
             raise TypeError(msg % count)
 
     def setdefault(self, option, *args):
-        '''return options.get(`option`, `default`)
+        """return options.get(`option`, `default`)
 
         also set options[`option`] = `default` if `option` not in options
 
         if `default` is not given, will try to find the default value
         configured, is not an standard option, then will use None.
-        '''
+        """
         count = len(args)
         if count <= 1:
             from xoutil.symbols import Unset
+
             default = Unset if count == 0 else args[0]
             if _SECTION_SEP in option:
                 default = None if count == 0 else args[0]
@@ -252,7 +267,7 @@ class MetaOptions(type):
                     default = args[0]
                 return self.wrapped.options.setdefault(option, default)
         else:
-            msg = 'setdefault expected at most 2 arguments, got %s'
+            msg = "setdefault expected at most 2 arguments, got %s"
             raise TypeError(msg % count + 1)
 
 
@@ -260,10 +275,10 @@ MutableMapping.register(MetaOptions)
 
 
 class options(metaclass(MetaOptions)):
-    '''The single instance of :class:`MetaOptions` that wraps
+    """The single instance of :class:`MetaOptions` that wraps
     ``openerp.tools.config``.
 
-    '''
+    """
 
 
 del metaclass

@@ -6,9 +6,11 @@
 #
 # This is free software; you can do what the LICENCE file allows you to.
 #
-from __future__ import (division as _py3_division,
-                        print_function as _py3_print,
-                        absolute_import as _py3_abs_import)
+from __future__ import (
+    division as _py3_division,
+    print_function as _py3_print,
+    absolute_import as _py3_abs_import,
+)
 
 import contextlib
 from unittest import skipIf
@@ -32,93 +34,86 @@ wtypes = s.sampled_from(list(WORK_TYPE.__members__.values()))
 class TestEnum(TransactionCase):
     def setUp(self):
         super(TestEnum, self).setUp()
-        self.EnumModel = self.env['test.enum.model']
-        self.DelegatedModel = self.env['test.enum.model_delegated']
+        self.EnumModel = self.env["test.enum.model"]
+        self.DelegatedModel = self.env["test.enum.model_delegated"]
 
     def test_column_type_force_char_columns(self):
-        self.assertIsInstance(self.EnumModel._fields['color'], fields.Char)
-        self.assertIsInstance(self.EnumModel._fields['color_name'], fields.Selection)
+        self.assertIsInstance(self.EnumModel._fields["color"], fields.Char)
+        self.assertIsInstance(self.EnumModel._fields["color_name"], fields.Selection)
 
     def test_can_set_valid_integers(self):
         with force_ready(self.env.registry):
-            obj = self.EnumModel.create({'color': 1, 'car': CARS.FORD, 'pax': 1})
+            obj = self.EnumModel.create({"color": 1, "car": CARS.FORD, "pax": 1})
         id = obj.id
         self.EnumModel.invalidate_cache()
         obj = self.EnumModel.browse(id)
-        assert obj.color == COLORS.Red, '%r == %r' % (obj.color, COLORS.Red)
+        assert obj.color == COLORS.Red, "%r == %r" % (obj.color, COLORS.Red)
         assert obj.car is CARS.FORD
         assert obj.pax == 1
 
     @given(colors)
     def test_can_set_valid_values(self, color):
         with force_ready(self.env.registry):
-            obj = self.EnumModel.create({'color': color})
+            obj = self.EnumModel.create({"color": color})
         id = obj.id
         self.EnumModel.invalidate_cache()
         obj = self.EnumModel.browse(id)
-        assert obj.color == color, '%r == %r' % (obj.color, color)
+        assert obj.color == color, "%r == %r" % (obj.color, color)
 
     @given(colors)
     def test_can_set_valid_values_as_integers_and_get_values(self, color):
         with force_ready(self.env.registry):
-            obj = self.EnumModel.create({'color': int(color)})
+            obj = self.EnumModel.create({"color": int(color)})
         id = obj.id
         self.EnumModel.invalidate_cache()
         obj = self.EnumModel.browse(id)
-        assert obj.color == color, '%r == %r' % (obj.color, color)
+        assert obj.color == color, "%r == %r" % (obj.color, color)
         assert isinstance(obj.color, COLORS)
 
     def test_cannot_set_invalid_integers(self):
         # Sinces tests are run while the registry is being populated, i.e not
         # ready, we need to trick it to allow receivers be executed.
         with force_ready(self.env.registry), self.assertRaises(ValueError):
-            self.EnumModel.create({'color': 10})
+            self.EnumModel.create({"color": 10})
 
     def test_cannot_write_invalid_integers(self):
         with force_ready(self.env.registry):
-            obj = self.EnumModel.create({'color': 1})
+            obj = self.EnumModel.create({"color": 1})
             with self.assertRaises(ValueError):
-                obj.write({'color': 10})
+                obj.write({"color": 10})
 
     def test_cannot_write_invalid_values(self):
-        obj = self.EnumModel.create({'car': CARS.FORD})
+        obj = self.EnumModel.create({"car": CARS.FORD})
         with force_ready(self.env.registry), self.assertRaises(ValueError):
-            obj.write({'car': 'any other brand'})
+            obj.write({"car": "any other brand"})
 
     def test_search_non_integer(self):
         with force_ready(self.env.registry):
-            obj = self.EnumModel.create({'car': CARS.FORD})
+            obj = self.EnumModel.create({"car": CARS.FORD})
             self.EnumModel.invalidate_cache()
+            self.assertEqual(self.EnumModel.search([("car", "=", CARS.FORD)]), obj)
             self.assertEqual(
-                self.EnumModel.search([('car', '=', CARS.FORD)]),
-                obj
+                self.EnumModel.search([("car", "=", CARS.CHEV)], count=True), 0
             )
             self.assertEqual(
-                self.EnumModel.search([('car', '=', CARS.CHEV)], count=True),
-                0
-            )
-            self.assertEqual(
-                self.EnumModel.search([('car', 'in', (CARS.FORD, CARS.CHEV))]),
-                obj
+                self.EnumModel.search([("car", "in", (CARS.FORD, CARS.CHEV))]), obj
             )
             with self.assertRaises(ValueError):
-                self.EnumModel.search([('car', '=', 1)])
+                self.EnumModel.search([("car", "=", 1)])
 
     def test_performance(self):
         from xoeuf.fields.enumeration import EnumerationAdapter
+
         self.assertIn(EnumerationAdapter, type(self.EnumModel).mro())
-        self.assertNotIn(EnumerationAdapter, type(self.env['res.partner']).mro())
+        self.assertNotIn(EnumerationAdapter, type(self.env["res.partner"]).mro())
 
     def test_search_integer(self):
         with force_ready(self.env.registry):
-            obj = self.EnumModel.create({'color': COLORS.Red})
+            obj = self.EnumModel.create({"color": COLORS.Red})
             self.EnumModel.invalidate_cache()
-            self.assertEqual(
-                self.EnumModel.search([('color', '=', 1)]),
-                obj
-            )
+            self.assertEqual(self.EnumModel.search([("color", "=", 1)]), obj)
             with self.assertRaises(ValueError):
-                self.EnumModel.search([('color', '=', 10)])
+                self.EnumModel.search([("color", "=", 10)])
 
     def test_color_default_value(self):
         with force_ready(self.env.registry):
@@ -127,24 +122,24 @@ class TestEnum(TransactionCase):
 
     def test_color_computed_field_read(self):
         with force_ready(self.env.registry):
-            obj = self.EnumModel.create({'color': COLORS.Red})
-            self.assertEqual(obj.color_name, 'Red')
+            obj = self.EnumModel.create({"color": COLORS.Red})
+            self.assertEqual(obj.color_name, "Red")
 
     @given(color_pairs, color_pairs)
     def test_color_computed_field_set_on_create(self, pair, update):
         with force_ready(self.env.registry):
             name, value = pair
-            obj = self.EnumModel.create({'color_name': name})
+            obj = self.EnumModel.create({"color_name": name})
             self.assertEqual(obj.color, value)
             name, value = update
-            obj = self.EnumModel.create({'color_name': name})
+            obj = self.EnumModel.create({"color_name": name})
             self.assertEqual(obj.color, value)
         with force_ready(self.env.registry):
             name, value = pair
-            obj = self.EnumModel.create({'color': value})
+            obj = self.EnumModel.create({"color": value})
             self.assertEqual(obj.color_name, name)
             name, value = update
-            obj = self.EnumModel.create({'color': value})
+            obj = self.EnumModel.create({"color": value})
             self.assertEqual(obj.color_name, name)
 
     @given(color_pairs, color_pairs)
@@ -171,20 +166,20 @@ class TestEnum(TransactionCase):
         with force_ready(self.env.registry):
             name, value = pair
             obj = self.EnumModel.create({})
-            obj.write({'color_name': name})
+            obj.write({"color_name": name})
             self.assertEqual(obj.color, value)
             name, value = update
             obj = self.EnumModel.create({})
-            obj.write({'color_name': name})
+            obj.write({"color_name": name})
             self.assertEqual(obj.color, value)
         with force_ready(self.env.registry):
             name, value = pair
             obj = self.EnumModel.create({})
-            obj.write({'color': value})
+            obj.write({"color": value})
             self.assertEqual(obj.color_name, name)
             name, value = update
             obj = self.EnumModel.create({})
-            obj.write({'color': value})
+            obj.write({"color": value})
             self.assertEqual(obj.color_name, name)
 
     @skipIf(MAJOR_ODOO_VERSION < 12, "Supported only for  Odoo 12+")
@@ -192,17 +187,17 @@ class TestEnum(TransactionCase):
     def test_color_computed_field_set_on_create_delegated(self, pair, update):
         with force_ready(self.env.registry):
             name, value = pair
-            obj = self.DelegatedModel.create({'color_name': name})
+            obj = self.DelegatedModel.create({"color_name": name})
             self.assertEqual(obj.color, value)
             name, value = update
-            obj = self.DelegatedModel.create({'color_name': name})
+            obj = self.DelegatedModel.create({"color_name": name})
             self.assertEqual(obj.color, value)
         with force_ready(self.env.registry):
             name, value = pair
-            obj = self.DelegatedModel.create({'color': value})
+            obj = self.DelegatedModel.create({"color": value})
             self.assertEqual(obj.color_name, name)
             name, value = update
-            obj = self.DelegatedModel.create({'color': value})
+            obj = self.DelegatedModel.create({"color": value})
             self.assertEqual(obj.color_name, name)
 
     @skipIf(MAJOR_ODOO_VERSION < 12, "Supported only for  Odoo 12+")
