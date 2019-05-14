@@ -8,12 +8,11 @@ stages:
   - publish
 
 check code smells:
-  script: merchise_lint2
+  image: python:3.6-alpine
   stage: check
-  tags:
-    - merchise-lint
-  only:
-    - branches
+  script:
+    - pip install merchise.lint==0.11 flake8-bugbear
+    - merchise_lint
 
 check formatting with black:
   image: python:3.6-alpine
