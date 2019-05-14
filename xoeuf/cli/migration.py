@@ -84,7 +84,9 @@ def write(msg):
 
 
 def read_bool_value(prompt=None):
-    _input = raw_input(prompt)
+    from xoeuf.eight import input
+
+    _input = input(prompt)
     _input = _input.lower()
     for result, valid_values in INPUT_VALID_VALUES:
         if _input in valid_values:
@@ -227,7 +229,7 @@ class Migration(Command):
         try:
             write_migration(options.dst_module.get_migration_path(), file_name, content)
         except Exception as e:
-            write(e.message)
+            write(str(e))
             newline()
             write(
                 "\nCopy following lines and create manually "

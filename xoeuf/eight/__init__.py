@@ -15,6 +15,11 @@ _py2 = sys.version_info[0] == 2
 _py3 = sys.version_info[0] == 3
 
 try:
+    input = raw_input
+except NameError:
+    input = input
+
+try:
     from xoutil.eight import string_types
 except ImportError:
     string_types = (str,)
