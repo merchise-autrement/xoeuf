@@ -6,10 +6,7 @@
 #
 # This is free software; you can do what the LICENCE file allows you to.
 #
-
 '''Xœuf basic ORM extensions for Open Object (OpenERP) models.'''
-
-
 from __future__ import (division as _py3_division,
                         print_function as _py3_print,
                         absolute_import)
@@ -18,6 +15,9 @@ from xoeuf.tools import add_symbols_to_xmls
 from xoeuf.models import get_modelname as _get_modelname
 
 from xoutil.deprecation import deprecated
+
+from xoeuf.eight import integer_types
+
 
 get_modelname = deprecated('xoeuf.models.get_modelname')(_get_modelname)
 del _get_modelname, deprecated
@@ -34,7 +34,6 @@ def guess_id(which, attr='id'):
     '''
     from xoeuf.odoo.osv.orm import browse_record
     from xoutil.future.collections import Mapping
-    from xoutil.eight import integer_types
     if isinstance(which, integer_types):
         return which
     elif isinstance(which, (Mapping, browse_record)):

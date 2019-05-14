@@ -109,7 +109,7 @@ class Secure(Command):
 
     @staticmethod
     def load_config_from_script(filename):
-        from xoutil.eight import exec_
+        from xoeuf.eight import exec_
         cfg = {
             "__builtins__": __builtins__,
             "__name__": "__config__",

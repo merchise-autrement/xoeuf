@@ -13,7 +13,7 @@ from __future__ import (division as _py3_division,
 try:
     from xoutil.future.datetime import TimeRange  # TODO: migrate
 except ImportError:
-    from xoutil.eight import string_types
+    from xoeuf.eight import string_types
     from datetime import datetime, time
 
     class TimeField(object):

@@ -23,13 +23,12 @@ You can update or load all options by calling in any time either the method
 :meth:`!options.load` or the method :meth:`!options.update`.
 
 '''
-
 from __future__ import (division as _py3_division,
                         print_function as _py3_print,
                         absolute_import as _py3_abs_import)
 
 from collections import MutableMapping
-from xoutil.eight.meta import metaclass
+from xoeuf.eight.meta import metaclass
 
 
 DEFAULT_COMMAND = str('server')
@@ -93,7 +92,7 @@ class MetaOptions(type):
             return self.wrapped[option]
 
     def __setitem__(self, option, value):
-        from xoutil.eight import string_types
+        from xoeuf.eight import string_types
         if isinstance(option, string_types):
             option = str(option)
             if value in ('True', 'true'):
@@ -108,7 +107,7 @@ class MetaOptions(type):
             else:
                 self.wrapped[option] = value
         else:
-            from xoutil.eight import typeof
+            from xoeuf.eight import typeof
             msg = 'option name must be str, "%s" of type "%s" is provided!'
             raise TypeError(msg % (option, typeof(option).__name__))
 

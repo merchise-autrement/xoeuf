@@ -33,7 +33,7 @@ from __future__ import (division as _py3_division,
 import operator
 from itertools import chain
 from xoeuf.odoo.osv import expression as _odoo_expression
-from xoutil.eight import string_types
+from xoeuf.eight import string_types
 
 from . import ql
 

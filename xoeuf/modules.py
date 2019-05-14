@@ -6,11 +6,9 @@
 #
 # This is free software; you can do what the LICENCE file allows you to.
 #
-
 '''External OpenERP's addons
 
 '''
-
 from __future__ import (division as _py3_division,
                         print_function as _py3_print,
                         absolute_import as _py3_abs_import)
@@ -23,6 +21,9 @@ from xoutil.future.functools import lru_cache
 from xoutil.modules import customize
 from xoutil.modules import modulemethod
 from xoutil.string import cut_prefix
+
+from xoeuf.eight import string_types
+
 
 # In Odoo 10, they allow to import from both 'odoo' and 'openerp'
 _ADDONS_NAMESPACE = re.compile(
@@ -178,7 +179,6 @@ def patch_modules():
 
 def _get_registry(db_name):
     '''Helper method to get the registry for a `db_name`.'''
-    from xoutil.eight import string_types
     from odoo.modules.registry import Registry
     if isinstance(db_name, string_types):
         db = Registry(db_name)

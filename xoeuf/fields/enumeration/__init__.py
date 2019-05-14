@@ -11,10 +11,11 @@ from __future__ import (division as _py3_division,
                         absolute_import as _py3_abs_import)
 
 from collections import namedtuple
-from xoutil.eight import string_types
 from xoutil.string import cut_prefix
 
 from xoeuf import models, api
+from xoeuf.eight import string_types
+
 from odoo import fields
 
 __all__ = ['Enumeration']

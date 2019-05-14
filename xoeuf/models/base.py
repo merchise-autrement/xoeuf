@@ -35,7 +35,7 @@ def get_modelname(model):
        <xoeuf.models.proxy>`:mod: is an error.
 
     '''
-    from xoutil.eight import string_types
+    from xoeuf.eight import string_types
     from xoeuf.odoo.models import BaseModel
     if not isinstance(model, BaseModel) and not issubclass(model, BaseModel):
         msg = "Invalid argument '%s' for param 'model'" % model

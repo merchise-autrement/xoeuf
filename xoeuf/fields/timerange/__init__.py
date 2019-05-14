@@ -12,7 +12,7 @@ from __future__ import (division as _py3_division,
 
 from datetime import datetime, time
 from functools import partial
-from xoutil.eight import string_types
+from xoeuf.eight import string_types
 
 from odoo.fields import Selection, Datetime, Float, Default as DEFAULT
 

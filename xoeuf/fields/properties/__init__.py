@@ -11,10 +11,10 @@ from __future__ import (division as _py3_division,
                         absolute_import as _py3_abs_import)
 
 from xoutil.symbols import Unset
-from xoutil.eight.meta import metaclass
 
 from xoeuf import MAJOR_ODOO_VERSION
 from xoeuf.odoo.fields import Field as Base
+from xoeuf.eight.meta import metaclass
 
 
 class PropertyField(Base):

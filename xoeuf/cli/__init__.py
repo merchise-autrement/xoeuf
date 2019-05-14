@@ -20,8 +20,8 @@ from xoeuf.modules import patch_modules
 patch_modules()
 
 
-from xoutil.eight.meta import metaclass
 from xoutil.cli import Command as BaseCommand
+from xoeuf.eight.meta import metaclass
 
 
 class CommandsProxy(BaseCommand):
