@@ -63,7 +63,7 @@ class OdooHook(object):
 
         assert name not in sys.modules
         regex = self.REGEX + r"(.*)"
-        canonical = re.sub(regex, self.NAME + "\g<1>", name)
+        canonical = re.sub(regex, self.NAME + r"\g<1>", name)
         if canonical in sys.modules:
             mod = sys.modules[canonical]
         else:
@@ -102,7 +102,7 @@ class _PatchesRegistry(object):
             return
         bootstraped = getattr(self, "bootstraped", False)
         if not bootstraped:
-            for name, func in self._registry.items():
+            for name, _func in self._registry.items():
                 self._wrapped[name] = getattr(module, name)
             module = customize(module)[0]
             for name, func in self._registry.items():

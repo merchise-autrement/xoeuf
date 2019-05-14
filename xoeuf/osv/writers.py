@@ -81,7 +81,7 @@ class _BaseWriter(object):
         return self
 
     def __exit__(self, ex_type, exc_value, exc_tb):
-        raise NotImplemented
+        raise NotImplementedError
 
     def create(self, attrname, **values):
         """Issues a command to create a newly related object with given `values` for

@@ -30,7 +30,7 @@ class TimeField(_TimeRangeObject):
 
 
 class TimeRangeSelector(object):
-    def __init__(self, choices=[]):
+    def __init__(self, choices=()):
         self.ranges = [TimeField(c[2], c[3], c[0]) for c in choices]
 
     def get_range(self, _time=time.min):

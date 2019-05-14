@@ -274,7 +274,6 @@ def dt_as_timezone(dt, tz_name=None):
 
 
 def localtime_as_remotetime(dt_UTC, from_tz=utc, as_tz=utc, ignore_dst=False):
-    # type: (datetime.datetime, Union[str, datetime.tzinfo], Union[str, datetime.tzinfo], bool) -> datetime.datetime
     """Compute the datetime as the timezone source, then force to it the desired
     TZ and back to UTC.
 
@@ -420,7 +419,7 @@ from xoeuf.odoo.tools import convert
 _safe_eval = convert.safe_eval
 
 
-def custom_safe_eval(expr, ctx={}):
+def custom_safe_eval(expr, ctx={}):  # noqa: B006
     ctx = dict(ctx)
     ctx.update(_SAFE_EVAL_SYMBOLS)
     return _safe_eval(expr, ctx)

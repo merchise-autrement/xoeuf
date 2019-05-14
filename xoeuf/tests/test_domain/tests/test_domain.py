@@ -34,6 +34,7 @@ all_operators = s.sampled_from(
     ["=", "!=", "<", ">", "<>", "like", "ilike", "not like", "not ilike"]
 )
 ages = s.integers(min_value=0, max_value=120)
+sensible_values = s.integers(min_value=-10, max_value=10)
 
 # Logical connectors with the amount of terms it connects.  Notice that ''
 # takes two arguments because it's the same as '&'.
@@ -43,7 +44,9 @@ logger = logging.getLogger(__name__)
 
 
 @s.composite
-def terms(draw, fields=None, values=s.integers(min_value=-10, max_value=10)):
+def terms(draw, fields=None, values=None):
+    if not values:
+        values = sensible_values
     f = fields or names
     name = str(draw(f))
     operator = draw(operators)
