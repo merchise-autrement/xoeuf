@@ -5,18 +5,26 @@
 Beta releases (series 0.X)
 ==========================
 
+We're approaching a final 1.0 release.  We're stopping adding new features
+to xoeuf, but the next releases will remove most of the deprecated features
+that remain in the code.
+
+Each major version of xoeuf (1.x, 2.x, etc) will be 100% compatible with
+latest version of Odoo supported by xoeuf (at that moment).  We'll try to make
+each major version backwards-compatible with the two previous versions of
+Odoo.  So, xoeuf 1.0 will be compatible with Odoo 12, and many of its features
+will work on Odoo 10 and 11.
+
+
+Unreleased.  Release 0.63.0
+---------------------------
+
+Nothing yet.
+
+
 2019-05-14.  Release 0.62.0
 ---------------------------
 
-- We're approaching a final 1.0 release.  We're stopping adding new features
-  to xoeuf, but the next releases will remove most of the deprecated features
-  that remain in the code.
-
-  Each major version of xoeuf (1.x, 2.x, etc) will be 100% compatible with
-  latest version of Odoo supported by xoeuf (at that moment).  We'll try to
-  make each major version backwards-compatible with the two previous versions
-  of Odoo.  So, xoeuf 1.0 will be compatible with Odoo 12, and many of its
-  features will work on  Odoo 10 and 11.
 
 - Fix NameError when running in Python 3+.
 
