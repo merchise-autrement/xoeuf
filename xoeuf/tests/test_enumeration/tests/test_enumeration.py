@@ -220,6 +220,15 @@ class TestEnum(TransactionCase):
             obj.color = name
             self.assertEqual(obj.color_name, name)
 
+    @skipIf(MAJOR_ODOO_VERSION < 12, "Supported only for  Odoo 12+")
+    @given(color_pairs, color_pairs)
+    def test_api_model_create_multi(self, pair1, pair2):
+        name1, value1 = pair1
+        name2, value2 = pair2
+        with force_ready(self.env.registry):
+            objs = self.DelegatedModel.create([{"color": value1}, {"color": value2}])
+            self.assertEqual(set(objs.mapped("color_name")), {name1, name2})
+
 
 @contextlib.contextmanager
 def force_ready(registry):

@@ -12,13 +12,18 @@ from __future__ import (
     absolute_import as _py3_abs_import,
 )
 
-from collections import namedtuple
+from collections import namedtuple, Mapping
 from xoutil.string import cut_prefix
 
-from xoeuf import models, api
+from xoeuf import models, api, MAJOR_ODOO_VERSION
 from xoeuf.eight import string_types
 
 from odoo import fields
+
+if MAJOR_ODOO_VERSION < 12:
+    api_create_signature = api.model
+else:
+    api_create_signature = api.model_create_multi
 
 __all__ = ["Enumeration"]
 
@@ -219,12 +224,22 @@ class EnumerationAdapter(Adapter):
                     args[index] = (fieldname, operator, values)
         return super(EnumerationAdapter, self).search(args, *pos_args, **kwargs)
 
-    @api.model
+    @api_create_signature
     @api.returns("self", lambda value: value.id)
     def create(self, values):
-        for fieldname, value in dict(values).items():
-            field = self._fields.get(fieldname, None)
-            values[fieldname] = _get_db_value(field, value)
+        if isinstance(values, Mapping):
+            values = {
+                fieldname: _get_db_value(self._fields.get(fieldname, None), value)
+                for fieldname, value in values.items()
+            }
+        else:
+            values = [
+                {
+                    fieldname: _get_db_value(self._fields.get(fieldname, None), value)
+                    for fieldname, value in vals.items()
+                }
+                for vals in values
+            ]
         return super(EnumerationAdapter, self).create(values)
 
     @api.multi

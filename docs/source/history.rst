@@ -24,6 +24,9 @@ Unreleased.  Release 0.63.0
   ``@api.model_create_multi`` when running in Odoo 12.  In Odoo 10 and 11, the
   are decorated with ``@api.model``.
 
+  Similarly, update the internal mixin used by
+  `xoeuf.fields.Enumeration`:func:.
+
 
 2019-05-14.  Release 0.62.0
 ---------------------------
