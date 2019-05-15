@@ -12,8 +12,9 @@ from __future__ import (
     absolute_import as _py3_abs_import,
 )
 
+from collections import Mapping
 from enum import IntEnum, Enum
-from xoeuf import models, fields
+from xoeuf import api, models, fields, MAJOR_ODOO_VERSION
 
 
 class COLORS(IntEnum):
@@ -58,13 +59,28 @@ class Model(models.Model):
     pax = fields.Enumeration(Pax)
 
 
+if MAJOR_ODOO_VERSION < 12:
+    api_create_signature = api.model
+else:
+    api_create_signature = api.model_create_multi
+
+
 class DelegatedModel(models.Model):
     _name = "test.enum.model_delegated"
     _inherits = {"test.enum.model": "model_id"}
 
     model_id = fields.Many2one("test.enum.model")
 
+    @api_create_signature
     def create(self, values):
+        if isinstance(values, Mapping):
+            values = self._pre_create_model_id(values)
+        else:
+            values = [self._pre_create_model_id(vals) for vals in values]
+        return super(DelegatedModel, self).create(values)
+
+    @api.model
+    def _pre_create_model_id(self, values):
         if "model_id" not in values:
             values["model_id"] = self.env["test.enum.model"].create({}).id
-        return super(DelegatedModel, self).create(values)
+        return values

@@ -6,15 +6,17 @@
 #
 # This is free software; you can do what the LICENCE file allows you to.
 #
-
 from __future__ import (
     division as _py3_division,
     print_function as _py3_print,
     absolute_import as _py3_abs_import,
 )
 
+import unittest
+
 from xoutil.future.codecs import safe_decode
 
+from xoeuf import MAJOR_ODOO_VERSION
 from xoeuf.odoo.tests.common import TransactionCase, at_install, post_install
 from xoeuf.signals import (
     mock_replace,
@@ -106,3 +108,12 @@ class TestXoeufSignals(TransactionCase):
             with mock_replace(pre_create, pre_save_receiver) as mock:
                 self.Model.create(dict(name="My name"))
                 self.assertFalse(mock.called)
+
+    @unittest.skipIf(MAJOR_ODOO_VERSION < 12, "create accepts a list from Odoo 12+")
+    def test_model_create_multi(self):
+        with mock_replace(pre_create, pre_save_receiver) as mock:
+            result = self.Model.create([dict(name="My name"), dict(name="Second obj")])
+            # The mock is called once even though there are two records to
+            # create.
+            self.assertEqual(mock.call_count, 1)
+            self.assertEqual(len(result), 2)
