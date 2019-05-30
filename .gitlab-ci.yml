@@ -54,11 +54,11 @@ check formatting with black:
     - virtualenv
     - xoeuf-tester
 
-run all Odoo 10 tests:
+run all Odoo 12 tests:
   <<: *run_tests
   variables:
-    PYTHON: python
-    ODOO_WORKTREE: odoo10
+    PYTHON: python3
+    ODOO_WORKTREE: odoo12
   only:
     - branches
 
@@ -70,14 +70,13 @@ run all Odoo 11 tests:
   only:
     - branches
 
-run all Odoo 12 tests:
+run all Odoo 10 tests:
   <<: *run_tests
   variables:
-    PYTHON: python3
-    ODOO_WORKTREE: odoo12
+    PYTHON: python
+    ODOO_WORKTREE: odoo10
   only:
     - branches
-
 
 check signature of tag:
   stage: check
