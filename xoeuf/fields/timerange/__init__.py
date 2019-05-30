@@ -14,13 +14,13 @@ from __future__ import (
 
 from datetime import datetime, time
 from functools import partial
-from xoeuf.eight import string_types
 
 from odoo.fields import Selection, Datetime, Float, Default as DEFAULT
 
-from xoeuf.tools import normalize_datetime, get_time_from_float
-
 from .utils import TimeRange as _TimeRangeObject
+
+from ...eight import string_types
+from ...tools import normalize_datetime, get_time_from_float
 
 
 class TimeField(_TimeRangeObject):
@@ -65,7 +65,7 @@ class TimeRange(Selection):
 
     """
 
-    type = "timerange"
+    type = "timerange"  # Q: Do we need to change the type?
 
     _slots = {"time_field": None, "readonly": True}
 

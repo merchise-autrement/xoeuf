@@ -30,4 +30,9 @@ from xoeuf.odoo.release import version_info as ODOO_VERSION_INFO  # noqa
 
 MAJOR_ODOO_VERSION = ODOO_VERSION_INFO[0]  # noqa
 
+# Bootstrap fields; otherwise they won't appear in the FIELD_TYPES in
+# ir_model.py
+from . import fields  # noqa
+
+
 del orm

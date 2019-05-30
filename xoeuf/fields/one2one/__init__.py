@@ -12,7 +12,7 @@ from __future__ import (
     absolute_import as _py3_abs_import,
 )
 
-from xoeuf.odoo.fields import Many2one
+from odoo.fields import Many2one
 
 
 class One2one(Many2one):

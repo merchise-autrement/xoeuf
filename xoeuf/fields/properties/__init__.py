@@ -14,9 +14,10 @@ from __future__ import (
 
 from xoutil.symbols import Unset
 
-from xoeuf import MAJOR_ODOO_VERSION
-from xoeuf.odoo.fields import Field as Base
-from xoeuf.eight.meta import metaclass
+from odoo.release import version_info as ODOO_VERSION_INFO
+from odoo.fields import Field as Base
+
+from ...eight.meta import metaclass
 
 
 class PropertyField(Base):
@@ -244,7 +245,7 @@ class Property(metaclass(_PropertyType)):
 Property.__doc__ = PropertyField.__doc__
 
 
-if MAJOR_ODOO_VERSION < 11:
+if ODOO_VERSION_INFO < (11, 0):
 
     def _get_from_cache(record, field, default):
         return record.env.cache[field].get(record.id, default)

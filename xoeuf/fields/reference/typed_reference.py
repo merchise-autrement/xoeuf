@@ -12,7 +12,7 @@ from __future__ import (
     absolute_import as _py3_abs_import,
 )
 
-from xoeuf.odoo import api, fields, models, _
+from odoo import api, fields, models, _
 
 
 def get_mixin_descendants(pool, mixin):
@@ -37,7 +37,6 @@ class TypedReference(fields.Reference):
 
     """
 
-    type = "reference"
     _slots = {"mixin": None, "comodel_name": None, "delegate": None}
 
     def __init__(self, mixin=fields.Default, delegate=fields.Default, **kwargs):

@@ -13,7 +13,7 @@ from __future__ import (
     absolute_import as _py3_abs_import,
 )
 
-from xoeuf.odoo.fields import Monetary as Base
+from odoo.fields import Monetary as Base
 
 
 class Monetary(Base):

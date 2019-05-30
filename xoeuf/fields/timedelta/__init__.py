@@ -14,7 +14,7 @@ from __future__ import (
 )
 
 from datetime import timedelta
-from xoeuf.odoo.fields import Float
+from odoo.fields import Float
 
 
 class TimeDelta(Float):
@@ -25,7 +25,7 @@ class TimeDelta(Float):
 
     """
 
-    type = "timedelta"
+    type = "timedelta"  # Q: Do we need to change the type?
 
     @staticmethod
     def ensure_timedelta(value):

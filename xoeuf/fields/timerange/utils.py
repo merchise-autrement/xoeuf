@@ -15,8 +15,9 @@ from __future__ import (
 try:
     from xoutil.future.datetime import TimeRange  # TODO: migrate
 except ImportError:
-    from xoeuf.eight import string_types
     from datetime import datetime, time
+
+    from ...eight import string_types
 
     class TimeField(object):
         """A descriptor for a `datetime.time`:class:.

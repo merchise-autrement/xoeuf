@@ -15,12 +15,13 @@ from __future__ import (
 from collections import namedtuple, Mapping
 from xoutil.string import cut_prefix
 
-from xoeuf import models, api, MAJOR_ODOO_VERSION
-from xoeuf.eight import string_types
+from odoo import fields, api, models
+from odoo.release import version_info as ODOO_VERSION_INFO
 
-from odoo import fields
+from ...eight import string_types
 
-if MAJOR_ODOO_VERSION < 12:
+
+if ODOO_VERSION_INFO < (12,):
     api_create_signature = api.model
 else:
     api_create_signature = api.model_create_multi
