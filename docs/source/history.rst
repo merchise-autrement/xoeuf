@@ -27,6 +27,11 @@ Unreleased.  Release 0.63.0
   Similarly, update the internal mixin used by
   `xoeuf.fields.Enumeration`:func:.
 
+- Bootstrap all fields in the 'ir.model.fields' selection of 'ttype'.  You
+  SHOULD run Odoo by running the 'xoeuf' command so this bootstrapping work.
+  Otherwise new field types (`xoeuf.fields.Property`:class: and others) fail
+  in the 'report.base.report_irmodeloverview'.
+
 
 2019-05-14.  Release 0.62.0
 ---------------------------
