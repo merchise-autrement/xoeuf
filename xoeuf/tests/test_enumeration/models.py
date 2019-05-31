@@ -58,6 +58,21 @@ class Model(models.Model):
     car = fields.Enumeration(CARS)
     pax = fields.Enumeration(Pax)
 
+    def _get_enumclass(self):
+        if self._name == "test.enum.model_delegated":
+
+            class Dynamic(Enum):
+                name = "Dynamic"
+
+        else:
+
+            class Dynamic(Enum):
+                name = "Static"
+
+        return Dynamic
+
+    dynamic_enum = fields.Enumeration(_get_enumclass)
+
 
 if MAJOR_ODOO_VERSION < 12:
     api_create_signature = api.model

@@ -229,6 +229,13 @@ class TestEnum(TransactionCase):
             objs = self.DelegatedModel.create([{"color": value1}, {"color": value2}])
             self.assertEqual(set(objs.mapped("color_name")), {name1, name2})
 
+    def test_dynamic_enumclass(self):
+        Enumclass = self.EnumModel._fields["dynamic_enum"].Enumclass
+        self.assertEqual(Enumclass.name.value, "Static")
+
+        Enumclass = self.DelegatedModel._fields["dynamic_enum"].Enumclass
+        self.assertEqual(Enumclass.name.value, "Dynamic")
+
 
 @contextlib.contextmanager
 def force_ready(registry):

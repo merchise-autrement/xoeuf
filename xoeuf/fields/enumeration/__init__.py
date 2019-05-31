@@ -14,8 +14,10 @@ from __future__ import (
 
 from collections import namedtuple, Mapping
 from xoutil.string import cut_prefix
+from xoutil.objects import import_object
 
 from odoo import fields, api, models
+from odoo.fields import Char
 from odoo.release import version_info as ODOO_VERSION_INFO
 
 from ...eight import string_types
@@ -31,11 +33,21 @@ __all__ = ["Enumeration"]
 Member = namedtuple("Member", ("name", "value"))
 
 
-def Enumeration(enumclass, *args, **kwargs):
+class _EnumeratedField(object):
+    # I'm keeping this class just in case someone has been testing for it.
+    pass
+
+
+class Enumeration(Char, _EnumeratedField):
     """Create an enumeration field.
 
-    The `enumclass` argument must be either an `enumeration class` or a
-    fully qualified name of an enumeration class.
+    The `enumclass` argument must be either an `enumeration class` or a fully
+    qualified name of an enumeration class.  If either way return a callable,
+    it must accept a single argument (the model) and return the enumeration
+    class.
+
+    The actual enumeration used per model is stored in the ``Enumclass``
+    attribute.
 
     The column in the DB will be of type CHAR and the values are the name of
     attribute in the enumeration class.
@@ -89,100 +101,196 @@ def Enumeration(enumclass, *args, **kwargs):
     .. versionchanged:: 0.61.0 Add an automatic way to create a selection
        field via the parameter 'selection_field_name'.
 
+    .. versionchanged:: 0.64.0 The `enumclass` can be a callable.  Enumeration
+       is now class instead of a function.  Gain the ``Enumclass`` attribute.
+
     """
-    from odoo.fields import Char
-    from xoutil.objects import import_object, classproperty
 
-    kwargs.pop("force_char_column", False)
-    enumclass = import_object(enumclass)
-
-    SELECTION_FIELD_PREFIX = "selection_field_"
-    selection_field_kwargs = {
-        cut_prefix(kw, SELECTION_FIELD_PREFIX): value
-        for kw, value in kwargs.items()
-        if kw.startswith(SELECTION_FIELD_PREFIX)
+    _slots = {
+        "enumclass": None,
+        "selection_field_kwargs": None,
+        "compute_member_string": None,
     }
-    compute_member_string = kwargs.pop("compute_member_string", None)
-    if compute_member_string:
-        selection_field_kwargs["compute_member_string"] = compute_member_string
 
-    class EnumeratedField(Char, _EnumeratedField):
-        @classproperty
-        def members(cls):
-            return enumclass.__members__
+    def __init__(self, enumclass, *args, **kwargs):
+        selection_field_kwargs = kwargs.pop("selection_field_kwargs", {})
+        if not selection_field_kwargs:
+            SELECTION_FIELD_PREFIX = "selection_field_"
+            selection_field_kwargs = {
+                cut_prefix(kw, SELECTION_FIELD_PREFIX): value
+                for kw, value in kwargs.items()
+                if kw.startswith(SELECTION_FIELD_PREFIX)
+            }
+            compute_member_string = kwargs.pop("compute_member_string", None)
+            if compute_member_string:
+                selection_field_kwargs["compute_member_string"] = compute_member_string
 
-        def setup_full(self, model):
-            # Injects a new class in the model MRO, so that we can guarantee
-            # the expectation about the methods create, write and search.
-            #
-            # The alternative would be to implement pre_save and pre_search
-            # receivers.  But that would run for ALL models regardless of the
-            # presence of Enumeration fields.  Also, we need to rewrite the
-            # argument in the 'search' method, and signals are designed for
-            # such use case (although they work at the moment).
-            #
-            # We must find EnumerationAdapter in the MRO to avoid injecting it
-            # twice when using Enumeration fields in abstract models.
-            #
-            # We don't need to inject the EnumerationAdapter in related
-            # (delegated) copies for this Enumeration fields, because the
-            # actual field does the right thing with DB (it do have the
-            # EnumerationAdapter injected.)
-            cls = type(model)
-            if EnumerationAdapter not in cls.mro() and not self.related:
-                cls.__bases__ = (EnumerationAdapter,) + cls.__bases__
-                # I tried to use model._add_field because it changes the
-                # cls._fields that Odoo is iterating and that raises an error
-                # (RuntimeError: dictionary changed size during iteration).
-                #
-                # So let's resort to injection.
-                if selection_field_kwargs:
-                    selection_field_name = selection_field_kwargs.pop("name")
-                    selection_field = self.get_selection_field(
-                        self.name, selection_field_name, **selection_field_kwargs
-                    )
-                    cls.__bases__ = (
-                        SelectionMixin(
-                            self.name, selection_field_name, selection_field
-                        ),
-                    ) + cls.__bases__
-            return super(EnumeratedField, self).setup_full(model)
+        super(Enumeration, self).__init__(
+            enumclass=enumclass,
+            selection_field_kwargs=selection_field_kwargs,
+            *args,
+            **kwargs
+        )
+        self.enumclass = enumclass
+        self.selection_field_kwargs = selection_field_kwargs
 
-        def convert_to_read(self, value, record, use_name_get=True):
-            if value is not None and value is not False:
-                return self.get_member_by_value(value).value
-            else:
-                return value
+    def new(self, **kwargs):
+        enumclass = kwargs.pop("enumclass", self.enumclass)
+        selection_field_kwargs = kwargs.pop(
+            "selection_field_kwargs", self.selection_field_kwargs
+        )
+        return type(self)(
+            enumclass=enumclass, selection_field_kwargs=selection_field_kwargs, **kwargs
+        )
 
-        def convert_to_write(self, value, record):
-            if value is not None and value is not False:
-                if value in enumclass.__members__.values():
+    def resolve_enumclass(self, model):
+        enumclass = import_object(self.enumclass)
+
+        if callable(enumclass) and not hasattr(enumclass, "__members__"):
+            enumclass_factory = enumclass
+        else:
+            enumclass_factory = constant(enumclass)
+        return enumclass_factory(model)
+
+    def get_selection_field(
+        self, field_name, name, compute_member_string=None, **kwargs
+    ):
+        """Return a computed Selection field to set/get the Enumeration.
+
+        """
+        selection_field_name = name
+
+        @api.multi
+        @api.depends(field_name)
+        def _compute_selection_field(rs):
+            for record in rs:
+                value = getattr(record, field_name, None)
+                if value is not None:
                     member = self.get_member_by_value(value)
-                    # Our EnumerationAdapter takes care of doing the right
-                    # thing when writing to the DB, also convert_to_column
-                    # does.
-                    return member.value
-            return value
+                    setattr(record, selection_field_name, member.name)
+                else:
+                    setattr(record, selection_field_name, False)
 
-        def convert_to_cache(self, value, record, validate=True):
-            if value not in enumclass.__members__.values():
-                if value is not None and value is not False:
-                    return self.get_member_by_name(value).value
-            return value
+        @api.multi
+        def _set_selection(rs):
+            for record in rs:
+                key = getattr(record, selection_field_name, None)
+                if key:
+                    member = self.get_member_by_name(key)
+                    setattr(record, field_name, member.value)
+                else:
+                    setattr(record, field_name, False)
 
-        # NOTE: The parameter `values` was introduced in Odoo 11; the
-        # parameter validate was introduced in Odoo 12.  We don't use
-        # either; but declare them both to work across the three Odoo
-        # versions.
-        def convert_to_column(self, value, record, values=None, validate=True):
-            if value in enumclass.__members__.values():
-                return Char.convert_to_column(
-                    self, self.get_member_by_value(value).name, record
+        if not compute_member_string:
+            compute_member_string = self._compute_member_string
+        kwargs.setdefault("store", False)
+        kwargs.setdefault("compute", _compute_selection_field)
+        kwargs.setdefault("inverse", _set_selection)
+        return fields.Selection(
+            selection=lambda s: [
+                (name, compute_member_string(name, value))
+                for name, value in self.Enumclass.__members__.items()
+            ],
+            **kwargs
+        )
+
+    @staticmethod
+    def _compute_member_string(name, value):
+        return name
+
+    def get_member_by_value(self, value):
+        """Find the enumclass's member that is equal to `value`."""
+        try:
+            return next(
+                Member(k, v)
+                for k, v in self.Enumclass.__members__.items()
+                if v == value
+            )
+        except StopIteration:
+            raise ValueError(
+                "Invalid member %r of enumeration %r"
+                % (value, self.Enumclass.__members__)
+            )
+
+    def get_member_by_name(self, name):
+        """Find the enumclass's member by name"""
+        try:
+            return Member(name, self.Enumclass.__members__[name])
+        except (AttributeError, KeyError):
+            raise ValueError(
+                "Invalid key %r of enumeration %r" % (name, self.Enumclass.__members__)
+            )
+
+    def setup_full(self, model):
+        # Injects a new class in the model MRO, so that we can guarantee
+        # the expectation about the methods create, write and search.
+        #
+        # The alternative would be to implement pre_save and pre_search
+        # receivers.  But that would run for ALL models regardless of the
+        # presence of Enumeration fields.  Also, we need to rewrite the
+        # argument in the 'search' method, and signals aren't designed for
+        # such use case (although they work at the moment).
+        #
+        # We must find EnumerationAdapter in the MRO to avoid injecting it
+        # twice when using Enumeration fields in abstract models.
+        #
+        # We don't need to inject the EnumerationAdapter in related
+        # (delegated) copies for this Enumeration fields, because the
+        # actual field does the right thing with DB (it does have the
+        # EnumerationAdapter injected.)
+        cls = type(model)
+        if EnumerationAdapter not in cls.mro() and not self.related:
+            cls.__bases__ = (EnumerationAdapter,) + cls.__bases__
+            # I tried to use model._add_field because it changes the
+            # cls._fields that Odoo is iterating and that raises an error
+            # (RuntimeError: dictionary changed size during iteration).
+            #
+            # So let's resort to injection.
+            if self.selection_field_kwargs:
+                selection_field_name = self.selection_field_kwargs.pop("name")
+                selection_field = self.get_selection_field(
+                    self.name, selection_field_name, **self.selection_field_kwargs
                 )
-            else:
-                return Char.convert_to_column(self, value, record)
+                cls.__bases__ = (
+                    SelectionMixin(self.name, selection_field_name, selection_field),
+                ) + cls.__bases__
+        result = super(Enumeration, self).setup_full(model)
+        self.Enumclass = self.resolve_enumclass(model)
+        return result
 
-    return EnumeratedField(*args, **kwargs)
+    def convert_to_read(self, value, record, use_name_get=True):
+        if value is not None and value is not False:
+            return self.get_member_by_value(value).value
+        else:
+            return value
+
+    def convert_to_write(self, value, record):
+        if value is not None and value is not False:
+            if value in self.Enumclass.__members__.values():
+                member = self.get_member_by_value(value)
+                # Our EnumerationAdapter takes care of doing the right
+                # thing when writing to the DB, also convert_to_column
+                # does.
+                return member.value
+        return value
+
+    def convert_to_cache(self, value, record, validate=True):
+        if value not in self.Enumclass.__members__.values():
+            if value is not None and value is not False:
+                return self.get_member_by_name(value).value
+        return value
+
+    # NOTE: The parameter `values` was introduced in Odoo 11; the
+    # parameter validate was introduced in Odoo 12.  We don't use
+    # either; but declare them both to work across the three Odoo
+    # versions.
+    def convert_to_column(self, value, record, values=None, validate=True):
+        if value in self.Enumclass.__members__.values():
+            return Char.convert_to_column(
+                self, self.get_member_by_value(value).name, record
+            )
+        else:
+            return Char.convert_to_column(self, value, record)
 
 
 class Adapter(object):
@@ -259,77 +367,20 @@ def SelectionMixin(field_name, selection_field_name, selection_field):
     )
 
 
-class _EnumeratedField(object):
-    def get_selection_field(
-        self, field_name, name, compute_member_string=None, **kwargs
-    ):
-        """Return a computed Selection field to set/get the Enumeration.
-
-        """
-        selection_field_name = name
-
-        @api.multi
-        @api.depends(field_name)
-        def _compute_selection_field(rs):
-            for record in rs:
-                value = getattr(record, field_name, None)
-                if value is not None:
-                    member = self.get_member_by_value(value)
-                    setattr(record, selection_field_name, member.name)
-                else:
-                    setattr(record, selection_field_name, False)
-
-        @api.multi
-        def _set_selection(rs):
-            for record in rs:
-                key = getattr(record, selection_field_name, None)
-                if key:
-                    member = self.get_member_by_name(key)
-                    setattr(record, field_name, member.value)
-                else:
-                    setattr(record, field_name, False)
-
-        if not compute_member_string:
-            compute_member_string = self._compute_member_string
-        kwargs.setdefault("store", False)
-        kwargs.setdefault("compute", _compute_selection_field)
-        kwargs.setdefault("inverse", _set_selection)
-        return fields.Selection(
-            selection=lambda s: [
-                (name, compute_member_string(name, value))
-                for name, value in self.members.items()
-            ],
-            **kwargs
-        )
-
-    @staticmethod
-    def _compute_member_string(name, value):
-        return name
-
-    @classmethod
-    def get_member_by_value(cls, value):
-        """Find the enumclass's member that is equal to `value`."""
-        try:
-            return next(Member(k, v) for k, v in cls.members.items() if v == value)
-        except StopIteration:
-            raise ValueError(
-                "Invalid member %r of enumeration %r" % (value, cls.members)
-            )
-
-    @classmethod
-    def get_member_by_name(cls, name):
-        """Find the enumclass's member by name"""
-        try:
-            return Member(name, cls.members[name])
-        except (AttributeError, KeyError):
-            raise ValueError("Invalid key %r of enumeration %r" % (name, cls.members))
-
-
 def _get_db_value(field, value):
     if value is None or value is False:  # and not field.required
         return value
-    if isinstance(field, _EnumeratedField):
+    if isinstance(field, Enumeration):
         member = field.get_member_by_value(value)
         return member.name
     else:
         return value
+
+
+def constant(value):
+    "Create a function (of many args) that always returns a constant `value`."
+
+    def result(*args, **kwargs):
+        return value
+
+    return result
