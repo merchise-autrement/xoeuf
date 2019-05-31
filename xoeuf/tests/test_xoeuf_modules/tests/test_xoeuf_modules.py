@@ -13,10 +13,10 @@ from __future__ import (
     absolute_import as _py3_abs_import,
 )
 
-import unittest
+from odoo.tests.common import BaseCase
 
 
-class TestModules(unittest.TestCase):
+class TestModules(BaseCase):
     def test_get_object_module(self):
         from .. import Foo
         from xoeuf.modules import get_object_module

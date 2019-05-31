@@ -12,10 +12,10 @@ from __future__ import (
     absolute_import as _py3_abs_import,
 )
 
-import unittest
+from odoo.tests.common import BaseCase
 
 
-class TestXoeufImports(unittest.TestCase):
+class TestXoeufImports(BaseCase):
     def test_xoeuf_imports(self):
         "Xoeuf is importable in Python 2 and 3"
         from xoeuf import fields, models, api  # noqa
