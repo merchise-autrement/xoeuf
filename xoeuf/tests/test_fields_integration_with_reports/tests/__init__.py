@@ -12,21 +12,4 @@ from __future__ import (
     absolute_import as _py3_abs_import,
 )
 
-from odoo import api, fields
-
-
-@api.model
-def _tz_get(self):
-    import pytz
-
-    def key(tz):
-        return tz if not tz.startswith("Etc/") else "_"
-
-    return [(tz, "(" + tz + ")") for tz in sorted(pytz.all_timezones, key=key)]
-
-
-def TimezoneSelection(*args, **kwargs):
-    """A selection field for installed timezones.
-
-    """
-    return fields.Selection(_tz_get, *args, **kwargs)
+from . import test_report_integration  # noqa

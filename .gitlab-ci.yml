@@ -49,16 +49,16 @@ check formatting with black:
     - pip install -e .
     - export ADDONS=`ls xoeuf/tests/ | grep ^test_ | xargs | tr " " ","`
     - cd ~/src/$ODOO_WORKTREE
-    - runtests-odoo.sh -i $ADDONS
+    - runtests-odoo.sh -exec xoeuf -p $PYTHON -i $ADDONS
   tags:
     - virtualenv
     - xoeuf-tester
 
-run all Odoo 10 tests:
+run all Odoo 12 tests:
   <<: *run_tests
   variables:
-    PYTHON: python
-    ODOO_WORKTREE: odoo10
+    PYTHON: python3
+    ODOO_WORKTREE: odoo12
   only:
     - branches
 
@@ -70,14 +70,13 @@ run all Odoo 11 tests:
   only:
     - branches
 
-run all Odoo 12 tests:
+run all Odoo 10 tests:
   <<: *run_tests
   variables:
-    PYTHON: python3
-    ODOO_WORKTREE: odoo12
+    PYTHON: python
+    ODOO_WORKTREE: odoo10
   only:
     - branches
-
 
 check signature of tag:
   stage: check

@@ -12,7 +12,7 @@ from __future__ import (
     absolute_import as _py3_abs_import,
 )
 
-from xoeuf.odoo.fields import *  # noqa: reexport
+from odoo.fields import *  # noqa: reexport
 
 from .datetime import LocalizedDatetime  # noqa: reexport
 from .properties import Property  # noqa: reexport

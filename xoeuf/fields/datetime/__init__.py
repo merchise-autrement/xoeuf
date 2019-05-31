@@ -15,8 +15,8 @@ from __future__ import (
 
 import pytz
 
-from xoeuf.odoo import fields
-from xoeuf.tools import localtime_as_remotetime
+from odoo import fields
+from ...tools import localtime_as_remotetime
 
 
 class LocalizedDatetime(fields.Datetime):
