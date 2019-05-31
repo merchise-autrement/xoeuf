@@ -21,7 +21,7 @@ We don't backport all fields from later Odoo versions to earlier ones, though.
 
 .. autofunction:: TimeSpan
 
-.. autofunction:: Enumeration
+.. autoclass:: Enumeration
 
 .. autofunction:: TimezoneSelection
 

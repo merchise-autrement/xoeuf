@@ -19,7 +19,8 @@ will work on Odoo 10 and 11.
 Unreleased.  Release 0.64.0
 ---------------------------
 
-Nothing yet.
+- Make `~xoeuf.fields.Enumeration`:class: class and allow deferring the
+  creation of the enumeration class to each model.
 
 
 2019-05-30.  Release 0.63.0
