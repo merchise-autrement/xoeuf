@@ -13,13 +13,21 @@ from __future__ import (
 )
 
 import unittest
+
 from hypothesis import strategies, given
 from datetime import datetime
+
+from odoo.tests.common import BaseCase
 
 formats = strategies.sampled_from(("%H:%M", "%H:%M:%S", "%H:%M:%S.%f"))
 
 
-class TestTimeRange(unittest.TestCase):
+class TestTimeRange(BaseCase):
+    # In Odoo 12 BaseCase is required (or the metaclass MetaCase).  But
+    # BaseCase overrides the assertRaises expecting subclasses to put an
+    # 'env'; which we do not need.
+    assertRaises = unittest.TestCase.assertRaises
+
     @given(strategies.times(), strategies.times())
     def test_timerange(self, t1, t2):
         from xoeuf.fields.timerange.utils import TimeRange

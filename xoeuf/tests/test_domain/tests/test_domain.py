@@ -14,10 +14,9 @@ from __future__ import (
 )
 
 from itertools import product
-import unittest
 import logging
 
-from hypothesis import strategies as s, given
+from hypothesis import strategies as s, given, settings
 from hypothesis.stateful import RuleBasedStateMachine, rule, Bundle
 from hypothesis.stateful import run_state_machine_as_test
 
@@ -26,7 +25,7 @@ from xoeuf.osv import ql
 from xoeuf.odoo.osv import expression as odoo_expr
 from xoeuf.osv.expression import Domain, DomainTree
 
-from xoeuf.odoo.tests.common import TransactionCase
+from odoo.tests.common import TransactionCase, BaseCase
 
 names = s.text(alphabet="abdefgh", min_size=1, max_size=5)
 operators = s.sampled_from(["=", "!=", "<", ">", "<>"])
@@ -70,7 +69,7 @@ def domains(draw, fields=None, min_size=1, max_size=10):
     return Domain(result)
 
 
-class TestDomain(unittest.TestCase):
+class TestDomain(BaseCase):
     @given(domains())
     def test_first_normal_form_idempotency(self, domain):
         self.assertEqual(
@@ -95,6 +94,7 @@ class TestDomain(unittest.TestCase):
         for version1, version2 in product(all_versions, all_versions):
             self.assertEqual(version1, version2, msg="%r != %r" % (version1, version2))
 
+    @settings(deadline=1000)
     @given(domains())
     def test_simplified(self, domain):
         # A simplified domain never start with '&' operator.

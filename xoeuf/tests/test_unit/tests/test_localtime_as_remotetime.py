@@ -20,8 +20,10 @@ from hypothesis import strategies, given, example
 from hypothesis.extra.pytz import timezones
 from xoeuf.tools import localtime_as_remotetime, normalize_datetime
 
+from odoo.tests.common import BaseCase
 
-class TestLocalAsRemote(unittest.TestCase):
+
+class TestLocalAsRemote(BaseCase):
     @unittest.skip("Known failure")
     @given(
         strategies.datetimes(
