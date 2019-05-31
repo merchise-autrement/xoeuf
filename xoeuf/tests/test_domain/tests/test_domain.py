@@ -17,7 +17,7 @@ from itertools import product
 import unittest
 import logging
 
-from hypothesis import strategies as s, given
+from hypothesis import strategies as s, given, example
 from hypothesis.stateful import RuleBasedStateMachine, rule, Bundle
 from hypothesis.stateful import run_state_machine_as_test
 
@@ -96,6 +96,23 @@ class TestDomain(unittest.TestCase):
             self.assertEqual(version1, version2, msg="%r != %r" % (version1, version2))
 
     @given(domains())
+    @example(
+        Domain(
+            [
+                ("ba", ">", 3),
+                ("a", "<>", -10),
+                ("eaff", "=", -5),
+                ("aebdf", "<", -5),
+                "&",
+                ("eaaab", ">", 1),
+                ("e", "<>", 4),
+                "|",
+                ("bdb", "<", 0),
+                ("ea", "=", 3),
+                ("dhhea", ">", 6),
+            ]
+        )
+    )
     def test_simplified(self, domain):
         # A simplified domain never start with '&' operator.
         self.assertNotEqual(
