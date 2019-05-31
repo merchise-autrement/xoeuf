@@ -49,7 +49,7 @@ check formatting with black:
     - pip install -e .
     - export ADDONS=`ls xoeuf/tests/ | grep ^test_ | xargs | tr " " ","`
     - cd ~/src/$ODOO_WORKTREE
-    - runtests-odoo.sh -i $ADDONS
+    - runtests-odoo.sh -exec xoeuf -p $PYTHON -i $ADDONS
   tags:
     - virtualenv
     - xoeuf-tester
