@@ -50,6 +50,7 @@ class Mixin(models.AbstractModel):
         COLORS, default=COLORS.Red, selection_field_name="color_name"
     )
     color_rgb = fields.Char(compute="_compute_color_rgb")
+    color_rgb2 = fields.Char(compute="_compute_color_rgb", store=True)
 
     @api.depends("color_name")
     def _compute_color_rgb(self):

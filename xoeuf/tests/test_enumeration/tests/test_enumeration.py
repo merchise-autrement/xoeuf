@@ -50,6 +50,7 @@ class TestEnum(TransactionCase):
         assert obj.color == COLORS.Red, "%r == %r" % (obj.color, COLORS.Red)
         assert obj.car is CARS.FORD
         assert obj.pax == 1
+        assert obj.color_rgb == obj.color_rgb2 == "#f00"
 
     @given(colors)
     def test_can_set_valid_values(self, color):
