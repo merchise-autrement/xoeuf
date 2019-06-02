@@ -49,6 +49,19 @@ class Mixin(models.AbstractModel):
     color = fields.Enumeration(
         COLORS, default=COLORS.Red, selection_field_name="color_name"
     )
+    color_rgb = fields.Char(compute="_compute_color_rgb")
+
+    @api.depends("color_name")
+    def _compute_color_rgb(self):
+        for record in self:
+            if record.color_name == "Red":
+                record.color_rgb = "#f00"
+            elif record.color_name == "Blue":
+                record.color_rgb = "#00f"
+            elif record.color_name == "Green":
+                record.color_rgb = "#0f0"
+            else:
+                record.color_rgb = "#fff"
 
 
 class Model(models.Model):
@@ -72,6 +85,11 @@ class Model(models.Model):
         return Dynamic
 
     dynamic_enum = fields.Enumeration(_get_enumclass)
+
+    @api.depends("color_name")
+    def _compute_color_rgb(self):
+        for record in self:
+            record.color_rgb = "#000"
 
 
 if MAJOR_ODOO_VERSION < 12:
