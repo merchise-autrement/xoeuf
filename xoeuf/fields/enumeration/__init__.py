@@ -12,6 +12,7 @@ from __future__ import (
     absolute_import as _py3_abs_import,
 )
 
+import logging
 from collections import namedtuple, Mapping
 from xoutil.string import cut_prefix
 from xoutil.objects import import_object
@@ -20,7 +21,10 @@ from odoo import fields, api, models
 from odoo.fields import Char
 from odoo.release import version_info as ODOO_VERSION_INFO
 
+
 from ...eight import string_types
+
+logger = logging.getLogger(__name__)
 
 
 if ODOO_VERSION_INFO < (12,):
@@ -106,10 +110,13 @@ class Enumeration(Char, _EnumeratedField):
 
     """
 
+    type = "enumeration"
+
     _slots = {
         "enumclass": None,
         "selection_field_kwargs": None,
         "compute_member_string": None,
+        "Enumclass": None,
     }
 
     def __init__(self, enumclass, *args, **kwargs):
@@ -153,30 +160,31 @@ class Enumeration(Char, _EnumeratedField):
         return enumclass_factory(model)
 
     def get_selection_field(
-        self, field_name, name, compute_member_string=None, **kwargs
+        self, field_name, selection_field_name, compute_member_string=None, **kwargs
     ):
         """Return a computed Selection field to set/get the Enumeration.
 
         """
-        selection_field_name = name
 
         @api.multi
         @api.depends(field_name)
         def _compute_selection_field(rs):
+            enumclass = self.resolve_enumclass(rs)
             for record in rs:
                 value = getattr(record, field_name, None)
                 if value is not None:
-                    member = self.get_member_by_value(value)
+                    member = _get_member_by_value(enumclass, value)
                     setattr(record, selection_field_name, member.name)
                 else:
                     setattr(record, selection_field_name, False)
 
         @api.multi
         def _set_selection(rs):
+            enumclass = self.resolve_enumclass(rs)
             for record in rs:
                 key = getattr(record, selection_field_name, None)
                 if key:
-                    member = self.get_member_by_name(key)
+                    member = _get_member_by_name(enumclass, key)
                     setattr(record, field_name, member.value)
                 else:
                     setattr(record, field_name, False)
@@ -189,7 +197,9 @@ class Enumeration(Char, _EnumeratedField):
         return fields.Selection(
             selection=lambda s: [
                 (name, compute_member_string(name, value))
-                for name, value in self.Enumclass.__members__.items()
+                # Don't use `self.Enumclass`: when the selection field is
+                # computed the setup_full may not be called yet.
+                for name, value in self.resolve_enumclass(s).__members__.items()
             ],
             **kwargs
         )
@@ -198,28 +208,11 @@ class Enumeration(Char, _EnumeratedField):
     def _compute_member_string(name, value):
         return name
 
-    def get_member_by_value(self, value):
-        """Find the enumclass's member that is equal to `value`."""
-        try:
-            return next(
-                Member(k, v)
-                for k, v in self.Enumclass.__members__.items()
-                if v == value
-            )
-        except StopIteration:
-            raise ValueError(
-                "Invalid member %r of enumeration %r"
-                % (value, self.Enumclass.__members__)
-            )
+    def get_member_by_value(self, value, record=None):
+        return _get_member_by_value(self.Enumclass, value)
 
     def get_member_by_name(self, name):
-        """Find the enumclass's member by name"""
-        try:
-            return Member(name, self.Enumclass.__members__[name])
-        except (AttributeError, KeyError):
-            raise ValueError(
-                "Invalid key %r of enumeration %r" % (name, self.Enumclass.__members__)
-            )
+        return _get_member_by_name(self.Enumclass, name)
 
     def setup_full(self, model):
         # Injects a new class in the model MRO, so that we can guarantee
@@ -238,25 +231,28 @@ class Enumeration(Char, _EnumeratedField):
         # (delegated) copies for this Enumeration fields, because the
         # actual field does the right thing with DB (it does have the
         # EnumerationAdapter injected.)
-        cls = type(model)
-        if EnumerationAdapter not in cls.mro() and not self.related:
-            cls.__bases__ = (EnumerationAdapter,) + cls.__bases__
-            # I tried to use model._add_field because it changes the
-            # cls._fields that Odoo is iterating and that raises an error
-            # (RuntimeError: dictionary changed size during iteration).
-            #
-            # So let's resort to injection.
-            if self.selection_field_kwargs:
-                selection_field_name = self.selection_field_kwargs.pop("name")
+        if self._setup_done != "full":
+            cls = type(model)
+            logger.info("Setting %s to model %s(%s, %s)", self, model, cls, id(cls))
+            if EnumerationAdapter not in cls.mro() and not self.related:
+                cls.__bases__ = (EnumerationAdapter,) + cls.__bases__
+                logger.info("Setting %s to model %s(%s, %s)", self, model, cls, id(cls))
+            self.Enumclass = self.resolve_enumclass(model)
+            result = super(Enumeration, self).setup_full(model)
+            if not self.related and not model._abstract:
+                assert self.name in model.fields_get()
+            return result
+
+    def _add_selection_field(self, model):
+        if self.selection_field_kwargs:
+            cls = type(model)
+            selection_field_name = self.selection_field_kwargs.pop("name")
+            if selection_field_name not in cls._fields and not self.related:
                 selection_field = self.get_selection_field(
                     self.name, selection_field_name, **self.selection_field_kwargs
                 )
-                cls.__bases__ = (
-                    SelectionMixin(self.name, selection_field_name, selection_field),
-                ) + cls.__bases__
-        result = super(Enumeration, self).setup_full(model)
-        self.Enumclass = self.resolve_enumclass(model)
-        return result
+                logger.info("Adding %s to model %s", selection_field_name, model)
+                model._add_field(selection_field_name, selection_field)
 
     def convert_to_read(self, value, record, use_name_get=True):
         if value is not None and value is not False:
@@ -320,7 +316,7 @@ class EnumerationAdapter(Adapter):
             if not isinstance(query_part, string_types):
                 fieldname, operator, operands = query_part
                 field = self._fields.get(fieldname, None)
-                if isinstance(field, _EnumeratedField):
+                if isinstance(field, Enumeration):
                     if operator in ("=", "!="):
                         values = _get_db_value(field, operands)
                     elif operator in ("in", "not in"):
@@ -359,14 +355,6 @@ class EnumerationAdapter(Adapter):
         return super(EnumerationAdapter, self).write(values)
 
 
-def SelectionMixin(field_name, selection_field_name, selection_field):
-    return type(
-        "selection_mixin_" + field_name,
-        (Adapter,),
-        {selection_field_name: selection_field},
-    )
-
-
 def _get_db_value(field, value):
     if value is None or value is False:  # and not field.required
         return value
@@ -377,6 +365,24 @@ def _get_db_value(field, value):
         return value
 
 
+def _get_member_by_value(enumclass, value):
+    """Find the enumclass's member that is equal to `value`."""
+    try:
+        return next(
+            Member(k, v) for k, v in enumclass.__members__.items() if v == value
+        )
+    except StopIteration:
+        raise ValueError("Invalid member %r of enumeration %r" % (value, enumclass))
+
+
+def _get_member_by_name(enumclass, name):
+    """Find the enumclass's member by name"""
+    try:
+        return Member(name, enumclass.__members__[name])
+    except (AttributeError, KeyError):
+        raise ValueError("Invalid key %r of enumeration %r" % (name, enumclass))
+
+
 def constant(value):
     "Create a function (of many args) that always returns a constant `value`."
 
@@ -384,3 +390,16 @@ def constant(value):
         return value
 
     return result
+
+
+@api.model
+def _setup_fields(self):
+    cls = type(self)
+    for field in dict(cls._fields).values():
+        if isinstance(field, Enumeration):
+            field._add_selection_field(self)
+    _super_setup_fields(self)
+
+
+_super_setup_fields = models.BaseModel._setup_fields
+models.BaseModel._setup_fields = _setup_fields

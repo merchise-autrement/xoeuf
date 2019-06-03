@@ -1,0 +1,8 @@
+<odoo>
+  <data>
+    <!-- Test we can insert records with the selection field -->
+    <record id="obj1" model="test.enum.model">
+      <field name="color_name">Red</field>
+    </record>
+  </data>
+</odoo>
