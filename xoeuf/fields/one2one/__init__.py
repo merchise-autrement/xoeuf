@@ -31,17 +31,22 @@ class One2one(Many2one):
         super(One2one, self).__init__(*args, **kwargs)
 
     def setup_full(self, model):
-        constraint_name = "unique_{model}_{target}".format(
-            model=model._name.replace(".", "_"),
-            target=self.comodel_name.replace(".", "_"),
-        )
-        constraints = type(model)._sql_constraints
-        exists = any(True for name, _, _ in constraints if name == constraint_name)
-        if not exists:
-            constraints.append(
-                (
-                    constraint_name,
-                    "unique ({field})".format(field=self.name),
-                    "One2one field {field!r} must be unique".format(field=self.name),
-                )
+        res = super(One2one, self).setup_full(model)
+        if self.related is None:
+            constraint_name = "unique_{model}_{target}".format(
+                model=model._name.replace(".", "_"),
+                target=self.comodel_name.replace(".", "_"),
             )
+            constraints = type(model)._sql_constraints
+            exists = any(True for name, _, _ in constraints if name == constraint_name)
+            if not exists:
+                constraints.append(
+                    (
+                        constraint_name,
+                        "unique ({field})".format(field=self.name),
+                        "One2one field {field!r} must be unique".format(
+                            field=self.name
+                        ),
+                    )
+                )
+        return res

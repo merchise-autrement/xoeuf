@@ -19,7 +19,7 @@ will work on Odoo 10 and 11.
 Unreleased.  Release 0.65.0
 ---------------------------
 
-Nothing yet.
+- Fix bug in `xoeuf.fields.One2one`:class: when used as a related field.
 
 
 2019-05-31.  Release 0.64.0
