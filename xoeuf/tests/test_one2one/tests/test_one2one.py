@@ -36,3 +36,10 @@ class TestO2O(TransactionCase):
         a = c.a_id
         a.unlink()
         self.assertFalse(c.exists())
+
+    def test_one2one_related(self):
+        D = self.env["test.one2one.d"]
+        d = D.create({"name": "I am a D"})
+        a = d.a_id
+        with self.assertRaises(IntegrityError):
+            D.create({"name": "I am trying to steal the A", "a_id": a.id})

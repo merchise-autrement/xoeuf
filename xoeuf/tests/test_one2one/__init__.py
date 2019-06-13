@@ -30,3 +30,8 @@ class C(models.Model):
     _inherits = {"test.one2one.a": "a_id"}
 
     a_id = fields.One2one("test.one2one.a")
+
+
+class D(models.Model):
+    _name = "test.one2one.d"
+    _inherits = {"test.one2one.c": "c_id"}
