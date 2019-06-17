@@ -317,7 +317,16 @@ class EnumerationAdapter(Adapter):
                 fieldname, operator, operands = query_part
                 field = self._fields.get(fieldname, None)
                 if isinstance(field, Enumeration):
-                    if operator in ("=", "!="):
+                    if operator in (
+                        "=",
+                        "!=",
+                        "ilike",
+                        "not ilike",
+                        "like",
+                        "not like",
+                        "=like",
+                        "=ilike",
+                    ):
                         values = _get_db_value(field, operands)
                     elif operator in ("in", "not in"):
                         values = [_get_db_value(field, o) for o in operands]
