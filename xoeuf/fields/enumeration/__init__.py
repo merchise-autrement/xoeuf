@@ -174,6 +174,60 @@ class Enumeration(Char, _EnumeratedField):
     ):
         """Return a computed Selection field to set/get the Enumeration.
 
+        The result is a standard `odoo.fields.Selection`:class: where the
+        values are computed from the enumeration class.
+
+        The argument to `compute_member_string`, if not None, should be a
+        callable taking three arguments: the model, the name of a member, the
+        value of a member; and it must return the display
+
+        .. warning:: The first two arguments are annoying but required.
+
+           The must be kept in sync with the enumeration field's name and the
+           selection field's name.
+
+        Comprehensive example:
+
+        .. code-block:: python
+
+           from enum import Enum
+           from xoeuf import fields, models
+           from odoo import _
+
+           class Bark:
+               __doc__ = _("Bark like a dog")
+
+               @classmethod
+               def make_sound(cls):
+                   print("Woof!")
+
+           class Meow:
+               __doc__ = _("Meow like a cat")
+
+               @classmethod
+               def make_sound(cls):
+                   print("Meow!")
+
+           class enumclass(Enum):
+               DOG = Bark
+               CAT = Meow
+
+           def get_cls_name(self, name, value):
+              "Return the docstring as the name in the selection"
+              doc = getattr(value, "__doc__", None)
+              if doc:
+                 return _(doc)
+              else:
+                 return name
+
+           class Model(models.Model):
+                enum = fields.Enumeration(enumclass)
+                enum_name = enum.get_selection_field(
+                    "enum",
+                    "enum_name",
+                    get_cls_name
+                )
+
         """
 
         @api.multi

@@ -22,6 +22,7 @@ We don't backport all fields from later Odoo versions to earlier ones, though.
 .. autofunction:: TimeSpan
 
 .. autoclass:: Enumeration
+   :members: get_selection_field
 
 .. autofunction:: TimezoneSelection
 
