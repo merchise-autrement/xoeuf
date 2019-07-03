@@ -12,6 +12,7 @@
     "author": "Merchise Autrement [~º/~] and Contributors",
     "description": "Test for the field.Enumeration extension",
     "depends": ["base"],
+    "data": ["data/data.xml", "views/views.xml"],
     "installable": True,
     "auto_install": False,
 }

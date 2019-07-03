@@ -18,7 +18,12 @@ will work on Odoo 10 and 11.
 Unreleased.  Release 0.66.0
 ---------------------------
 
-Nothing yet.
+- Fix bug in `xoeuf.fields.Enumeration.get_selection_field`:func:.  Basically
+  it would not work when used directly in models.
+
+- The argument to `compute_member_string` in
+  `~xoeuf.fields.Enumeration.get_selection_field`:func: must now accept three
+  arguments: the model, the name, and the value.
 
 
 2019-06-13.  Release 0.65.0

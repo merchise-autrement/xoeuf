@@ -1,0 +1,14 @@
+<odoo>
+  <data>
+    <!-- Test we can put enumeration's selection fields in views -->
+    <record id="enum_tree_view" model="ir.ui.view">
+      <field name="name">enum_form_view</field>
+      <field name="model">test.enum.model</field>
+      <field name="arch" type="xml">
+        <tree>
+          <field name="color_name"/>
+        </tree>
+      </field>
+    </record>
+  </data>
+</odoo>
