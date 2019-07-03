@@ -413,13 +413,26 @@ def constant(value):
     return result
 
 
-@api.model
-def _setup_fields(self):
-    cls = type(self)
-    for field in dict(cls._fields).values():
-        if isinstance(field, Enumeration):
-            field._add_selection_field(self)
-    _super_setup_fields(self)
+if ODOO_VERSION_INFO < (11, 0):
+
+    @api.model
+    def _setup_fields(self, partial):
+        cls = type(self)
+        for field in dict(cls._fields).values():
+            if isinstance(field, Enumeration):
+                field._add_selection_field(self)
+        _super_setup_fields(self, partial)
+
+
+else:
+
+    @api.model
+    def _setup_fields(self):
+        cls = type(self)
+        for field in dict(cls._fields).values():
+            if isinstance(field, Enumeration):
+                field._add_selection_field(self)
+        _super_setup_fields(self)
 
 
 _super_setup_fields = models.BaseModel._setup_fields
