@@ -179,7 +179,20 @@ class Enumeration(Char, _EnumeratedField):
 
         The argument to `compute_member_string`, if not None, should be a
         callable taking three arguments: the model, the name of a member, the
-        value of a member; and it must return the display
+        value of a member; and it must return the display value of the
+        selected member.
+
+        The rest of the keyword arguments are passed to the selection
+        unchanged.  We pass by default:
+
+        compute
+        inverse
+           Internal functions that basically implements everything we've
+           stated above.
+
+        stored
+           Set to False to avoid duplicating stuff in the DB -- the *real*
+           value in the enumeration field.
 
         .. warning:: The first two arguments are annoying but required.
 
@@ -221,11 +234,12 @@ class Enumeration(Char, _EnumeratedField):
                  return name
 
            class Model(models.Model):
-                enum = fields.Enumeration(enumclass)
-                enum_name = enum.get_selection_field(
-                    "enum",
-                    "enum_name",
-                    get_cls_name
+                animal = fields.Enumeration(enumclass)
+                animal_sound = enum.get_selection_field(
+                    "animal",
+                    "animal_sound",
+                    get_cls_name,
+                    string="Animal sound"
                 )
 
         """
