@@ -192,7 +192,7 @@ class Enumeration(Char, _EnumeratedField):
         inverse
            Internal inverse function.
 
-        stored
+        store
            Set to False to avoid duplicating stuff in the DB -- the *real*
            value in the enumeration field.
 
