@@ -108,6 +108,9 @@ class Enumeration(Char, _EnumeratedField):
     .. versionchanged:: 0.64.0 The `enumclass` can be a callable.  Enumeration
        is now class instead of a function.  Gain the ``Enumclass`` attribute.
 
+    .. versionchanged:: 0.66.0 The function `compute_member_string` must now
+       take three arguments: the model, the name and the value.
+
     """
 
     type = "enumeration"
@@ -190,13 +193,13 @@ class Enumeration(Char, _EnumeratedField):
                     setattr(record, field_name, False)
 
         if not compute_member_string:
-            compute_member_string = self._compute_member_string
+            compute_member_string = self._default_compute_member_string
         kwargs.setdefault("store", False)
         kwargs.setdefault("compute", _compute_selection_field)
         kwargs.setdefault("inverse", _set_selection)
         return fields.Selection(
             selection=lambda s: [
-                (name, compute_member_string(name, value))
+                (name, compute_member_string(s, name, value))
                 # Don't use `self.Enumclass`: when the selection field is
                 # computed the setup_full may not be called yet.
                 for name, value in self.resolve_enumclass(s).__members__.items()
@@ -205,7 +208,9 @@ class Enumeration(Char, _EnumeratedField):
         )
 
     @staticmethod
-    def _compute_member_string(name, value):
+    def _default_compute_member_string(self, name, value):
+        # The 'self' is actually a parameter that (the model); it's not a typo
+        # and this function IS intentionally a staticmethod.
         return name
 
     def get_member_by_value(self, value, record=None):
@@ -239,7 +244,7 @@ class Enumeration(Char, _EnumeratedField):
                 logger.info("Setting %s to model %s(%s, %s)", self, model, cls, id(cls))
             self.Enumclass = self.resolve_enumclass(model)
             result = super(Enumeration, self).setup_full(model)
-            if not self.related and not model._abstract:
+            if not self.compute and not self.related and not model._abstract:
                 assert self.name in model.fields_get()
             return result
 
