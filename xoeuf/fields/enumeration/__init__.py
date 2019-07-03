@@ -186,9 +186,11 @@ class Enumeration(Char, _EnumeratedField):
         unchanged.  We pass by default:
 
         compute
+           Internal compute function that along with `inverse` below
+           implements everything we've stated above.
+
         inverse
-           Internal functions that basically implements everything we've
-           stated above.
+           Internal inverse function.
 
         stored
            Set to False to avoid duplicating stuff in the DB -- the *real*
