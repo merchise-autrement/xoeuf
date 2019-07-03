@@ -20,7 +20,7 @@ from xoutil.dim.currencies import currency as Currency
 from xoeuf.odoo.tests.common import TransactionCase
 
 finite_floats = s.floats(
-    min_value=-2 ** 32, max_value=2 ** 32, allow_nan=False, allow_infinity=False
+    min_value=-(2 ** 32), max_value=2 ** 32, allow_nan=False, allow_infinity=False
 )
 
 

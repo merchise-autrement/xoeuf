@@ -89,7 +89,7 @@ class TestInheritedValue(TransactionCase):
 
     def test_result_write(self):
         i = self.Identifier.search([], limit=1)
-        v = {"a": [1, (1, 2), u"a"]}
+        v = {"a": [1, (1, 2), "a"]}
         i.write({"result": v})
         self.assertEqual(i.thing, repr(v))
 
