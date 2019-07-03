@@ -204,3 +204,4 @@ publish in our rtd:
   only:
     - tags
     - master
+    - /^hotfix-/

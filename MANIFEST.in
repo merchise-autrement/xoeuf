@@ -7,3 +7,5 @@ recursive-include xoeuf *.py *.txt *.rst
 graft docs/
 prune docs/build
 prune .tox
+include versioneer.py
+include xoeuf/_version.py

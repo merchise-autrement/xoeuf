@@ -34,5 +34,9 @@ MAJOR_ODOO_VERSION = ODOO_VERSION_INFO[0]  # noqa
 # ir_model.py
 from . import fields  # noqa
 
+from ._version import get_versions
 
 del orm
+
+__version__ = get_versions()["version"]
+del get_versions

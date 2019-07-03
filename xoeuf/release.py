@@ -31,5 +31,13 @@ def dev_tag_installed():
         return None
 
 
-VERSION = "0.66.0"
+try:
+    from ._version import get_version
+
+    VERSION = get_version()
+except:  # noqa
+    from ._version import get_versions
+
+    VERSION = get_versions()["version"]
+
 RELEASE_TAG = dev_tag_installed() or ""
