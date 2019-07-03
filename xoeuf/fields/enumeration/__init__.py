@@ -75,6 +75,13 @@ class Enumeration(Char, _EnumeratedField):
 
     .. rubric:: Automatic selection field
 
+    .. warning:: Known issues with this features.
+
+       Up to 0.66.0 this feature is not yet stable.  The injected field is not
+       visible to ``api.depends`` and other components of Odoo framework.
+
+       However, the method `get_selection_field`:meth: seems to work well.
+
     Enumeration fields cannot be put in views because their values can be
     arbitrary Python objects which are not easily transferred to/from the web
     client.
