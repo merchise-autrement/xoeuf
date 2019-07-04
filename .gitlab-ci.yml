@@ -27,7 +27,8 @@ check formatting with black:
   image: python:3.6-alpine
   stage: check
   script:
-    - pip install black==19.3b0
+    - apk add git g++
+    - python -m pip install -U --pre git+https://github.com/python/black.git@f3bb22a828495c66d8d2dae1edf45e15fc2daddb
     - black --check xoeuf/
 
 
@@ -204,3 +205,4 @@ publish in our rtd:
   only:
     - tags
     - master
+    - /^hotfix-/

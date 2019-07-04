@@ -13,23 +13,13 @@ from __future__ import (
     absolute_import as _py3_abs_imports,
 )
 
+try:
+    from ._version import get_version
 
-def dev_tag_installed():
-    import re
-    import pkg_resources
+    VERSION = get_version()
+except:  # noqa
+    from ._version import get_versions
 
-    tag_start_regex = re.compile(r"[^\d\.]")
-    try:
-        dist = pkg_resources.get_distribution("xoeuf")
-        version = dist.version
-        match = tag_start_regex.search(version)
-        if match:
-            return version[match.start() :]
-        else:
-            return None
-    except Exception:
-        return None
+    VERSION = get_versions()["version"]
 
-
-VERSION = "0.66.0"
-RELEASE_TAG = dev_tag_installed() or ""
+RELEASE_TAG = ""
