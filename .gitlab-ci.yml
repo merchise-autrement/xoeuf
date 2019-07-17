@@ -14,6 +14,9 @@ check code smells (with Bugbear and Python 3.6):
   script:
     - pip install merchise.lint==0.11 flake8-bugbear
     - merchise_lint
+  only:
+    - master
+    - merge_requests
 
 
 check code smells (without Bugbear and Python 2.7):
@@ -22,6 +25,9 @@ check code smells (without Bugbear and Python 2.7):
   script:
     - pip install merchise.lint==0.11
     - merchise_lint
+  only:
+    - master
+    - merge_requests
 
 
 check formatting with black:
@@ -31,6 +37,9 @@ check formatting with black:
     - apk add git g++
     - python -m pip install -U --pre git+https://github.com/python/black.git@f3bb22a828495c66d8d2dae1edf45e15fc2daddb
     - black --check xoeuf/
+  only:
+    - master
+    - merge_requests
 
 
 .run_tests: &run_tests
@@ -55,30 +64,27 @@ check formatting with black:
   tags:
     - virtualenv
     - xoeuf-tester
+  only:
+    - master
+    - merge_requests
 
 run all Odoo 12 tests:
   <<: *run_tests
   variables:
     PYTHON: python3
     ODOO_WORKTREE: odoo12
-  only:
-    - branches
 
 run all Odoo 11 tests:
   <<: *run_tests
   variables:
     PYTHON: python3
     ODOO_WORKTREE: odoo11
-  only:
-    - branches
 
 run all Odoo 10 tests:
   <<: *run_tests
   variables:
     PYTHON: python
     ODOO_WORKTREE: odoo10
-  only:
-    - branches
 
 check signature of tag:
   stage: pre-check
