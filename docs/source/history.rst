@@ -19,7 +19,11 @@ will work on Odoo 10 and 11.
 Unreleased.  Release 0.67.0
 ---------------------------
 
-Nothing yet.
+- Invalidate the cache of fields that depend on a
+  `~xoeuf.fields.Property`:class: that changes.
+
+  ..warning:: This is done regardless of the argument to the parameter
+    `memoize`; so it may call the `getter` more than once.
 
 
 2019-07-04.  Release 0.66.0
