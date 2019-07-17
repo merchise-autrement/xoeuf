@@ -1,5 +1,6 @@
 ---
 stages:
+  - pre-check
   - check
   - build doc
   - publish doc
@@ -80,7 +81,7 @@ run all Odoo 10 tests:
     - branches
 
 check signature of tag:
-  stage: check
+  stage: pre-check
   script:
     - git verify-tag $CI_COMMIT_REF_NAME
   tags:
