@@ -17,13 +17,25 @@ import logging
 import numbers
 import pickle
 
-from xoutil.symbols import Undefined
-
 from xoeuf import models, fields, api
 from xoeuf.odoo.tools.safe_eval import safe_eval
 
 logger = logging.getLogger(__name__)
 del logging
+
+
+class _Undefined:
+    _instance = None
+
+    def __new__(cls):
+        if cls._instance is not None:
+            return cls._instance
+        else:
+            res = cls._instance = super().__new__(cls)
+            return res
+
+
+Undefined = _Undefined
 
 
 class PriceMixin(models.AbstractModel):
