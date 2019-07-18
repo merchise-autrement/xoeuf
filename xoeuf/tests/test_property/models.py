@@ -14,12 +14,73 @@ from __future__ import (
 )
 
 import logging
+import numbers
+import pickle
 
 from xoeuf import models, fields, api
 from xoeuf.odoo.tools.safe_eval import safe_eval
 
 logger = logging.getLogger(__name__)
 del logging
+
+
+class _Undefined:
+    _instance = None
+
+    def __new__(cls):
+        if cls._instance is not None:
+            return cls._instance
+        else:
+            res = cls._instance = super().__new__(cls)
+            return res
+
+
+Undefined = _Undefined
+
+
+class PriceMixin(models.AbstractModel):
+    _name = "test.property.pricemixin"
+
+    # We'll store the pickled value in the DB; the true value is in the price
+    # Property and a user-friendly repr in the price field.
+    _db_price = fields.Binary()
+
+    @fields.Property
+    def price(self):
+        if self._db_price:
+            return pickle.loads(self._db_price)
+        else:
+            return Undefined
+
+    @price.setter
+    def price(self, value):
+        if isinstance(value, numbers.Number):
+            self._db_price = pickle.dumps(value)
+        else:
+            self._db_price = None
+
+    price_display = fields.Char(compute="_compute_price", inverse="_set_price")
+
+    @api.one
+    @api.depends("price")
+    def _compute_price(self):
+        if self.price is Undefined:
+            self.price_display = "--"
+        else:
+            self.price_display = "$ {:.2f}".format(self.price)
+
+    def _set_price(self):
+        user_price = self.price_display.strip()
+        if user_price and user_price != "--" and user_price[0] in "$01234567890.":
+            if user_price[0] == "$":
+                user_price = user_price[1:].strip()
+            try:
+                if "." in user_price:
+                    self.price = float(user_price)
+                else:
+                    self.price = int(user_price)
+            except ValueError:
+                self.price = Undefined
 
 
 class ValueMixin(models.AbstractModel):
@@ -104,7 +165,7 @@ class ObjectMixin(models.AbstractModel):
 
 class Value(models.Model):
     _name = "test.property.value"
-    _inherit = ["test.property.valuemixin", "test.property.object"]
+    _inherit = [ValueMixin._name, ObjectMixin._name, PriceMixin._name]
 
 
 class IdentifiedValue(models.Model):

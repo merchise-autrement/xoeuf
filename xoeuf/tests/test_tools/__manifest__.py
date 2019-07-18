@@ -7,11 +7,12 @@
 # This is free software; you can do what the LICENCE file allows you to.
 #
 
-from __future__ import (
-    division as _py3_division,
-    print_function as _py3_print,
-    absolute_import as _py3_abs_import,
-)
-
-from . import test_property  # noqa
-from . import test_property_depends  # noqa
+{
+    "name": "test_tools",
+    "author": "Merchise Autrement [~º/~] and Contributors",
+    "description": "Test the module xoeuf.tools",
+    "depends": ["base"],
+    "data": [],
+    "installable": False,
+    "auto_install": False,
+}

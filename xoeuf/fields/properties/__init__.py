@@ -77,6 +77,9 @@ class PropertyField(Base):
 
     .. versionchanged:: 0.58.0 Added keyword parameter `memoize`.
 
+    .. versionchanged:: 0.67.0 Invalidate Odoo's cache of dependant computable
+       fields.
+
     """
 
     # This is the best of the three major versions of Odoo we support.  This
@@ -189,6 +192,8 @@ class PropertyField(Base):
             self.property_setter(instance, value)
             if self.memoize_result:
                 _set_to_cache(instance, self, value)
+            spec = self.modified_draft(instance)
+            _invalidate_cache(instance, spec)
         else:
             raise TypeError("Setting to read-only Property")
 
@@ -198,6 +203,8 @@ class PropertyField(Base):
             self.property_deleter(instance)
             if self.memoize_result:
                 _del_from_cache(instance, self)
+            spec = self.modified_draft(instance)
+            _invalidate_cache(instance, spec)
         else:
             raise TypeError("Deleting undeletable Property")
 
@@ -256,6 +263,9 @@ if ODOO_VERSION_INFO < (11, 0):
     def _del_from_cache(record, field):
         del record.env.cache[field][record.id]
 
+    def _invalidate_cache(record, spec):
+        record.env.invalidate(spec)
+
 
 else:
 
@@ -267,3 +277,6 @@ else:
 
     def _del_from_cache(record, field):
         record.env.cache.remove(record, field)
+
+    def _invalidate_cache(record, spec):
+        record.env.cache.invalidate(spec)
