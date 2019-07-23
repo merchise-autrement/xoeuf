@@ -192,8 +192,7 @@ class PropertyField(Base):
             self.property_setter(instance, value)
             if self.memoize_result:
                 _set_to_cache(instance, self, value)
-            spec = self.modified_draft(instance)
-            _invalidate_cache(instance, spec)
+            self._recompute_dependants(instance)
         else:
             raise TypeError("Setting to read-only Property")
 
@@ -203,10 +202,38 @@ class PropertyField(Base):
             self.property_deleter(instance)
             if self.memoize_result:
                 _del_from_cache(instance, self)
-            spec = self.modified_draft(instance)
-            _invalidate_cache(instance, spec)
+            self._recompute_dependants(instance)
         else:
             raise TypeError("Deleting undeletable Property")
+
+    if ODOO_VERSION_INFO < (12, 0):
+
+        def _recompute_dependants(self, instance):
+            spec = [
+                (field, ids)
+                for field, ids in self.modified(instance)
+                # The result of `modified` may include Property fields with
+                # memoize_result set; we don't to invalidate those.
+                if not isinstance(field, PropertyField) or not field.memoize_result
+            ]
+            _invalidate_cache(instance, spec)
+            # In normal Odoo fields, __set__ would call `write` to set the value
+            # to the DB, and it is there where recomputation happens.  But we
+            # don't call write because Property is never stored in the DB, so we
+            # need to trigger recomputations ourselves.
+            if (
+                spec
+                and instance.env.recompute
+                and instance._context.get("recompute", True)
+            ):
+                instance.recompute()
+
+    else:
+
+        def _recompute_dependants(self, instance):
+            instance.modified([self.name])
+            if instance.env.recompute and instance._context.get("recompute", True):
+                instance.recompute()
 
 
 class _PropertyType(type):

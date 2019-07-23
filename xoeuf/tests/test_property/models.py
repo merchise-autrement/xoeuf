@@ -60,14 +60,19 @@ class PriceMixin(models.AbstractModel):
             self._db_price = None
 
     price_display = fields.Char(compute="_compute_price", inverse="_set_price")
+    price_display_stored = fields.Char(
+        compute="_compute_price", inverse="_set_price", store=True
+    )
 
     @api.one
     @api.depends("price")
     def _compute_price(self):
         if self.price is Undefined:
             self.price_display = "--"
+            self.price_display_stored = "--"
         else:
             self.price_display = "$ {:.2f}".format(self.price)
+            self.price_display_stored = "$ {:.2f}".format(self.price)
 
     def _set_price(self):
         user_price = self.price_display.strip()
