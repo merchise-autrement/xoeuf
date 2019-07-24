@@ -80,6 +80,9 @@ class PropertyField(Base):
     .. versionchanged:: 0.67.0 Invalidate Odoo's cache of dependant computable
        fields.
 
+    .. versionchanged:: 0.68.0 Actively trigger recomputation on dependant
+       fields.
+
     """
 
     # This is the best of the three major versions of Odoo we support.  This
