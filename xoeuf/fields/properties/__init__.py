@@ -190,9 +190,11 @@ class PropertyField(Base):
         if self.property_setter:
             instance.ensure_one()
             self.property_setter(instance, value)
-            if self.memoize_result:
-                _set_to_cache(instance, self, value)
-            self._recompute_dependants(instance)
+            # In normal Odoo fields, __set__ would call `write` to set the
+            # value to the DB, and it is there where recomputation happens.
+            # But we don't call write because Property is never stored in the
+            # DB, so we need to trigger recomputations ourselves.
+            self._cache_and_recompute_dependants(instance, value)
         else:
             raise TypeError("Setting to read-only Property")
 
@@ -200,15 +202,13 @@ class PropertyField(Base):
         if self.property_deleter:
             instance.ensure_one()
             self.property_deleter(instance)
-            if self.memoize_result:
-                _del_from_cache(instance, self)
-            self._recompute_dependants(instance)
+            self._cache_and_recompute_dependants(instance, Removed)
         else:
             raise TypeError("Deleting undeletable Property")
 
-    if ODOO_VERSION_INFO < (12, 0):
+    if ODOO_VERSION_INFO < (11, 0):
 
-        def _recompute_dependants(self, instance):
+        def _cache_and_recompute_dependants(self, instance, value):
             spec = [
                 (field, ids)
                 for field, ids in self.modified(instance)
@@ -217,21 +217,30 @@ class PropertyField(Base):
                 if not isinstance(field, PropertyField) or not field.memoize_result
             ]
             _invalidate_cache(instance, spec)
-            # In normal Odoo fields, __set__ would call `write` to set the value
-            # to the DB, and it is there where recomputation happens.  But we
-            # don't call write because Property is never stored in the DB, so we
-            # need to trigger recomputations ourselves.
-            if (
-                spec
-                and instance.env.recompute
-                and instance._context.get("recompute", True)
-            ):
+            if self.memoize_result:
+                if value is Removed:
+                    _del_from_cache(instance, self)
+                else:
+                    _set_to_cache(instance, self, value)
+            if instance.env.recompute and instance._context.get("recompute", True):
                 instance.recompute()
 
     else:
-
-        def _recompute_dependants(self, instance):
+        # Since Odoo 11 (commit e25bcf41e2f312536a00ef8531b2f6c6e0334ebc),
+        # fields no longer have a `modified()` method.  Instead they merged
+        # that into the `modified()` method of models; but
+        # `BaseModel.modified()` calls the invalidation of the cache without
+        # regards of our semantics for memoization.
+        #
+        # So we need to reset the cache before triggering the recomputation of
+        # dependant fields.
+        def _cache_and_recompute_dependants(self, instance, value):
             instance.modified([self.name])
+            if self.memoize_result:
+                if value is not Removed:
+                    _set_to_cache(instance, self, value)
+                # we don't need to call _del_from_cache because
+                # `instance.modified` did it already.
             if instance.env.recompute and instance._context.get("recompute", True):
                 instance.recompute()
 
@@ -307,3 +316,7 @@ else:
 
     def _invalidate_cache(record, spec):
         record.env.cache.invalidate(spec)
+
+
+# Sentinel object to know we're removing a key from the cache
+Removed = object()
