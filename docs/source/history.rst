@@ -19,8 +19,15 @@ will work on Odoo 10 and 11.
 Unreleased.  Release 0.68.0
 ---------------------------
 
-Nothing yet.
+- Actively trigger recomputation of fields that depend on
+  `~xoeuf.fields.Property`:class: that changes.
 
+  In release `0.67.0 <_release-0.67.0>`:ref: we introduce cache invalidation.
+  But that only works right for non-stored fields.  For stored-fields we need
+  to actually affect the DB and trigger the recomputation.
+
+
+.. _release-0.67.0:
 
 2019-07-18.  Release 0.67.0
 ---------------------------

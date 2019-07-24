@@ -30,6 +30,7 @@ class TestPropertyDepends(TransactionCase):
 
         obj.price = value1
         self.assertEqual(obj.price_display, "$ {:.2f}".format(value1))
+
         # The test above won't actually fail because when doing obj.price the
         # value won't be in the cache, so Odoo will trigger the computation,
         # but if we change the value again, the Property must trigger the
@@ -46,3 +47,28 @@ class TestPropertyDepends(TransactionCase):
         obj = Value.create({})
         obj.price_display = "alsdkjfalsd"
         self.assertIs(obj.price, Undefined)
+
+    @given(values, values)
+    def test_setting_property_and_reading(self, value1, value2):
+        assume(value1 != value2)
+        Value = self.env["test.property.value"]
+        obj = Value.create({})
+
+        obj.price = value1
+        self.assertEqual(obj.price_display, "$ {:.2f}".format(value1))
+
+        # The test above won't actually fail because when doing obj.price the
+        # value won't be in the cache, so Odoo will trigger the computation,
+        # but if we change the value again, the Property must trigger the
+        # recomputation itself:
+        obj.price = value2
+        price_display_stored = obj.read(("price_display_stored",))[0][
+            "price_display_stored"
+        ]
+        self.assertEqual(price_display_stored, "$ {:.2f}".format(value2))
+
+        obj.price = Undefined
+        price_display_stored = obj.read(("price_display_stored",))[0][
+            "price_display_stored"
+        ]
+        self.assertEqual(price_display_stored, "--")
