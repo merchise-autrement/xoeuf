@@ -9,10 +9,9 @@ stages:
   - publish
 
 check code smells (with Bugbear and Python 3.6):
-  image: python:3.6-alpine
+  image: registry.merchise.org/merchise/python-dev:3.6
   stage: check
   script:
-    - pip install merchise.lint==0.11 flake8-bugbear
     - merchise_lint
   only:
     - master
@@ -20,10 +19,9 @@ check code smells (with Bugbear and Python 3.6):
 
 
 check code smells (without Bugbear and Python 2.7):
-  image: python:2.7-alpine
+  image: registry.merchise.org/merchise/python-dev:2.7
   stage: check
   script:
-    - pip install merchise.lint==0.11
     - merchise_lint
   only:
     - master
@@ -31,11 +29,9 @@ check code smells (without Bugbear and Python 2.7):
 
 
 check formatting with black:
-  image: python:3.6-alpine
+  image: registry.merchise.org/merchise/python-dev:3.6
   stage: check
   script:
-    - apk add git g++
-    - python -m pip install -U --pre git+https://github.com/python/black.git@f3bb22a828495c66d8d2dae1edf45e15fc2daddb
     - black --check xoeuf/
   only:
     - master
