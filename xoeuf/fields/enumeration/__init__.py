@@ -315,10 +315,11 @@ class Enumeration(Char, _EnumeratedField):
         # EnumerationAdapter injected.)
         if self._setup_done != "full":
             cls = type(model)
-            logger.info("Setting %s to model %s(%s, %s)", self, model, cls, id(cls))
             if EnumerationAdapter not in cls.mro() and not self.related:
                 cls.__bases__ = (EnumerationAdapter,) + cls.__bases__
-                logger.info("Setting %s to model %s(%s, %s)", self, model, cls, id(cls))
+                logger.debug(
+                    "Setting %s to model %s(%s, %s)", self, model, cls, id(cls)
+                )
             self.Enumclass = self.resolve_enumclass(model)
             result = super(Enumeration, self).setup_full(model)
             if not self.compute and not self.related and not model._abstract:
@@ -333,7 +334,7 @@ class Enumeration(Char, _EnumeratedField):
                 selection_field = self.get_selection_field(
                     self.name, selection_field_name, **self.selection_field_kwargs
                 )
-                logger.info("Adding %s to model %s", selection_field_name, model)
+                logger.debug("Adding %s to model %s", selection_field_name, model)
                 model._add_field(selection_field_name, selection_field)
 
     def convert_to_read(self, value, record, use_name_get=True):
