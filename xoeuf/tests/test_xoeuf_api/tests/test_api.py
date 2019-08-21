@@ -70,6 +70,12 @@ class TestFromActiveIds(TransactionCase):
         partner.res = "Administrador"
         self.assertEqual(user.text_field, text_field)
 
+    def test_onupdate_inherited_via_mixin(self):
+        user = self.env.user
+        obj = self.env["text.onupdate.big.model"].create({"user_id": user.id})
+        user.name = name = "Johny"
+        self.assertEqual(obj.name, "Updated: {name}".format(name=name))
+
     def test_onupdate_validate_fields(self):
         user = self.env.user
         # Just check we don't raise an exception.

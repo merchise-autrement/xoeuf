@@ -52,7 +52,14 @@ class TextOnUpdateMixin(models.AbstractModel):
     _name = "text.onupdate.mixin"
 
     user_id = fields.Many2one("res.users")
+    name = fields.Char()
 
-    @api.onupdate("user_id", "user_id.name", "user_id.partner_id.name")
+    @api.onupdate("user_id", "user_id.partner_id.name")
     def test_mixin_onupdate(self):
-        pass
+        for record in self:
+            record.name = "Updated: {name}".format(name=record.user_id.name)
+
+
+class Model(models.Model):
+    _name = "text.onupdate.big.model"
+    _inherit = TextOnUpdateMixin._name
