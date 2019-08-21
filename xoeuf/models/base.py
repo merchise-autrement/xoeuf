@@ -143,11 +143,16 @@ models.BaseModel.resolve_deps = resolve_deps
 # add :meth:`odoo.models.BaseModel.setup_triggers`
 @api.model
 def setup_triggers(self):
-    """ Add the necessary triggers to execute updater methods. """
-    for update_method in self._onupdate_methods:
-        for model, field, path in self.resolve_deps(update_method):
-            path_str = None if path is None else (".".join(path) or "id")
-            model._method_triggers.add(field, (update_method, self._name, path_str))
+    """ Add the necessary triggers to execute updater methods.
+
+    Abstract models do not add triggers, these are not instantiated directly.
+
+    """
+    if not self._abstract:
+        for update_method in self._onupdate_methods:
+            for model, field, path in self.resolve_deps(update_method):
+                path_str = None if path is None else (".".join(path) or "id")
+                model._method_triggers.add(field, (update_method, self._name, path_str))
 
 
 models.BaseModel.setup_triggers = setup_triggers
