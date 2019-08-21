@@ -246,3 +246,14 @@ def ViewModel(name, model_name, table=None, mixins=None):
         _module = get_caller_addon(2)  # class Res + function ViewModel.
 
     return Res
+
+
+@property  # type: ignore
+@api.multi
+def reference_repr(self):
+    """The string representation compatible for Reference fields."""
+    self.ensure_one()
+    return "{name},{id}".format(name=self._name, id=self.id)
+
+
+models.BaseModel.reference_repr = reference_repr

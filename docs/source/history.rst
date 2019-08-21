@@ -16,6 +16,13 @@ Odoo.  So, xoeuf 1.0 will be compatible with Odoo 12, and many of its features
 will work on Odoo 10 and 11.
 
 
+2019-08-21. Release 0.70.0
+--------------------------
+
+- Add property ``reference_repr`` to all models to get the special string
+  representation of the object when used in fields 'Reference'.
+
+
 2019-08-21.  Release 0.69.0
 ---------------------------
 
