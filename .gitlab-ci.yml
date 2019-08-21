@@ -9,7 +9,7 @@ stages:
   - publish
 
 check code smells (with Bugbear and Python 3.6):
-  image: registry.merchise.org/merchise/python-dev:3.6
+  image: registry.merchise.org/merchise/python-dev:3.6-alpine
   stage: check
   script:
     - merchise_lint
@@ -19,7 +19,7 @@ check code smells (with Bugbear and Python 3.6):
 
 
 check code smells (without Bugbear and Python 2.7):
-  image: registry.merchise.org/merchise/python-dev:2.7
+  image: registry.merchise.org/merchise/python-dev:2.7-alpine
   stage: check
   script:
     - merchise_lint
@@ -29,7 +29,7 @@ check code smells (without Bugbear and Python 2.7):
 
 
 check formatting with black:
-  image: registry.merchise.org/merchise/python-dev:3.6
+  image: registry.merchise.org/merchise/python-dev:3.6-alpine
   stage: check
   script:
     - /usr/local/bin/black --check xoeuf/
