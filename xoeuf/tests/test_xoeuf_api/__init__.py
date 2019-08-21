@@ -46,3 +46,13 @@ class Users(models.Model):
     @api.requires_singleton
     def get_text_field(self):
         return "s2 %s" % self.name
+
+
+class TextOnUpdateMixin(models.AbstractModel):
+    _name = "text.onupdate.mixin"
+
+    user_id = fields.Many2one("res.users")
+
+    @api.onupdate("user_id", "user_id.name", "user_id.partner_id.name")
+    def test_mixin_onupdate(self):
+        pass
