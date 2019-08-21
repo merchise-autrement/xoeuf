@@ -19,7 +19,8 @@ will work on Odoo 10 and 11.
 Unreleased.  Release 0.69.0
 ---------------------------
 
-- Fix bug: Trigger `~xoeuf.api.onupdate`:func: on abstract models.
+- Fix bug: Don't trigger `~xoeuf.api.onupdate`:func: on abstract models, only
+  in models that `_inherit` them.
 
 
 2019-08-19.  Release 0.68.0
