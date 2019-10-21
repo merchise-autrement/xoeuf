@@ -7,12 +7,6 @@
 # This is free software; you can do what the LICENCE file allows you to.
 #
 """Xœuf basic ORM extensions for Open Object (OpenERP) models."""
-from __future__ import (
-    division as _py3_division,
-    print_function as _py3_print,
-    absolute_import,
-)
-
 from xoeuf.tools import add_symbols_to_xmls
 from xoeuf.models import get_modelname as _get_modelname
 

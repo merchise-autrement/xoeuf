@@ -12,8 +12,6 @@ Most of this has been extracted from `xotl.ql` (but we must support Python
 2.7).
 
 """
-from __future__ import division, print_function, absolute_import
-
 import ast as pyast
 from xoutil.future.types import new_class
 

@@ -26,12 +26,6 @@ Additions and changes:
   True, there's a proof.
 
 """
-from __future__ import (
-    division as _py3_division,
-    print_function as _py3_print,
-    absolute_import as _py3_abs_import,
-)
-
 import operator
 from itertools import chain
 from xoeuf.odoo.osv import expression as _odoo_expression

@@ -13,13 +13,6 @@ Implement the network protocols that the Xœuf applications that access OpenERP
 databases uses to communicate with its clients.
 
 """
-
-from __future__ import (
-    division as _py3_division,
-    print_function as _py3_print,
-    absolute_import as _py3_abs_import,
-)
-
 import pytz
 from xoeuf.tools import dt_as_timezone
 

@@ -6,13 +6,6 @@
 #
 # This is free software; you can do what the LICENCE file allows you to.
 #
-
-from __future__ import (
-    division as _py3_division,
-    print_function as _py3_print,
-    absolute_import as _py3_abs_import,
-)
-
 import pytz
 
 from odoo import fields
@@ -51,7 +44,7 @@ class LocalizedDatetime(fields.Datetime):
         self.tzone_field = tzone_field
         kwargs = dict(
             dict(store=False, copy=False, dt_field=dt_field, tzone_field=tzone_field),
-            **kwargs
+            **kwargs,
         )
         super(LocalizedDatetime, self).__init__(**kwargs)
 

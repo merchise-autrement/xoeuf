@@ -10,14 +10,6 @@
 """(Old fashioned) extensions to fields in the ORM.
 
 """
-
-from __future__ import (
-    division as _py3_division,
-    print_function as _py3_print,
-    absolute_import as _py3_abs_import,
-)
-
-
 from xoutil.deprecation import deprecated
 
 # FIX: Next doesn't work any more in version 10

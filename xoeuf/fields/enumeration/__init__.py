@@ -6,12 +6,6 @@
 #
 # This is free software; you can do what the LICENCE file allows you to.
 #
-from __future__ import (
-    division as _py3_division,
-    print_function as _py3_print,
-    absolute_import as _py3_abs_import,
-)
-
 import logging
 from collections import namedtuple, Mapping
 from xoutil.string import cut_prefix
@@ -144,7 +138,7 @@ class Enumeration(Char, _EnumeratedField):
             enumclass=enumclass,
             selection_field_kwargs=selection_field_kwargs,
             *args,
-            **kwargs
+            **kwargs,
         )
         self.enumclass = enumclass
         self.selection_field_kwargs = selection_field_kwargs
@@ -279,7 +273,7 @@ class Enumeration(Char, _EnumeratedField):
                 # computed the setup_full may not be called yet.
                 for name, value in self.resolve_enumclass(s).__members__.items()
             ],
-            **kwargs
+            **kwargs,
         )
 
     @staticmethod
