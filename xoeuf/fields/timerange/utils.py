@@ -17,8 +17,6 @@ try:
 except ImportError:
     from datetime import datetime, time
 
-    from ...eight import string_types
-
     class TimeField(object):
         """A descriptor for a `datetime.time`:class:.
 
@@ -51,7 +49,7 @@ except ImportError:
                     raise ValueError(
                         "Setting None to a non nullable attribute %r" % self.name
                     )
-            elif isinstance(value, string_types):
+            elif isinstance(value, str):
                 if "." in value:
                     fmt = "%H:%M:%S.%f"
                 elif len(value) > len("99:99"):

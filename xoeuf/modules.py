@@ -24,9 +24,6 @@ from xoutil.modules import customize
 from xoutil.modules import modulemethod
 from xoutil.string import cut_prefix
 
-from xoeuf.eight import string_types
-
-
 # In Odoo 10, they allow to import from both 'odoo' and 'openerp'
 _ADDONS_NAMESPACE = re.compile(r"^(?:odoo|openerp)\.addons\.(?P<module>[^\.]+)\.")
 
@@ -188,7 +185,7 @@ def _get_registry(db_name):
     """Helper method to get the registry for a `db_name`."""
     from odoo.modules.registry import Registry
 
-    if isinstance(db_name, string_types):
+    if isinstance(db_name, str):
         db = Registry(db_name)
     elif isinstance(db_name, Registry):
         db = db_name

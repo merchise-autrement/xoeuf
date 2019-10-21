@@ -35,7 +35,6 @@ from __future__ import (
 import operator
 from itertools import chain
 from xoeuf.odoo.osv import expression as _odoo_expression
-from xoeuf.eight import string_types
 
 from . import ql
 
@@ -126,7 +125,7 @@ class Domain(list):
 
         seq = seq or ()
         # some times the domains are saved in db in char or text fields.
-        if isinstance(seq, string_types):
+        if isinstance(seq, str):
             seq = const_eval(seq)
         super(Domain, self).__init__(seq)
 
@@ -746,7 +745,7 @@ def _get_mapped(node, fieldname):
 
 
 def _constructor_getattr(node, fieldname):
-    if isinstance(fieldname, string_types):
+    if isinstance(fieldname, str):
         if "." in fieldname:
             result = _get_mapped(node, fieldname)
         else:

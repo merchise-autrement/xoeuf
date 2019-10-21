@@ -18,9 +18,6 @@ from xoeuf.models import get_modelname as _get_modelname
 
 from xoutil.deprecation import deprecated
 
-from xoeuf.eight import integer_types
-
-
 get_modelname = deprecated("xoeuf.models.get_modelname")(_get_modelname)
 del _get_modelname, deprecated
 
@@ -37,7 +34,7 @@ def guess_id(which, attr="id"):
     from xoeuf.odoo.osv.orm import browse_record
     from xoutil.future.collections import Mapping
 
-    if isinstance(which, integer_types):
+    if isinstance(which, int):
         return which
     elif isinstance(which, (Mapping, browse_record)):
         from xoutil.objects import smart_getter

@@ -22,8 +22,6 @@ from odoo.fields import Char
 from odoo.release import version_info as ODOO_VERSION_INFO
 
 
-from ...eight import string_types
-
 logger = logging.getLogger(__name__)
 
 
@@ -396,7 +394,7 @@ class EnumerationAdapter(Adapter):
     @api.returns(*models.BaseModel.search._returns)
     def search(self, args, *pos_args, **kwargs):
         for index, query_part in enumerate(args):
-            if not isinstance(query_part, string_types):
+            if not isinstance(query_part, str):
                 fieldname, operator, operands = query_part
                 field = self._fields.get(fieldname, None)
                 if isinstance(field, Enumeration):

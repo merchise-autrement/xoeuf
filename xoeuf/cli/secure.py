@@ -130,8 +130,6 @@ class Secure(Command):
 
     @staticmethod
     def load_config_from_script(filename):
-        from xoeuf.eight import exec_
-
         cfg = {
             "__builtins__": __builtins__,
             "__name__": "__config__",
@@ -141,7 +139,7 @@ class Secure(Command):
         }
         try:
             with open(filename, "rb") as fh:
-                return exec_(compile(fh.read(), filename, "exec"), cfg, cfg)
+                return exec(compile(fh.read(), filename, "exec"), cfg, cfg)
         except Exception:
             import traceback
             import sys

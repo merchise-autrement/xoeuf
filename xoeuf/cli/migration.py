@@ -84,8 +84,6 @@ def write(msg):
 
 
 def read_bool_value(prompt=None):
-    from xoeuf.eight import input
-
     _input = input(prompt)
     _input = _input.lower()
     for result, valid_values in INPUT_VALID_VALUES:
