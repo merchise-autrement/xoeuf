@@ -6,25 +6,16 @@
 #
 # This is free software; you can do what the LICENCE file allows you to.
 #
-
-from __future__ import (
-    division as _py3_division,
-    print_function as _py3_print,
-    absolute_import as _py3_abs_import,
-)
-
-
-DEFAULT_COMMAND = str("server")
-
 # Makes sure modules are patched before any command-related code is
 # invoked.
 from xoeuf.modules import patch_modules
 
 patch_modules()
 
+DEFAULT_COMMAND = str("server")
+
 
 from xoutil.cli import Command as BaseCommand
-from xoeuf.eight.meta import metaclass
 
 
 class CommandsProxy(BaseCommand):
@@ -83,7 +74,7 @@ class CommandType(type(BaseCommand)):
         return super(CommandType, cls).__new__(cls, name, bases, attrs)
 
 
-class Command(metaclass(CommandType), BaseCommand):
+class Command(BaseCommand, metaclass=CommandType):
     @staticmethod
     def invalidate_logging(base=None):
         """Force the logger `base` to report only CRITICAL messages.

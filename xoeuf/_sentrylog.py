@@ -7,7 +7,7 @@
 # This is free software; you can do what the LICENCE file allows you to.
 #
 
-"""Extends/Overrides the OpenERP's logging system to Sentry-based approach.
+"""Extends/Overrides the Odoo's logging system to Sentry-based approach.
 
 Sentry_ aggregates logs and lets you inspect the server's health by a web
 application.
@@ -16,13 +16,6 @@ To configure, simply set the global `conf`:obj: dictionary and call
 `patch_logging`:func:.
 
 """
-
-from __future__ import (
-    division as _py3_division,
-    print_function as _py3_print,
-    absolute_import as _py3_abs_import,
-)
-
 import raven
 from raven.transport.http import HTTPTransport
 from raven.transport.threaded import ThreadedHTTPTransport
@@ -79,7 +72,7 @@ def get_client():
 
 
 def patch_logging(override=True, force=False):
-    """Patch openerp's logging.
+    """Patch odoo's logging.
 
     :param override: If True suppress all normal logging.  All logs will be
            sent to the Sentry instead of being logged to the console.  If
@@ -267,6 +260,6 @@ def patch_logging(override=True, force=False):
         else:
             logger.handlers.append(handler)
 
-    for name in (None, "openerp"):
+    for name in (None, "odoo", "openerp"):
         logger = logging.getLogger(name)
         sethandler(logger)

@@ -17,17 +17,6 @@ check code smells (with Bugbear and Python 3.6):
     - master
     - merge_requests
 
-
-check code smells (without Bugbear and Python 2.7):
-  image: registry.merchise.org/merchise/python-dev:2.7-alpine
-  stage: check
-  script:
-    - merchise_lint
-  only:
-    - master
-    - merge_requests
-
-
 check formatting with black:
   image: registry.merchise.org/merchise/python-dev:3.6-alpine
   stage: check
@@ -75,12 +64,6 @@ run all Odoo 11 tests:
   variables:
     PYTHON: python3
     ODOO_WORKTREE: odoo11
-
-run all Odoo 10 tests:
-  <<: *run_tests
-  variables:
-    PYTHON: python
-    ODOO_WORKTREE: odoo10
 
 check signature of tag:
   stage: pre-check

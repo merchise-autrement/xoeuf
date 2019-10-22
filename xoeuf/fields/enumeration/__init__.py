@@ -6,12 +6,6 @@
 #
 # This is free software; you can do what the LICENCE file allows you to.
 #
-from __future__ import (
-    division as _py3_division,
-    print_function as _py3_print,
-    absolute_import as _py3_abs_import,
-)
-
 import logging
 from collections import namedtuple, Mapping
 from xoutil.string import cut_prefix
@@ -21,8 +15,6 @@ from odoo import fields, api, models
 from odoo.fields import Char
 from odoo.release import version_info as ODOO_VERSION_INFO
 
-
-from ...eight import string_types
 
 logger = logging.getLogger(__name__)
 
@@ -146,7 +138,7 @@ class Enumeration(Char, _EnumeratedField):
             enumclass=enumclass,
             selection_field_kwargs=selection_field_kwargs,
             *args,
-            **kwargs
+            **kwargs,
         )
         self.enumclass = enumclass
         self.selection_field_kwargs = selection_field_kwargs
@@ -281,7 +273,7 @@ class Enumeration(Char, _EnumeratedField):
                 # computed the setup_full may not be called yet.
                 for name, value in self.resolve_enumclass(s).__members__.items()
             ],
-            **kwargs
+            **kwargs,
         )
 
     @staticmethod
@@ -396,7 +388,7 @@ class EnumerationAdapter(Adapter):
     @api.returns(*models.BaseModel.search._returns)
     def search(self, args, *pos_args, **kwargs):
         for index, query_part in enumerate(args):
-            if not isinstance(query_part, string_types):
+            if not isinstance(query_part, str):
                 fieldname, operator, operands = query_part
                 field = self._fields.get(fieldname, None)
                 if isinstance(field, Enumeration):

@@ -6,13 +6,6 @@
 #
 # This is free software; you can do what the LICENCE file allows you to.
 #
-
-from __future__ import (
-    division as _py3_division,
-    print_function as _py3_print,
-    absolute_import as _py3_abs_import,
-)
-
 import argparse
 import io
 import os
@@ -84,8 +77,6 @@ def write(msg):
 
 
 def read_bool_value(prompt=None):
-    from xoeuf.eight import input
-
     _input = input(prompt)
     _input = _input.lower()
     for result, valid_values in INPUT_VALID_VALUES:

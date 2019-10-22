@@ -6,13 +6,6 @@
 #
 # This is free software; you can do what the LICENCE file allows you to.
 #
-
-from __future__ import (
-    division as _py3_division,
-    print_function as _py3_print,
-    absolute_import as _py3_abs_import,
-)
-
 from collections import defaultdict
 from inspect import getmembers
 from xoeuf.odoo import api, models, tools
@@ -37,7 +30,6 @@ def get_modelname(model):
        <xoeuf.models.proxy>`:mod: is an error.
 
     """
-    from xoeuf.eight import string_types
     from xoeuf.odoo.models import BaseModel
 
     if not isinstance(model, BaseModel) and not issubclass(model, BaseModel):
@@ -48,7 +40,7 @@ def get_modelname(model):
         # This is the case of a model class having no _name defined, but then
         # it must have the _inherit and _name is regarded the same by OpenERP.
         result = model._inherit
-    assert isinstance(result, string_types), "Got an invalid name for %r" % model
+    assert isinstance(result, str), "Got an invalid name for %r" % model
     return result
 
 

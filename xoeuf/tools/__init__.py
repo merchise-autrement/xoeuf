@@ -10,11 +10,6 @@
 """Xœuf tools for Open Object (OpenERP) models.
 
 """
-from __future__ import (
-    division as _py3_division,
-    print_function as _py3_print,
-    absolute_import as _py3_abs_import,
-)
 import datetime
 from typing import Union, Any  # noqa
 
@@ -184,13 +179,11 @@ def normalize_datetime(which):
        ValueError: ...
 
     """
-    from xoeuf.eight import string_types
-
     if isinstance(which, datetime.datetime):
         return str2dt(dt2str(which))
     elif isinstance(which, datetime.date):
         return datetime.datetime(which.year, which.month, which.day)
-    elif isinstance(which, string_types):
+    elif isinstance(which, str):
         try:
             return parse_datetime(which)
         except ValueError:
@@ -240,13 +233,11 @@ def normalize_date(which):
        ValueError: ...
 
     """
-    from xoeuf.eight import string_types
-
     if isinstance(which, datetime.datetime):
         return which.date()
     elif isinstance(which, datetime.datetime):
         return which
-    elif isinstance(which, string_types):
+    elif isinstance(which, str):
         try:
             return parse_date(which).date()
         except ValueError:

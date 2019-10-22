@@ -6,12 +6,6 @@
 #
 # This is free software; you can do what the LICENCE file allows you to.
 #
-from __future__ import (
-    division as _py3_division,
-    print_function as _py3_print,
-    absolute_import as _py3_abs_import,
-)
-
 from datetime import datetime, time
 from functools import partial
 
@@ -19,7 +13,6 @@ from odoo.fields import Selection, Datetime, Float, Default as DEFAULT
 
 from .utils import TimeRange as _TimeRangeObject
 
-from ...eight import string_types
 from ...tools import normalize_datetime, get_time_from_float
 
 
@@ -108,7 +101,7 @@ class TimeRange(Selection):
             are translated according to context language
         """
         selection = self.selection
-        if isinstance(selection, string_types):
+        if isinstance(selection, str):
             return getattr(env[self.model_name], selection)()
         if callable(selection):
             return selection(env[self.model_name])
@@ -138,7 +131,7 @@ class TimeRange(Selection):
                 value: translate(label) if label else label
                 for value, label, start, end in selection
             }
-        if isinstance(selection, string_types):
+        if isinstance(selection, str):
             selection = getattr(env[self.model_name], selection)()
         if callable(selection):
             selection = selection(env[self.model_name])
@@ -147,7 +140,7 @@ class TimeRange(Selection):
     def get_values(self, env):
         """ return a list of the possible values """
         selection = self.selection
-        if isinstance(selection, string_types):
+        if isinstance(selection, str):
             selection = getattr(env[self.model_name], selection)()
         elif callable(selection):
             selection = selection(env[self.model_name])

@@ -21,14 +21,6 @@ method.  Each level implies all other with an inferior numerical value.  See
 constants of security level.
 
 """
-
-from __future__ import (
-    division as _py3_division,
-    print_function as _py3_print,
-    absolute_import as _py3_abs_import,
-)
-
-
 from xoutil.crypto import (  # noqa
     PASS_PHRASE_LEVEL_BASIC,
     PASS_PHRASE_LEVEL_MAPPED,

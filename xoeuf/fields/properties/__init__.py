@@ -6,18 +6,10 @@
 #
 # This is free software; you can do what the LICENCE file allows you to.
 #
-from __future__ import (
-    division as _py3_division,
-    print_function as _py3_print,
-    absolute_import as _py3_abs_import,
-)
-
 from xoutil.symbols import Unset
 
 from odoo.release import version_info as ODOO_VERSION_INFO
 from odoo.fields import Field as Base
-
-from ...eight.meta import metaclass
 
 
 class PropertyField(Base):
@@ -131,7 +123,7 @@ class PropertyField(Base):
             compute=getter,
             store=False,
             copy=False,
-            **kw
+            **kw,
         )
         # In any case, we need those values now to make `new()` below work.
         self.property_getter = getter or Unset
@@ -154,7 +146,7 @@ class PropertyField(Base):
             deleter=deleter,
             onsetup=onsetup,
             memoize=memoize,
-            **kwargs
+            **kwargs,
         )
 
     def setup_full(self, model):
@@ -268,7 +260,7 @@ class _PropertyType(type):
                     deleter=deleter,
                     onsetup=onsetup,
                     memoize=bool(memoize),
-                    **kwargs
+                    **kwargs,
                 )
 
             return result
@@ -279,11 +271,11 @@ class _PropertyType(type):
                 deleter=deleter,
                 onsetup=onsetup,
                 memoize=bool(memoize),
-                **kwargs
+                **kwargs,
             )
 
 
-class Property(metaclass(_PropertyType)):
+class Property(metaclass=_PropertyType):
     # So that isinstance(x, Property) work
     pass
 

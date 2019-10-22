@@ -14,13 +14,6 @@
 - [TODO] Changing all accounting related data by a random mapping.
 
 """
-
-from __future__ import (
-    division as _py3_division,
-    print_function as _py3_print,
-    absolute_import as _py3_abs_import,
-)
-
 from . import Command
 
 
@@ -130,8 +123,6 @@ class Secure(Command):
 
     @staticmethod
     def load_config_from_script(filename):
-        from xoeuf.eight import exec_
-
         cfg = {
             "__builtins__": __builtins__,
             "__name__": "__config__",
@@ -141,7 +132,7 @@ class Secure(Command):
         }
         try:
             with open(filename, "rb") as fh:
-                return exec_(compile(fh.read(), filename, "exec"), cfg, cfg)
+                return exec(compile(fh.read(), filename, "exec"), cfg, cfg)
         except Exception:
             import traceback
             import sys

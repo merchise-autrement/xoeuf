@@ -8,13 +8,7 @@
 #
 
 # This is the implementation of the signals.  The 'signals' module remains the
-# API but we're porting this to 'openerp.signals'.
-from __future__ import (
-    division as _py3_division,
-    print_function as _py3_print,
-    absolute_import as _py3_abs_import,
-)
-
+# API but we're porting this to 'odoo.signals'.
 import logging
 from functools import wraps
 

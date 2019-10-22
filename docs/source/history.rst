@@ -19,7 +19,10 @@ will work on Odoo 10 and 11.
 Unreleased.  Release 0.71.0
 ---------------------------
 
-Nothing yet.
+- Remove official support for Odoo 10.  This simply means we no longer run
+  tests with Odoo 10.
+
+  Require Python 3.6+.
 
 
 2019-08-21. Release 0.70.0

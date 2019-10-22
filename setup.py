@@ -74,6 +74,7 @@ setup(
         ],
         "test": ["hypothesis>=3.7.0,<4"],
     },
+    python_requires=">=3.6",
     entry_points="""
       [console_scripts]
       xoeuf = xoeuf.cli.server:server
