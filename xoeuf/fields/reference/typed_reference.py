@@ -131,8 +131,6 @@ def _make_inverse_method(reference_field, field_name):
             reference = record[reference_field]
             if reference:
                 reference[field_name] = record[field_name]
-            else:
-                raise ValueError("TODO")
 
     return _set
 
