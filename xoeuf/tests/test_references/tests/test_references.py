@@ -60,3 +60,6 @@ class TestReferences(TransactionCase):
         obj.invalidate_cache()
         obj2.invalidate_cache()
         self.assertEqual(obj.test, obj2.test)
+
+    def test_related_field_search(self):
+        self.env["test.model"].search([("test", "=", "any value")])
