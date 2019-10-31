@@ -68,4 +68,3 @@ class TestReferences(TransactionCase):
 
     def test_related_field_search(self):
         self.env["test.model"].search([("test", "=", "any value")])
-        self.env["test.model"].search([("typed_ref.test", "=", "any value")])
