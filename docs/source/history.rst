@@ -24,6 +24,11 @@ Unreleased.  Release 0.71.0
 
   Require Python 3.6+.
 
+- Fix bug `#5`__: AttributeError while searching delegated fields from a
+  `~xoeuf.fields.TypedReference`:class:
+
+  __ https://gitlab.merchise.org/mercurio-2018/xoeuf/issues/5
+
 
 2019-08-21. Release 0.70.0
 --------------------------
