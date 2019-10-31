@@ -43,6 +43,11 @@ class TestReferences(TransactionCase):
     def test_delegate_typed_reference(self):
         obj = self.env["test.model"].create({})
         obj2 = self.env["test.model1"].create({"test": "ok"})
+        dummy_value = "any value"
+        obj.test = dummy_value
+        self.assertEqual(obj.test, dummy_value)
+        obj.invalidate_cache()
+        self.assertFalse(obj.test)
         obj.typed_ref = obj2
         obj.invalidate_cache()
         obj2.invalidate_cache()
@@ -60,3 +65,6 @@ class TestReferences(TransactionCase):
         obj.invalidate_cache()
         obj2.invalidate_cache()
         self.assertEqual(obj.test, obj2.test)
+
+    def test_related_field_search(self):
+        self.env["test.model"].search([("test", "=", "any value")])

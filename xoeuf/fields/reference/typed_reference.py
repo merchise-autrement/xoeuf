@@ -7,6 +7,7 @@
 # This is free software; you can do what the LICENCE file allows you to.
 #
 from odoo import api, fields, models, _
+from xoeuf.osv.expression import Domain, FALSE_LEAF
 
 
 def get_mixin_descendants(pool, mixin):
@@ -130,8 +131,6 @@ def _make_inverse_method(reference_field, field_name):
             reference = record[reference_field]
             if reference:
                 reference[field_name] = record[field_name]
-            else:
-                raise ValueError("TODO")
 
     return _set
 
@@ -139,7 +138,13 @@ def _make_inverse_method(reference_field, field_name):
 def _make_search_method(reference_field, field_name):
     @api.multi
     def _search(self, operator, value):
-        return [("%s.%s" % (reference_field, field_name), operator, value)]
+        domain = Domain([FALSE_LEAF])
+        for model in get_mixin_descendants(
+            self.pool, self._fields[reference_field].mixin
+        ):
+            for r in self.env[model].search([(field_name, operator, value)]):
+                domain |= [(reference_field, "=", r.reference_repr)]
+        return domain
 
     return _search
 
