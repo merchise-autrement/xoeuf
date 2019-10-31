@@ -30,6 +30,10 @@ class TypedReference(fields.Reference):
 
     .. warning:: This field works only in Odoo 11+.
 
+    .. warning:: Searching fields of a typed-reference, could be costly if
+       there are many models that inherit from the mixin.  We issue a query
+       per model in order to be able to find the references.
+
     """
 
     _slots = {"mixin": None, "comodel_name": None, "delegate": None}
