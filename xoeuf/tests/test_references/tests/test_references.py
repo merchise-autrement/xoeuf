@@ -77,4 +77,125 @@ class TestReferences(TransactionCase):
             )
 
     def test_related_field_search(self):
+        # computed non store field from a regular field
         self.env["test.model"].search([("test", "=", "any value")])
+        # computed non store field from a computed non store field
+        # self.env["test.model"].search([('comment', '=', 'any value')])  # no searchable
+        # computed non store field from a computed store field
+        self.env["test.model"].search([("street", "=", "any value")])
+        # computed store field from a regular field
+        self.env["test.model"].search([("test2", "=", "any value")])
+        # computed store field from a computed store field
+        self.env["test.model"].search([("ref", "=", "any value")])
+        # computed store field from a computed non store field
+        # self.env["test.model"].search([("name", "=", "any value")])
+
+    def test_related_field_right_triggers(self):
+        """All `store=False` computed field through a `Reference` are computed correctly.
+
+        This behave is the same with any `Reference` odoo field.
+
+        """
+        obj = self.env["test.model1"].create(
+            {"partner_id": self.env.user.partner_id.id}
+        )
+        obj2 = self.env["test.model"].create({"typed_ref": obj.reference_repr})
+        dummy_value = "any value"
+
+        # computed non store field from a regular field
+        obj.test = dummy_value
+        self.assertEqual(obj2.test, dummy_value)
+        obj.invalidate_cache()
+        obj2.invalidate_cache()
+        self.assertEqual(obj2.test, dummy_value)
+
+        # computed non store field from a computed non store field
+        obj.comment = dummy_value
+        self.assertEqual(obj2.comment, dummy_value)
+        obj.invalidate_cache()
+        obj2.invalidate_cache()
+        self.assertEqual(obj2.comment, dummy_value)
+        obj.partner_id.comment = dummy_value
+        self.assertEqual(obj2.comment, dummy_value)
+        obj.invalidate_cache()
+        obj2.invalidate_cache()
+        self.assertEqual(obj2.comment, dummy_value)
+
+        # computed non store field from a computed store field
+        obj.street = dummy_value
+        self.assertEqual(obj2.street, dummy_value)
+        obj.invalidate_cache()
+        obj2.invalidate_cache()
+        self.assertEqual(obj2.street, dummy_value)
+        obj.partner_id.street = dummy_value
+        self.assertEqual(obj2.street, dummy_value)
+        obj.invalidate_cache()
+        obj2.invalidate_cache()
+        self.assertEqual(obj2.street, dummy_value)
+
+    def test_related_field_wrong_triggers(self):
+        """No `store=True` computed field through a `Reference` is computed correctly.
+
+        The computed `store=True` fields from a `store=False` field through a
+        `Reference` cause an` AttributeError` when writing on the source field.
+
+        This behave is the same with any `Reference` odoo field.
+
+        """
+        obj = self.env["test.model1"].create(
+            {"partner_id": self.env.user.partner_id.id}
+        )
+        obj2 = self.env["test.model"].create({"typed_ref": obj.reference_repr})
+        dummy_value = "any value"
+
+        # computed store field from a regular field
+        obj.test2 = dummy_value
+        self.assertNotEqual(obj2.test2, dummy_value)  # Is not updated
+        obj.invalidate_cache()
+        obj2.invalidate_cache()
+        self.assertNotEqual(obj2.test2, dummy_value)  # Is not updated
+
+        # computed store field from a computed store field
+        obj.ref = dummy_value
+        self.assertNotEqual(obj2.ref, dummy_value)  # Is not updated
+        obj.invalidate_cache()
+        obj2.invalidate_cache()
+        self.assertNotEqual(obj2.ref, dummy_value)  # Is not updated
+
+        # computed store field from a computed non store field
+        # with self.assertRaises(AttributeError):
+        #     obj.name = dummy_value
+        # with self.assertRaises(AttributeError):
+        #     obj.partner_id.name = dummy_value
+
+    def test_related_field_inverse(self):
+        obj = self.env["test.model1"].create(
+            {"partner_id": self.env.user.partner_id.id}
+        )
+        obj2 = self.env["test.model"].create({"typed_ref": obj.reference_repr})
+        dummy_value = "any value"
+
+        # computed non store field from a regular field
+        obj2.test = dummy_value
+        self.assertEqual(obj.test, dummy_value)
+        obj.invalidate_cache()
+        obj2.invalidate_cache()
+        self.assertEqual(obj.test, dummy_value)
+
+        # computed non store field from a computed non store field
+        obj2.comment = dummy_value
+        self.assertEqual(obj.comment, dummy_value)
+        self.assertEqual(obj.partner_id.comment, dummy_value)
+        obj.invalidate_cache()
+        obj2.invalidate_cache()
+        self.assertEqual(obj.comment, dummy_value)
+        self.assertEqual(obj.partner_id.comment, dummy_value)
+
+        # computed non store field from a computed store field
+        obj2.street = dummy_value
+        self.assertEqual(obj.street, dummy_value)
+        self.assertEqual(obj.partner_id.street, dummy_value)
+        obj.invalidate_cache()
+        obj2.invalidate_cache()
+        self.assertEqual(obj.street, dummy_value)
+        self.assertEqual(obj.partner_id.street, dummy_value)
