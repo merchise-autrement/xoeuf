@@ -6,7 +6,7 @@
 #
 # This is free software; you can do what the LICENCE file allows you to.
 #
-from xoeuf import fields, models
+from xoeuf import fields, models, api
 
 MIXIN_NAME = "example.mixin"
 
@@ -15,6 +15,7 @@ class ExampleMixin(models.AbstractModel):
     _name = MIXIN_NAME
 
     test = fields.Char(default="Hello")
+    partner_id = fields.Many2one("res.partner")
 
 
 class Model1(models.Model):

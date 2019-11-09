@@ -66,5 +66,15 @@ class TestReferences(TransactionCase):
         obj2.invalidate_cache()
         self.assertEqual(obj.test, obj2.test)
 
+    def test_related_field_setup(self):
+        obj = self.env["test.model"]
+        obj2 = self.env["test.model1"]
+        # check related field attributes like: string, help, comodel_name, ...
+        for attr, _ in obj._fields["partner_id"].related_attrs:
+            self.assertEqual(
+                getattr(obj._fields["partner_id"], attr),
+                getattr(obj2._fields["partner_id"], attr),
+            )
+
     def test_related_field_search(self):
         self.env["test.model"].search([("test", "=", "any value")])
