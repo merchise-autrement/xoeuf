@@ -34,9 +34,9 @@ check formatting with black:
     - cd ~/src/$ODOO_WORKTREE
     - git pull
     - mkdir -p ~/virtualenvs
-    - rm -rf ~/virtualenvs/$CI_PROJECT_NAME-$ODOO_WORKTREE || true
-    - virtualenv -p `which $PYTHON` ~/virtualenvs/$CI_PROJECT_NAME-$ODOO_WORKTREE
-    - source ~/virtualenvs/$CI_PROJECT_NAME-$ODOO_WORKTREE/bin/activate
+    - rm -rf ~/virtualenvs/$CI_PROJECT_NAME-$ODOO_WORKTREE-$PYTHON || true
+    - virtualenv -p `which $PYTHON` ~/virtualenvs/$CI_PROJECT_NAME-$ODOO_WORKTREE-$PYTHON
+    - source ~/virtualenvs/$CI_PROJECT_NAME-$ODOO_WORKTREE-$PYTHON/bin/activate
     - pip install "futures<3"
     - pip install -r requirements.txt
     - pip install -U "six>=1.9.0" "decorator>=4.0,<4.2" "hypothesis>=3.24"
@@ -56,10 +56,22 @@ check formatting with black:
     changes:
       - xoeuf/**/*.py
 
-run all Odoo 12 tests:
+run all Odoo 12 tests in Python 3.6:
   <<: *run_tests
   variables:
-    PYTHON: python3
+    PYTHON: python3.6
+    ODOO_WORKTREE: odoo12
+
+run all Odoo 12 tests in Python 3.7:
+  <<: *run_tests
+  variables:
+    PYTHON: python3.7
+    ODOO_WORKTREE: odoo12
+
+run all Odoo 12 tests in Python 3.8:
+  <<: *run_tests
+  variables:
+    PYTHON: python3.8
     ODOO_WORKTREE: odoo12
 
 run all Odoo 11 tests:
