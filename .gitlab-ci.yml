@@ -40,8 +40,8 @@ check formatting with black:
       $PYTHON -m venv ~/virtualenvs/$CI_PROJECT_NAME-$ODOO_WORKTREE-$PYTHON
       source ~/virtualenvs/$CI_PROJECT_NAME-$ODOO_WORKTREE-$PYTHON/bin/activate
       pip install -U wheel setuptools
-      pip install "futures<3" psycopg2-binary
-      pip install -r <(grep -v psycopg2 requirements.txt)
+      pip install "futures<3"
+      pip install -r requirements.txt
       pip install -U "six>=1.9.0" "decorator>=4.0,<4.2" "hypothesis>=3.24"
       pip install -e .
       cd $CWD
