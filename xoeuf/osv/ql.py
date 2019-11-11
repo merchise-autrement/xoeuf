@@ -239,26 +239,28 @@ def make_call(fn, *args, **kwargs):
 
 
 def make_arguments(*names):
-    if _py3:
-        if _py_version >= (3, 4):
-            return arguments(  # noqa
-                [arg(name, None) for name in names], None, [], [], None, []  # noqa
-            )
-        else:
-            return arguments(  # noqa
-                [arg(name, None) for name in names],  # noqa
-                None,
-                None,
-                [],
-                None,
-                None,
-                [],
-                [],
-            )
-    else:
+    assert _py3
+    if (3, 4) <= _py_version < (3, 8):
         return arguments(  # noqa
-            [Name(name, Param()) for name in names], None, None, []  # noqa
+            args=[arg(name, None) for name in names],  # noqa
+            vararg=None,
+            kwonlyargs=[],
+            kw_defaults=[],
+            kwarg=None,
+            defaults=[],
         )
+    if (3, 8) <= _py_version:
+        return arguments(  # noqa
+            posonlyargs=[],
+            args=[arg(name, None) for name in names],  # noqa
+            vararg=None,
+            kwonlyargs=[],
+            kw_defaults=[],
+            kwarg=None,
+            defaults=[],
+        )
+    else:
+        assert False  # pragma: no cover
 
 
 def make_attr(node, attr):
