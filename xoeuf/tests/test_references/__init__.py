@@ -8,7 +8,7 @@
 #
 from xoeuf import fields, models, api
 
-MIXIN_NAME = "example.mixin"
+MIXIN_NAME = "typed.reference.example.mixin"
 
 
 class ExampleMixin(models.AbstractModel):

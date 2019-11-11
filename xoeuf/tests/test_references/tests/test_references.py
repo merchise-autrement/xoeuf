@@ -8,6 +8,7 @@
 #
 from xoeuf import fields
 from xoeuf.odoo.tests.common import TransactionCase
+from .. import MIXIN_NAME
 
 
 class TestReferences(TransactionCase):
@@ -15,7 +16,7 @@ class TestReferences(TransactionCase):
         obj = self.env["test.model"].create({})
         typed_ref = obj._fields["typed_ref"]
         self.assertTrue(isinstance(typed_ref, fields.TypedReference))
-        self.assertEqual(typed_ref.mixin, "example.mixin")
+        self.assertEqual(typed_ref.mixin, MIXIN_NAME)
 
         def typed_ref_assign(value):
             obj.typed_ref = value
