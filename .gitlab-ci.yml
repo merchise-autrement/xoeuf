@@ -30,24 +30,26 @@ check formatting with black:
 .run_tests: &run_tests
   stage: test
   script:
-    - export CWD=`pwd`
-    - cd ~/src/$ODOO_WORKTREE
-    - git pull
-    - mkdir -p ~/virtualenvs
-    - rm -rf ~/virtualenvs/$CI_PROJECT_NAME-$ODOO_WORKTREE-$PYTHON || true
-    - virtualenv -p `which $PYTHON` ~/virtualenvs/$CI_PROJECT_NAME-$ODOO_WORKTREE-$PYTHON
-    - source ~/virtualenvs/$CI_PROJECT_NAME-$ODOO_WORKTREE-$PYTHON/bin/activate
-    - pip install "futures<3"
-    - pip install -r requirements.txt
-    - pip install -U "six>=1.9.0" "decorator>=4.0,<4.2" "hypothesis>=3.24"
-    - pip install -e .
-    - cd $CWD
-    - pip install -e .
-    - export ADDONS=`ls xoeuf/tests/ | grep ^test_ | xargs | tr " " ","`
-    - cd ~/src/$ODOO_WORKTREE
-    - runtests-odoo.sh -exec xoeuf -p $PYTHON -i $ADDONS
+    - |
+      set -x
+      export CWD=`pwd`
+      cd ~/src/$ODOO_WORKTREE
+      git pull
+      mkdir -p ~/virtualenvs
+      rm -rf ~/virtualenvs/$CI_PROJECT_NAME-$ODOO_WORKTREE-$PYTHON || true
+      $PYTHON -m venv ~/virtualenvs/$CI_PROJECT_NAME-$ODOO_WORKTREE-$PYTHON
+      source ~/virtualenvs/$CI_PROJECT_NAME-$ODOO_WORKTREE-$PYTHON/bin/activate
+      pip install -U wheel setuptools
+      pip install "futures<3"
+      pip install -r requirements.txt
+      pip install -U "six>=1.9.0" "decorator>=4.0,<4.2" "hypothesis>=3.24"
+      pip install -e .
+      cd $CWD
+      pip install -e .
+      export ADDONS=`ls xoeuf/tests/ | grep ^test_ | xargs | tr " " ","`
+      cd ~/src/$ODOO_WORKTREE
+      runtests-odoo.sh -exec xoeuf -p $PYTHON -i $ADDONS
   tags:
-    - virtualenv
     - xoeuf-tester
   only:
     refs:
@@ -157,22 +159,25 @@ build documentation:
     ODOO_WORKTREE: odoo12
   stage: build doc
   script:
-    - export CWD=`pwd`
-    - cd ~/src/$ODOO_WORKTREE
-    - mkdir -p ~/virtualenvs
-    - rm -rf ~/virtualenvs/$CI_PROJECT_NAME-$ODOO_WORKTREE || true
-    - virtualenv -p `which $PYTHON` ~/virtualenvs/$CI_PROJECT_NAME-$ODOO_WORKTREE
-    - source ~/virtualenvs/$CI_PROJECT_NAME-$ODOO_WORKTREE/bin/activate
-    - pip install 'futures<3'
-    - pip install -r requirements.txt
-    - pip install -U "six>=1.9.0" "decorator>=4.0,<4.2" "hypothesis>=3.24"
-    - pip install -e .
-    - cd $CWD
-    - pip install -e .
-    - pip install sphinx sphinx-rtd-theme
-    - make -C docs/ html
-    - cd docs/build/html
-    - tar -cjf ../../../$CI_PROJECT_NAME-$CI_COMMIT_SHA.tar.bz2 ./
+    - |
+      set -x
+      export CWD=`pwd`
+      cd ~/src/$ODOO_WORKTREE
+      mkdir -p ~/virtualenvs
+      rm -rf ~/virtualenvs/$CI_PROJECT_NAME-$ODOO_WORKTREE-$PYTHON || true
+      $PYTHON -m venv ~/virtualenvs/$CI_PROJECT_NAME-$ODOO_WORKTREE-$PYTHON
+      source ~/virtualenvs/$CI_PROJECT_NAME-$ODOO_WORKTREE/bin/activate
+      pip install -U wheel setuptools
+      pip install 'futures<3'
+      pip install -r requirements.txt
+      pip install -U "six>=1.9.0" "decorator>=4.0,<4.2" "hypothesis>=3.24"
+      pip install -e .
+      cd $CWD
+      pip install -e .
+      pip install sphinx sphinx-rtd-theme
+      make -C docs/ html
+      cd docs/build/html
+      tar -cjf ../../../$CI_PROJECT_NAME-$CI_COMMIT_SHA.tar.bz2 ./
   artifacts:
     paths:
       - $CI_PROJECT_NAME-$CI_COMMIT_SHA.tar.bz2
