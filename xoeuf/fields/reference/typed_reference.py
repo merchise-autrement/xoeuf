@@ -99,6 +99,7 @@ def _add_inherits_by_reference_fields(self, reference_fields):
         mixin = self.env[reference_field.mixin]
         for name, field in mixin._fields.items():
             if name not in self._fields:
+                # determine dependencies, compute, inverse, and search
                 args = dict(
                     field.args,
                     compute=_make_compute_method(reference_field_name, name),
@@ -107,13 +108,21 @@ def _add_inherits_by_reference_fields(self, reference_fields):
                         "%s.%s" % (reference_field_name, name),
                     ),
                 )
-                # determine dependencies, compute, inverse, and search
                 if not (field.readonly or reference_field.readonly):
                     args["inverse"] = _make_inverse_method(reference_field_name, name)
                 if field._description_searchable:
                     # allow searching on self only if the related
                     # field is searchable
                     args["search"] = _make_search_method(reference_field_name, name)
+                # copy attributes from field to self (string, help, etc.)
+                for attr, prop in field.related_attrs:
+                    args[attr] = getattr(field, prop)
+                # special case for states
+                if field.states:
+                    args["states"] = field.states
+                # special case for required fields
+                if field.required:
+                    args["required"] = True
                 self._add_field(name, field.new(**args))
 
 
