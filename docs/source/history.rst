@@ -19,7 +19,10 @@ will work on Odoo 10 and 11.
 Unreleased.  Release 0.72.0
 ---------------------------
 
-Nothing yet.
+- Fix bug `#6`__: Complete fields for delegated fields of a
+  `~xoeuf.fields.TypedReference`:class:
+
+  __ https://gitlab.merchise.org/mercurio-2018/xoeuf/issues/6
 
 
 2019-10-31.  Release 0.71.0
