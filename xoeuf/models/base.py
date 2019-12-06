@@ -198,6 +198,10 @@ super_validate_fields = models.BaseModel._validate_fields
 
 @api.multi
 def _validate_fields(self, field_names):
+    # Ensure field_names be a set.
+    # In some cases (checking Python constraints for stored fields from `create`)
+    # an generator is given instead of iterable.
+    field_names = set(field_names)
     res = super_validate_fields(self, field_names)
     self.execute_onupdate(field_names)
     return res
