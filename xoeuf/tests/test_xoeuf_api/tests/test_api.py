@@ -47,6 +47,22 @@ class TestFromActiveIds(TransactionCase):
         self.assertNotEqual(user.text_field, text_field)
         self.assertEqual(user.text_field, user.get_text_field())
 
+        # ``update_text_field`` must be called
+        user = user.create({"login": "new_user", "partner_id": user.partner_id.id})
+        self.assertNotEqual(user.text_field, text_field)
+        self.assertEqual(user.text_field, user.get_text_field())
+
+        # ``update_text_field`` must be called replacing `text_field` creation value
+        user = user.create(
+            {
+                "login": "new_user2",
+                "partner_id": user.partner_id.id,
+                "text_field": "text_field",
+            }
+        )
+        self.assertNotEqual(user.text_field, text_field)
+        self.assertEqual(user.text_field, user.get_text_field())
+
         # No onupdate method should be called
         text_field = user.text_field
         user.login = "jane doe"
