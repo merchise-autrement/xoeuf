@@ -19,7 +19,12 @@ will work on Odoo 10 and 11.
 Unreleased.  Release 0.73.0
 ---------------------------
 
-Nothing yet.
+- Fix bug `#7`__: The implementation of `xoeuf.api.onupdate`:func: consumed
+  the iterable passed to ``_validate_fields``, which, sometimes, is a
+  generator.  This caused the onupdate-methods not to be called in some
+  circumstances.
+
+  __ https://gitlab.merchise.org/mercurio-2018/xoeuf/issues/7
 
 
 2019-11-27.  Release 0.72.0
