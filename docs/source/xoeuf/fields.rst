@@ -33,3 +33,6 @@ We don't backport all fields from later Odoo versions to earlier ones, though.
 .. autoclass:: TimeRange(time_field, selection, *args, **kwargs)
 
 .. autoclass:: TypedReference(mixin, [delegate=False], **kwargs)
+
+.. autoclass:: Html
+   :members: extract_text, is_plain_text_empty
