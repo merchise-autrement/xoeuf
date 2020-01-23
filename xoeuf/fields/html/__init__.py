@@ -21,9 +21,6 @@ class Html(Base):
     def extract_text(self_or_cls, record_or_value, raises=True):
         """Extract plain text from an HTML field.
 
-        The Odoo HTML field stores it's empty value as '<p><br/></p>' so to check
-        it's emptiness we must try to extract the valid plain text if any.
-
         If given value cannot be parsed and `raises` is True, raise a
         ValueError; if `raises` is False return None.
 
