@@ -7,8 +7,11 @@
 # This is free software; you can do what the LICENCE file allows you to.
 #
 from odoo.fields import Html as Base
+
 from lxml import html
 from lxml.etree import XMLSyntaxError
+
+from xoeuf.utils import hybridmethod
 
 
 class Html(Base):
@@ -18,6 +21,7 @@ class Html(Base):
 
     """
 
+    @hybridmethod
     def extract_text(self_or_cls, record_or_value, raises=True):
         """Extract plain text from an HTML field.
 
@@ -47,6 +51,7 @@ class Html(Base):
         else:
             return ""
 
+    @hybridmethod
     def is_plain_text_empty(self_or_cls, record_or_value, raises=True):
         """Return True if the plain text of HTML value is empty.
 
@@ -68,6 +73,7 @@ class Html(Base):
         else:
             return None
 
+    @hybridmethod
     def _get_html_value(self_or_cls, record_or_value):
         if isinstance(self_or_cls, type) and issubclass(self_or_cls, Base):
             return record_or_value

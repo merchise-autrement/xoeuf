@@ -29,6 +29,7 @@ Additions and changes:
 import operator
 from itertools import chain
 from xoeuf.odoo.osv import expression as _odoo_expression
+from xoeuf.utils import crossmethod
 
 from . import ql
 
@@ -40,44 +41,6 @@ from xoutil.modules import copy_members as _copy_python_module_members
 this = _copy_python_module_members(_odoo_expression)
 del _copy_python_module_members
 del _odoo_expression
-
-
-try:
-    from xoutil.objects import crossmethod  # TODO: migrate
-except ImportError:
-
-    class crossmethod(object):
-        """Decorate a function as static or instance level.
-
-        Example:
-
-          >>> class Mule(object):
-          ...     @crossmethod
-          ...     def print_args(*args):
-          ...         print(args)
-
-          # Call it as a staticmethod
-          >>> Mule.print_args()
-          ()
-
-          # Call it as an instance
-          >>> Mule().print_args()   # doctest: +ELLIPSIS
-          (<...Mule object at ...>,)
-
-        .. note:: This is different from `hybridmethod`:func:.  Hybrid method
-                  always receive the implicit argument (either `cls` or
-                  `self`).
-
-        """
-
-        def __init__(self, func):
-            self.func = func
-
-        def __get__(self, instance, owner):
-            if instance is None:
-                return self.func
-            else:
-                return self.func.__get__(instance, owner)
 
 
 UNARY_OPERATORS = [this.NOT_OPERATOR]
