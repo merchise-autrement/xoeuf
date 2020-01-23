@@ -12,6 +12,12 @@ from lxml.etree import XMLSyntaxError
 
 
 class Html(Base):
+    """An HTML field.
+
+    This is an extension to Odoo's fields.Html to add a couple of methods.
+
+    """
+
     def extract_text(self_or_cls, record_or_value):
         """Extract plain text from an HTML field.
 
@@ -19,6 +25,13 @@ class Html(Base):
         it's emptiness we must try to extract the valid plain text if any.
 
         If given value cannot be parsed, return None.
+
+        This method can be called as classmethod, or as instance method.  In
+        the first case, the argument should a string with the contents of the
+        HTML.  In the second case, the argument should be a singleton
+        recordset from which we extract the field's value.
+
+        .. versionadded:: 0.74.0
 
         """
         value = self_or_cls._get_html_value(record_or_value)
@@ -38,6 +51,13 @@ class Html(Base):
         If `raises` is False and the value is not valid (i.e
         `Html.extract_text`:method: returns None), return None.  If `raises`
         is True, raise a ValueError.
+
+        This method can be called as classmethod, or as instance method.  In
+        the first case, the argument should a string with the contents of the
+        HTML.  In the second case, the argument should be a singleton
+        recordset from which we extract the field's value.
+
+        .. versionadded:: 0.74.0
 
         """
         res = self_or_cls.extract_text(record_or_value)
