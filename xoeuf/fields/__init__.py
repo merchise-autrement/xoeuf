@@ -18,6 +18,7 @@ from .timedelta import TimeDelta  # noqa: reexport
 from .one2one import One2one  # noqa: reexport
 from .timerange import TimeRange  # noqa: reexport
 from .reference import TypedReference  # noqa: reexport
+from .html import Html  # noqa: reexport
 
 
 try:
