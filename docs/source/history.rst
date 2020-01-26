@@ -16,7 +16,7 @@ Odoo.  So, xoeuf 1.0 will be compatible with Odoo 12, and many of its features
 will work on Odoo 10 and 11.
 
 
-Unreleased.  Release 0.75.0
+2020-01-26.  Release 0.75.0
 ---------------------------
 
 - Correct `xoeuf.fields.Html`:class: HTML extraction method to return the
