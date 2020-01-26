@@ -23,6 +23,9 @@ class TestLocalizedDt(TransactionCase):
         self.empty_html_with_tags = self.env["test_field_html_extensions.model"].create(
             {"html": "<p> &nbsp;</p>"}
         )
+        self.empty_html_with_br = self.env["test_field_html_extensions.model"].create(
+            {"html": "<p><br/></p>"}
+        )
 
     def test_valid_html_non_empty_record_signature(self):
         field = self.valid_html._fields["html"]
@@ -41,3 +44,16 @@ class TestLocalizedDt(TransactionCase):
     def test_valid_empty_html_without_tags_recordless_signature(self):
         self.assertEquals(fields.Html.extract_text(self.empty_html.html), "")
         self.assertTrue(fields.Html.is_plain_text_empty(self.empty_html.html))
+
+    def test_valid_empty_with_br_record_signature(self):
+        field = self.valid_html._fields["html"]
+        self.assertEquals(field.extract_text(self.empty_html_with_br), "")
+        self.assertIsNot(field.is_plain_text_empty(self.empty_html_with_br), None)
+        self.assertTrue(field.is_plain_text_empty(self.empty_html_with_br))
+
+    def test_valid_empty_with_br_recordless_signature(self):
+        self.assertEquals(fields.Html.extract_text(self.empty_html_with_br.html), "")
+        self.assertIsNot(
+            fields.Html.is_plain_text_empty(self.empty_html_with_br.html), None
+        )
+        self.assertTrue(fields.Html.is_plain_text_empty(self.empty_html_with_br.html))
