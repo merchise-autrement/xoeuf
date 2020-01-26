@@ -48,8 +48,7 @@ class Html(Base):
             else:
                 if texts:
                     return " ".join(texts)
-        else:
-            return ""
+        return ""
 
     @hybridmethod
     def is_plain_text_empty(self_or_cls, record_or_value, raises=True):
