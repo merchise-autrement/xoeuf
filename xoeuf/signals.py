@@ -11,11 +11,15 @@
 # API but we're porting this to 'odoo.signals'.
 import logging
 from functools import wraps
+from threading import RLock
 
 from xoeuf.odoo import api, models
 from xoutil.objects import temp_attributes
+from xoutil.symbols import Unset
 
 from xoutil.future.contextlib import ExitStack, contextmanager
+from expiringdict import ExpiringDict
+
 
 # Cannot import 'from xoeuf' because of import cycle
 from xoeuf.odoo.release import version_info as ODOO_VERSION_INFO
@@ -25,6 +29,9 @@ MAJOR_ODOO_VERSION = ODOO_VERSION_INFO[0]
 
 logger = logging.getLogger(__name__)
 del logging
+
+_lock = RLock()
+_cache = ExpiringDict(max_len=100, max_age_seconds=10)
 
 
 class HookDefinition(object):
@@ -252,17 +259,7 @@ class Hook(object):
         framework.)
 
         """
-        from xoeuf.modules import get_object_module
-
-        module = get_object_module(self.func, typed=True)
-        env = getattr(sender, "env", None)
-        if module and env:
-            mm = env["ir.module.module"].sudo()
-            query = [("state", "=", "installed"), ("name", "=", module)]
-            with _no_signalling(pre_search), _no_signalling(post_search):
-                return bool(mm.search(query))
-        else:
-            return True
+        return is_installed(sender, self.func)
 
 
 class FrameworkHook(Hook):
@@ -401,8 +398,6 @@ def mock_replace(hook, func, **replacement_attrs):
             _, receiver_holder = registry[pos]
             previous_receiver = receiver_holder.func
             receiver_holder.func = mock
-            previous_is_installed = receiver_holder.is_installed
-            receiver_holder.is_installed = is_installed
         else:
             receiver_holder = None
         try:
@@ -410,7 +405,6 @@ def mock_replace(hook, func, **replacement_attrs):
         finally:
             if receiver_holder is not None:
                 receiver_holder.func = previous_receiver
-                receiver_holder.is_installed = previous_is_installed
 
     def snd(pair):
         _, res = pair
@@ -425,21 +419,35 @@ def mock_replace(hook, func, **replacement_attrs):
         except ValueError:
             return Undefined
 
-    def is_installed(sender):
-        """Mocked is installed"""
-        from xoeuf.modules import get_object_module
-
-        module = get_object_module(func, typed=True)
-        env = getattr(sender, "env", None)
-        if module and env:
-            mm = env["ir.module.module"].sudo()
-            query = [("state", "=", "installed"), ("name", "=", module)]
-            with _no_signalling(pre_search), _no_signalling(post_search):
-                return bool(mm.search(query))
-        else:
-            return True
-
     return _hidden_patcher()
+
+
+def is_installed(self, func):
+    """Check whether `func` is installed in the DB of `self`.
+
+    If the self does not have an 'env' attribute it will considered installed
+    as well (this is for dispatching outside the Odoo model framework.)
+
+    """
+
+    from xoeuf.modules import get_object_module
+
+    module = get_object_module(func, typed=True)
+    with _lock:
+        result = _cache.get(module, Unset)
+    if result is not Unset:
+        return result
+    env = getattr(self, "env", None)
+    if module and env:
+        Module = env["ir.module.module"].sudo()
+        query = [("state", "=", "installed"), ("name", "=", module)]
+        with _no_signalling(pre_search), _no_signalling(post_search):
+            result = bool(Module.search(query, limit=1))
+    else:
+        result = True
+    with _lock:
+        _cache[module] = result
+    return result
 
 
 def _make_id(target):

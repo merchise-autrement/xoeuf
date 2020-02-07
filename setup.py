@@ -66,6 +66,7 @@ setup(
         'enum34; python_version < "3.4"',
         "celery>=4.1.0,<5",
         'typing;python_version<"3.5"',
+        "expiringdict~=1.2.0",
     ],
     extra_requires={
         "odoo": [
