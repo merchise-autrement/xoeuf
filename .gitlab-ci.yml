@@ -50,8 +50,11 @@ check formatting with black:
     - virtualenv
     - xoeuf-tester
   only:
-    - master
-    - merge_requests
+    refs:
+      - master
+      - merge_requests
+    changes:
+      - ./**/*.py
 
 run all Odoo 12 tests:
   <<: *run_tests
