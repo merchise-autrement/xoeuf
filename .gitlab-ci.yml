@@ -169,9 +169,15 @@ build documentation:
     - virtualenv
     - xoeuf-tester
   only:
-    - master
-    - tags
-    - /^hotfix-/
+    refs:
+      - master
+      - tags
+      - /^hotfix-/
+      - merge_request
+    changes:
+      - ./**/*.py
+      - ./**/*.rst
+
 
 publish in our rtd:
   variables:
