@@ -433,18 +433,18 @@ def is_installed(self, func):
     from xoeuf.modules import get_object_module
 
     module = get_object_module(func, typed=True)
-    with _lock:
-        result = _cache.get(module, Unset)
-    if result is not Unset:
-        return result
     env = getattr(self, "env", None)
-    if module and env:
-        Module = env["ir.module.module"].sudo()
-        query = [("state", "=", "installed"), ("name", "=", module)]
-        with _no_signalling(pre_search), _no_signalling(post_search):
-            result = bool(Module.search(query, limit=1))
-    else:
-        result = True
+    if not module or not env:
+        return True
+    dbname = env.cr.dbname
+    with _lock:
+        result = _cache.get((dbname, module), Unset)
+        if result is not Unset:
+            return result
+    Module = env["ir.module.module"].sudo()
+    query = [("state", "=", "installed"), ("name", "=", module)]
+    with _no_signalling(pre_search), _no_signalling(post_search):
+        result = bool(Module.search(query, limit=1))
     with _lock:
         _cache[module] = result
     return result

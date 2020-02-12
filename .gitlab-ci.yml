@@ -52,9 +52,9 @@ check formatting with black:
   only:
     refs:
       - master
-      - merge_requests
+      - merge_request
     changes:
-      - ./**/*.py
+      - xoeuf/**/*.py
 
 run all Odoo 12 tests:
   <<: *run_tests
