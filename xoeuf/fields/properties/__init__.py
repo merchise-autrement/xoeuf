@@ -88,6 +88,7 @@ class PropertyField(Base):
         "property_deleter": None,
         "property_onsetup": None,
         "memoize_result": False,
+        "prefetch": False,  # There's no need to prefetch something that's not stored.
     }
     type = "python-property"  # needed to satisfy ir.models.field
 
