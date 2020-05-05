@@ -90,7 +90,10 @@ check signature of tag:
     - git
     - gpg
   only:
-    - tags
+    refs:
+      - tags
+    variables:
+      - $CI_COMMIT_TAG =~ /^\d+(\.\d+)*(\.post\d+)*$/
 
 build source distribution:
   stage: build
@@ -103,7 +106,10 @@ build source distribution:
     paths:
       - dist/
   only:
-    - tags
+    refs:
+      - tags
+    variables:
+      - $CI_COMMIT_TAG =~ /^\d+(\.\d+)*(\.post\d+)*$/
 
 build binary distribution:
   stage: build
@@ -116,7 +122,10 @@ build binary distribution:
     paths:
       - dist/
   only:
-    - tags
+    refs:
+      - tags
+    variables:
+      - $CI_COMMIT_TAG =~ /^\d+(\.\d+)*(\.post\d+)*$/
 
 publish_locally:
   stage: publish
@@ -126,7 +135,10 @@ publish_locally:
   tags:
     - repo.lahavane.com
   only:
-    - tags
+    refs:
+      - tags
+    variables:
+      - $CI_COMMIT_TAG =~ /^\d+(\.\d+)*(\.post\d+)*$/
   environment:
     name: repo.lahavane.com
     url: http://repo.lahavane.com/pypi/$CI_PROJECT_NAME
@@ -143,7 +155,10 @@ publish_pypi:
   tags:
     - twine
   only:
-    - tags
+    refs:
+      - tags
+    variables:
+      - $CI_COMMIT_TAG =~ /^\d+(\.\d+)*(\.post\d+)*$/
   dependencies:
     - check signature of tag
     - build source distribution
