@@ -30,24 +30,26 @@ check formatting with black:
 .run_tests: &run_tests
   stage: test
   script:
-    - export CWD=`pwd`
-    - cd ~/src/$ODOO_WORKTREE
-    - git pull
-    - mkdir -p ~/virtualenvs
-    - rm -rf ~/virtualenvs/$CI_PROJECT_NAME-$ODOO_WORKTREE || true
-    - virtualenv -p `which $PYTHON` ~/virtualenvs/$CI_PROJECT_NAME-$ODOO_WORKTREE
-    - source ~/virtualenvs/$CI_PROJECT_NAME-$ODOO_WORKTREE/bin/activate
-    - pip install "futures<3"
-    - pip install -r requirements.txt
-    - pip install -U "six>=1.9.0" "decorator>=4.0,<4.2" "hypothesis>=3.24"
-    - pip install -e .
-    - cd $CWD
-    - pip install -e .
-    - export ADDONS=`ls xoeuf/tests/ | grep ^test_ | xargs | tr " " ","`
-    - cd ~/src/$ODOO_WORKTREE
-    - runtests-odoo.sh -exec xoeuf -p $PYTHON -i $ADDONS
+    - |
+      set -x
+      export CWD=`pwd`
+      cd ~/src/$ODOO_WORKTREE
+      git pull
+      mkdir -p ~/virtualenvs
+      rm -rf ~/virtualenvs/$CI_PROJECT_NAME-$ODOO_WORKTREE-$PYTHON || true
+      $PYTHON -m venv ~/virtualenvs/$CI_PROJECT_NAME-$ODOO_WORKTREE-$PYTHON
+      source ~/virtualenvs/$CI_PROJECT_NAME-$ODOO_WORKTREE-$PYTHON/bin/activate
+      pip install -U wheel setuptools
+      pip install "futures<3"
+      pip install -r requirements.txt
+      pip install -U "six>=1.9.0" "decorator>=4.0,<4.2" "hypothesis>=3.24"
+      pip install -e .
+      cd $CWD
+      pip install -e .
+      export ADDONS=`ls xoeuf/tests/ | grep ^test_ | xargs | tr " " ","`
+      cd ~/src/$ODOO_WORKTREE
+      runtests-odoo.sh -exec xoeuf -p $PYTHON -i $ADDONS
   tags:
-    - virtualenv
     - xoeuf-tester
   only:
     refs:
@@ -56,10 +58,22 @@ check formatting with black:
     changes:
       - xoeuf/**/*.py
 
-run all Odoo 12 tests:
+run all Odoo 12 tests in Python 3.6:
   <<: *run_tests
   variables:
-    PYTHON: python3
+    PYTHON: python3.6
+    ODOO_WORKTREE: odoo12
+
+run all Odoo 12 tests in Python 3.7:
+  <<: *run_tests
+  variables:
+    PYTHON: python3.7
+    ODOO_WORKTREE: odoo12
+
+run all Odoo 12 tests in Python 3.8:
+  <<: *run_tests
+  variables:
+    PYTHON: python3.8
     ODOO_WORKTREE: odoo12
 
 run all Odoo 11 tests:
@@ -76,7 +90,10 @@ check signature of tag:
     - git
     - gpg
   only:
-    - tags
+    refs:
+      - tags
+    variables:
+      - $CI_COMMIT_TAG =~ /^\d+(\.\d+)*(\.post\d+)*$/
 
 build source distribution:
   stage: build
@@ -89,7 +106,10 @@ build source distribution:
     paths:
       - dist/
   only:
-    - tags
+    refs:
+      - tags
+    variables:
+      - $CI_COMMIT_TAG =~ /^\d+(\.\d+)*(\.post\d+)*$/
 
 build binary distribution:
   stage: build
@@ -102,7 +122,10 @@ build binary distribution:
     paths:
       - dist/
   only:
-    - tags
+    refs:
+      - tags
+    variables:
+      - $CI_COMMIT_TAG =~ /^\d+(\.\d+)*(\.post\d+)*$/
 
 publish_locally:
   stage: publish
@@ -112,7 +135,10 @@ publish_locally:
   tags:
     - repo.lahavane.com
   only:
-    - tags
+    refs:
+      - tags
+    variables:
+      - $CI_COMMIT_TAG =~ /^\d+(\.\d+)*(\.post\d+)*$/
   environment:
     name: repo.lahavane.com
     url: http://repo.lahavane.com/pypi/$CI_PROJECT_NAME
@@ -129,7 +155,10 @@ publish_pypi:
   tags:
     - twine
   only:
-    - tags
+    refs:
+      - tags
+    variables:
+      - $CI_COMMIT_TAG =~ /^\d+(\.\d+)*(\.post\d+)*$/
   dependencies:
     - check signature of tag
     - build source distribution
@@ -145,22 +174,25 @@ build documentation:
     ODOO_WORKTREE: odoo12
   stage: build doc
   script:
-    - export CWD=`pwd`
-    - cd ~/src/$ODOO_WORKTREE
-    - mkdir -p ~/virtualenvs
-    - rm -rf ~/virtualenvs/$CI_PROJECT_NAME-$ODOO_WORKTREE || true
-    - virtualenv -p `which $PYTHON` ~/virtualenvs/$CI_PROJECT_NAME-$ODOO_WORKTREE
-    - source ~/virtualenvs/$CI_PROJECT_NAME-$ODOO_WORKTREE/bin/activate
-    - pip install 'futures<3'
-    - pip install -r requirements.txt
-    - pip install -U "six>=1.9.0" "decorator>=4.0,<4.2" "hypothesis>=3.24"
-    - pip install -e .
-    - cd $CWD
-    - pip install -e .
-    - pip install sphinx sphinx-rtd-theme
-    - make -C docs/ html
-    - cd docs/build/html
-    - tar -cjf ../../../$CI_PROJECT_NAME-$CI_COMMIT_SHA.tar.bz2 ./
+    - |
+      set -x
+      export CWD=`pwd`
+      cd ~/src/$ODOO_WORKTREE
+      mkdir -p ~/virtualenvs
+      rm -rf ~/virtualenvs/$CI_PROJECT_NAME-$ODOO_WORKTREE-$PYTHON || true
+      $PYTHON -m venv ~/virtualenvs/$CI_PROJECT_NAME-$ODOO_WORKTREE-$PYTHON
+      source ~/virtualenvs/$CI_PROJECT_NAME-$ODOO_WORKTREE/bin/activate
+      pip install -U wheel setuptools
+      pip install 'futures<3'
+      pip install -r requirements.txt
+      pip install -U "six>=1.9.0" "decorator>=4.0,<4.2" "hypothesis>=3.24"
+      pip install -e .
+      cd $CWD
+      pip install -e .
+      pip install sphinx sphinx-rtd-theme
+      make -C docs/ html
+      cd docs/build/html
+      tar -cjf ../../../$CI_PROJECT_NAME-$CI_COMMIT_SHA.tar.bz2 ./
   artifacts:
     paths:
       - $CI_PROJECT_NAME-$CI_COMMIT_SHA.tar.bz2
