@@ -6,8 +6,10 @@
 #
 # This is free software; you can do what the LICENCE file allows you to.
 #
-from itertools import product
 import logging
+from datetime import datetime
+from itertools import product
+
 
 from hypothesis import strategies as s, given, settings
 from hypothesis.stateful import RuleBasedStateMachine, rule, Bundle
@@ -17,6 +19,8 @@ from xoeuf.osv import expression as expr
 from xoeuf.osv import ql
 from xoeuf.odoo.osv import expression as odoo_expr
 from xoeuf.osv.expression import Domain, DomainTree
+
+from xotl.tools.future.collections import opendict
 
 from odoo.tests.common import TransactionCase, BaseCase
 
@@ -272,6 +276,11 @@ class TestDomain(BaseCase):
 
     def test_empty_domain(self):
         self.assertTrue(Domain([]).asfilter()(0))
+
+    def test_regression_asfilter_with_datetime():
+        objects = [opendict(date_from=datetime(2020, 6, 5))]
+        domain = Domain([("date_from", ">=", datetime(2020, 1, 1))])
+        list(filter(domain.asfilter(), objects))
 
 
 def get_model_domain_machine(this):
