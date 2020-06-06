@@ -28,80 +28,75 @@ check formatting with black:
 
 
 .run_tests: &run_tests
+  image: registry.merchise.org/mercurio/odoo-docker:o${ODOO_VERSION}-${PYTHON_VERSION}
+  services:
+    - name: "mdillon/postgis:10-alpine"
+      alias: "postgres"
   stage: test
   script:
     - |
-      set -x
-      export CWD=`pwd`
-      cd ~/src/$ODOO_WORKTREE
-      git pull
-      mkdir -p ~/virtualenvs
-      rm -rf ~/virtualenvs/$CI_PROJECT_NAME-$ODOO_WORKTREE-$PYTHON || true
-      $PYTHON -m venv ~/virtualenvs/$CI_PROJECT_NAME-$ODOO_WORKTREE-$PYTHON
-      source ~/virtualenvs/$CI_PROJECT_NAME-$ODOO_WORKTREE-$PYTHON/bin/activate
+      mkdir -p vendor
+      cd vendor
+      git clone -b merchise-develop-${ODOO_VERSION}.0 --depth=1 https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.merchise.org/merchise/odoo.git
+      cd odoo
       pip install -U wheel setuptools
       pip install "futures<3"
       pip install -r requirements.txt
       pip install -U "six>=1.9.0" "decorator>=4.0,<4.2" "hypothesis>=3.24"
       pip install -e .
-      cd $CWD
+      cd ../../
       pip install -e .
       export ADDONS=`ls xoeuf/tests/ | grep ^test_ | xargs | tr " " ","`
-      cd ~/src/$ODOO_WORKTREE
-      runtests-odoo.sh -exec xoeuf -p $PYTHON -i $ADDONS
-  tags:
-    - xoeuf-tester
+      cd vendor/odoo
+      ../../runtests-odoo.sh -i $ADDONS --db_host=$POSTGRES_HOST --db_password=$POSTGRES_PASSWORD --db_user=$POSTGRES_USER
   only:
     refs:
       - master
       - merge_request
     changes:
+      - .gitlab-ci.yml
       - xoeuf/**/*.py
 
 run all Odoo 12 tests in Python 3.6:
   <<: *run_tests
   variables:
-    PYTHON: python3.6
-    ODOO_WORKTREE: odoo12
+    PYTHON_VERSION: "3.6"
+    ODOO_VERSION: "12"
+    POSTGRES_USER: xoeuf
+    POSTGRES_PASSWORD: xoeuf
+    POSTGRES_HOST: postgres
 
-run all Odoo 12 tests in Python 3.7:
-  <<: *run_tests
-  variables:
-    PYTHON: python3.7
-    ODOO_WORKTREE: odoo12
 
 run all Odoo 12 tests in Python 3.8:
   <<: *run_tests
   variables:
-    PYTHON: python3.8
-    ODOO_WORKTREE: odoo12
+    POSTGRES_USER: xoeuf
+    POSTGRES_PASSWORD: xoeuf
+    POSTGRES_HOST: postgres
+    PYTHON_VERSION: "3.8"
+    ODOO_VERSION: "12"
 
-run all Odoo 11 tests:
-  <<: *run_tests
-  variables:
-    PYTHON: python3
-    ODOO_WORKTREE: odoo11
 
 check signature of tag:
-  stage: pre-check
+  image: alpine
+  stage: check
   script:
+    - apk add git gnupg
+    - gpg --recv-key $GNUPG_KEY
     - git verify-tag $CI_COMMIT_REF_NAME
-  tags:
-    - git
-    - gpg
   only:
     refs:
       - tags
     variables:
       - $CI_COMMIT_TAG =~ /^\d+(\.\d+)*(\.post\d+)*$/
 
+
 build source distribution:
+  image: python:3.8-alpine
   stage: build
   script:
     - rm -f dist/*
     - python setup.py sdist
-  tags:
-    - python
   artifacts:
     paths:
       - dist/
@@ -112,12 +107,11 @@ build source distribution:
       - $CI_COMMIT_TAG =~ /^\d+(\.\d+)*(\.post\d+)*$/
 
 build binary distribution:
+  image: python:3.8-alpine
   stage: build
   script:
     - rm -f dist/*
     - python setup.py bdist_wheel
-  tags:
-    - wheel
   artifacts:
     paths:
       - dist/
@@ -149,45 +143,44 @@ publish_locally:
 
 
 publish_pypi:
+  image: python:3.8-alpine
   stage: publish
   script:
-    - twine upload dist/*
-  tags:
-    - twine
+    - pip install twine
+    - twine upload -u "$PYPI_USERNAME" -p "$PYPI_PASSWORD" dist/*
   only:
     refs:
       - tags
     variables:
-      - $CI_COMMIT_TAG =~ /^\d+(\.\d+)*(\.post\d+)*$/
+      - $CI_COMMIT_TAG =~ /^\d+(\.\d+)*(\.post\d+|rc\d+)?$/
   dependencies:
     - check signature of tag
     - build source distribution
     - build binary distribution
   environment:
     name: pypi
-    url: https://pypi.python.org/pypi/$CI_PROJECT_NAME
+    url: https://pypi.org/project/$CI_PROJECT_NAME
 
 
 build documentation:
+  image: registry.merchise.org/mercurio/odoo-docker:o12-3.8
   variables:
-    PYTHON: python3
-    ODOO_WORKTREE: odoo12
+    PYTHON_VERSION: "3.8"
+    ODOO_VERSION: "12"
   stage: build doc
   script:
     - |
       set -x
-      export CWD=`pwd`
-      cd ~/src/$ODOO_WORKTREE
-      mkdir -p ~/virtualenvs
-      rm -rf ~/virtualenvs/$CI_PROJECT_NAME-$ODOO_WORKTREE-$PYTHON || true
-      $PYTHON -m venv ~/virtualenvs/$CI_PROJECT_NAME-$ODOO_WORKTREE-$PYTHON
-      source ~/virtualenvs/$CI_PROJECT_NAME-$ODOO_WORKTREE/bin/activate
+      mkdir -p vendor
+      cd vendor
+      git clone -b merchise-develop-${ODOO_VERSION}.0 --depth=1 https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.merchise.org/merchise/odoo.git
+      cd odoo
       pip install -U wheel setuptools
-      pip install 'futures<3'
+      pip install "futures<3"
       pip install -r requirements.txt
       pip install -U "six>=1.9.0" "decorator>=4.0,<4.2" "hypothesis>=3.24"
       pip install -e .
-      cd $CWD
+      cd ../../
       pip install -e .
       pip install sphinx sphinx-rtd-theme
       make -C docs/ html
@@ -197,16 +190,13 @@ build documentation:
     paths:
       - $CI_PROJECT_NAME-$CI_COMMIT_SHA.tar.bz2
     expire_in: 4 days
-  tags:
-    - virtualenv
-    - xoeuf-tester
   only:
     refs:
       - master
       - tags
-      - /^hotfix-/
       - merge_request
     changes:
+      - .gitlab-ci.yml
       - ./**/*.py
       - ./**/*.rst
 
