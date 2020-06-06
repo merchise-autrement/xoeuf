@@ -16,6 +16,14 @@ Odoo.  So, xoeuf 1.0 will be compatible with Odoo 12, and many of its features
 will work on Odoo 10 and 11.
 
 
+Unreleased.  Release 0.80.0
+---------------------------
+
+- Fix bug in ``xoeuf.osv.expression.Domain.asfilter``: It would raise a
+  TypeError applying the filter it if included literal values of
+  `datetime.date`:class: or `datetime.datetime`:class:.
+
+
 2020-05-05.  Release 0.79.0
 ---------------------------
 
