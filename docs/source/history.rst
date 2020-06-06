@@ -16,7 +16,7 @@ Odoo.  So, xoeuf 1.0 will be compatible with Odoo 12, and many of its features
 will work on Odoo 10 and 11.
 
 
-Unreleased.  Release 0.80.0
+2020-06-06.  Release 0.80.0
 ---------------------------
 
 - Fix bug in ``xoeuf.osv.expression.Domain.asfilter``: It would raise a
