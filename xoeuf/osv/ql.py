@@ -13,6 +13,8 @@ Most of this has been extracted from `xotl.ql` (but we must support Python
 
 """
 import ast as pyast
+from dataclasses import dataclass
+
 from xoutil.future.types import new_class
 
 import sys
@@ -83,7 +85,9 @@ class PyASTNode(object):
             else:
                 res.append(" " * 3 * depth + r(child))
             fields = getattr(child, "_fields", [])
-            grandchildren = [(getattr(child, f), f, depth + 1) for f in fields]
+            grandchildren = [
+                (getattr(child, f, Missing(f)), f, depth + 1) for f in fields
+            ]
             if grandchildren:
                 # If any grandchild is a list 'expand it', this helps to get a
                 # nicer visualization.
@@ -265,3 +269,8 @@ def make_arguments(*names):
 
 def make_attr(node, attr):
     return Attribute(node, attr, Load())  # noqa
+
+
+@dataclass
+class Missing:
+    name: str
