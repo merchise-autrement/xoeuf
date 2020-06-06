@@ -280,7 +280,7 @@ class TestDomain(BaseCase):
     def test_empty_domain(self):
         self.assertTrue(Domain([]).asfilter()(0))
 
-    def test_regression_asfilter_with_datetime():
+    def test_regression_asfilter_with_datetime(self):
         objects = [opendict(date_from=datetime(2020, 6, 5))]
         domain = Domain([("date_from", ">=", datetime(2020, 1, 1))])
         list(filter(domain.asfilter(), objects))
