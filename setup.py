@@ -67,7 +67,7 @@ setup(
         "celery>=4.1.0,<5",
         'typing;python_version<"3.5"',
         "expiringdict~=1.2.0",
-        'dataclass;python_version<"3.7"',
+        'dataclasses;python_version<"3.7"',
     ],
     extra_requires={
         "odoo": [
