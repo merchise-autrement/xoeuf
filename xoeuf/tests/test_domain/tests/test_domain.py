@@ -20,7 +20,10 @@ from xoeuf.osv import ql
 from xoeuf.odoo.osv import expression as odoo_expr
 from xoeuf.osv.expression import Domain, DomainTree
 
-from xotl.tools.future.collections import opendict
+try:
+    from xotl.tools.future.collections import opendict
+except ImportError:
+    from xoutil.future.collections import opendict
 
 from odoo.tests.common import TransactionCase, BaseCase
 
