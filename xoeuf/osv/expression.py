@@ -42,6 +42,11 @@ this = _copy_python_module_members(_odoo_expression)
 del _copy_python_module_members
 del _odoo_expression
 
+# This import is needed to avoid shadowing of 'datetime.datetime' repr in filter's AST.
+# Otherwise domains like the one in test_regression_asfilter_with_datetime fail, because
+# odoo.osv.expression does 'from datetime import datetime'
+import datetime  # noqa
+
 
 UNARY_OPERATORS = [this.NOT_OPERATOR]
 BINARY_OPERATORS = [this.AND_OPERATOR, this.OR_OPERATOR]
