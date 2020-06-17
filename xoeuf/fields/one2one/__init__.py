@@ -20,9 +20,7 @@ class One2one(Many2one):
 
     """
 
-    def __init__(self, *args, **kwargs):
-        kwargs.setdefault("ondelete", "cascade")
-        super(One2one, self).__init__(*args, **kwargs)
+    _slots = {"ondelete": "cascade"}  # change the default value
 
     def setup_full(self, model):
         res = super(One2one, self).setup_full(model)
