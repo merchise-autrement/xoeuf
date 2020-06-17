@@ -22,6 +22,9 @@ Unreleased.  Release 0.81.0
 - Unfortunately we are only testing now with Odoo 12 in Python 3.6 and Python
   3.8.  We cannot make claims about support for Odoo 10 and 11.
 
+- Fix issue with `xoeuf.fields.One2one`:class: not copying the value of
+  argument `ondelete` when used in an AbstractModel.
+
 
 
 2020-06-06.  Release 0.80.0
