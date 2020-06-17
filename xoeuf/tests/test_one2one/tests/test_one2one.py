@@ -37,3 +37,10 @@ class TestO2O(TransactionCase):
         a = d.a_id
         with self.assertRaises(IntegrityError):
             D.create({"name": "I am trying to steal the A", "a_id": a.id})
+
+    def test_one2one_doesnt_lose_ondelete(self):
+        C = self.env["test.one2one.c"]
+        set_null = C._fields["set_null"]
+        a_id = C._fields["a_id"]
+        self.assertEqual(a_id.ondelete, "cascade")
+        self.assertEqual(set_null.ondelete, "set null")

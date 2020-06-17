@@ -19,8 +19,15 @@ class B(models.Model):
     _inherits = {"test.one2one.a": "a_id"}
 
 
+class Mixin(models.AbstractModel):
+    _name = "test.one2one.mixin"
+
+    set_null = fields.One2one(B._name, ondelete="set null")
+
+
 class C(models.Model):
     _name = "test.one2one.c"
+    _inherit = [Mixin._name]
     _inherits = {"test.one2one.a": "a_id"}
 
     a_id = fields.One2one("test.one2one.a")
