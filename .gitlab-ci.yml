@@ -139,7 +139,7 @@ publish_locally:
   environment:
     name: repo.lahavane.com
     url: http://repo.lahavane.com/pypi/$CI_PROJECT_NAME
-  dependencies:
+  needs:
     - check signature of tag
     - build source distribution
     - build binary distribution
@@ -156,7 +156,7 @@ publish_pypi:
       - tags
     variables:
       - $CI_COMMIT_TAG =~ /^\d+(\.\d+)*(\.post\d+|rc\d+)?$/
-  dependencies:
+  needs:
     - check signature of tag
     - build source distribution
     - build binary distribution
