@@ -123,6 +123,7 @@ build source distribution:
   needs:
     - check signature of tag
   script:
+    - apk add git
     - rm -f dist/*
     - python setup.py sdist
   artifacts:
@@ -140,6 +141,7 @@ build binary distribution:
   image: python:3.8-alpine
   stage: build
   script:
+    - apk add git
     - rm -f dist/*
     - python setup.py bdist_wheel
   artifacts:
