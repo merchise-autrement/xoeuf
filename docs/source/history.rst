@@ -12,12 +12,14 @@ that remain in the code.
 Each major version of xoeuf (1.x, 2.x, etc) will be 100% compatible with
 latest version of Odoo supported by xoeuf (at that moment).  We'll try to make
 each major version backwards-compatible with the two previous versions of
-Odoo.  So, xoeuf 1.0 will be compatible with Odoo 12, and many of its features
-will work on Odoo 10 and 11.
+Odoo.
 
 
-Unreleased.  Release 0.82.0
----------------------------
+Unreleased.  Release 1.0.0
+--------------------------
+
+- First release of xoeuf.  This release supports Odoo 12 in Python 3.6 and
+  Python 3.8.
 
 - Add parameters `convert_false` and `convert_none` to
   `xoeuf.osv.expression.Domain.asfilter`:meth:.
