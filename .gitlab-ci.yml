@@ -15,6 +15,7 @@ check code smells (with Bugbear and Python 3.6):
     - merchise_lint
   only:
     - master
+    - rel-2.x
     - merge_requests
 
 check formatting with black:
@@ -24,6 +25,7 @@ check formatting with black:
     - /usr/local/bin/black --check xoeuf/
   only:
     - master
+    - rel-2.x
     - merge_requests
 
 
@@ -55,10 +57,31 @@ check formatting with black:
   only:
     refs:
       - master
+      - rel-2.x
       - merge_request
     changes:
       - .gitlab-ci.yml
       - xoeuf/**/*.py
+
+run all Odoo 13 tests in Python 3.6:
+  <<: *run_tests
+  variables:
+    PYTHON_VERSION: "3.6"
+    ODOO_VERSION: "13"
+    POSTGRES_USER: xoeuf
+    POSTGRES_PASSWORD: xoeuf
+    POSTGRES_HOST: postgres
+
+
+run all Odoo 13 tests in Python 3.8:
+  <<: *run_tests
+  variables:
+    POSTGRES_USER: xoeuf
+    POSTGRES_PASSWORD: xoeuf
+    POSTGRES_HOST: postgres
+    PYTHON_VERSION: "3.8"
+    ODOO_VERSION: "13"
+
 
 run all Odoo 12 tests in Python 3.6:
   <<: *run_tests
@@ -174,7 +197,7 @@ build documentation:
   image: registry.merchise.org/mercurio/odoo-docker:o12-3.8
   variables:
     PYTHON_VERSION: "3.8"
-    ODOO_VERSION: "12"
+    ODOO_VERSION: "13"
   stage: build doc
   script:
     - |
@@ -201,6 +224,7 @@ build documentation:
   only:
     refs:
       - master
+      - rel-2.x
       - tags
       - merge_request
     changes:
@@ -230,6 +254,7 @@ publish in our rtd:
   only:
     refs:
       - master
+      - rel-2.x
       - tags
       - merge_request
     changes:
