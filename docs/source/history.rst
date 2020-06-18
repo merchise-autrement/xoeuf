@@ -15,6 +15,12 @@ each major version backwards-compatible with the two previous versions of
 Odoo.
 
 
+Unreleased.  Release 1.1.0
+--------------------------
+
+Nothing yet.
+
+
 2020-06-18.  Release 1.0.0
 --------------------------
 
