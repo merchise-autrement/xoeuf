@@ -143,7 +143,7 @@ publish_locally:
 
 
 publish_pypi:
-  image: python:3.8-alpine
+  image: python:3.8
   stage: publish
   script:
     - pip install twine
