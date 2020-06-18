@@ -337,8 +337,9 @@ class Domain(list):
                convert_false is False they get translated to `x = False`,
                `x != False`.
 
-        :keyword convert_none: Similar to `convert_false` but for None.  If
-                 convert_none is False (the default), terms like
+        :keyword convert_none: Similar to `convert_false` but for None.
+
+                 If convert_none is False (the default), terms like
                  `(x, '=', None)` are translated using ``is``: `x is None`.
 
         .. note:: In Python ``0 == False``, so Odoo treats 0 specially in the

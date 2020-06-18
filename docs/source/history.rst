@@ -19,7 +19,16 @@ will work on Odoo 10 and 11.
 Unreleased.  Release 0.82.0
 ---------------------------
 
-Nothing yet.
+- Add parameters `convert_false` and `convert_none` to
+  `xoeuf.osv.expression.Domain.asfilter`:meth:.
+
+  This change is backwards incompatible cause the default value of
+  `convert_false` is True.  Terms of the form ``(..., '=', False)`` are now
+  translated using ``not ...``, and those following ``(..., '!=', False)`` get
+  translated to the first operand alone.
+
+  Likewise comparing with None gets translated to ``is None`` or ``is not
+  None`` in the default case.
 
 
 2020-06-16.  Release 0.81.0
@@ -51,7 +60,7 @@ __ https://github.com/merchise-autrement/odoo
 
 
 2020-03-20.  Release 0.78.0
---------------------------
+---------------------------
 
 - Don't prefetch `xoeuf.fields.Property`:class: by default.
 
@@ -136,7 +145,7 @@ __ https://github.com/merchise-autrement/odoo
 - Actively trigger recomputation of fields that depend on
   `~xoeuf.fields.Property`:class: that changes.
 
-  In release `0.67.0 <_release-0.67.0>`:ref: we introduce cache invalidation.
+  In release `0.67.0 <release-0.67.0>`:ref: we introduce cache invalidation.
   But that only works right for non-stored fields.  For stored-fields we need
   to actually affect the DB and trigger the recomputation.
 
