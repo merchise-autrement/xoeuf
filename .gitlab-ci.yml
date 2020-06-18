@@ -97,6 +97,8 @@ check signature of tag:
 build source distribution:
   image: python:3.8-alpine
   stage: build
+  needs:
+    - check signature of tag
   script:
     - rm -f dist/*
     - python setup.py sdist
@@ -110,6 +112,8 @@ build source distribution:
       - $CI_COMMIT_TAG =~ /^\d+(\.\d+)*(\.post\d+)*$/
 
 build binary distribution:
+  needs:
+    - check signature of tag
   image: python:3.8-alpine
   stage: build
   script:
