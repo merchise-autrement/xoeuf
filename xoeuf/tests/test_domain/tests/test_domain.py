@@ -294,52 +294,65 @@ class TestDomainFilter(BaseCase):
         )
 
     def test_asfilter_equal_false(self):
-        query = Domain([("attr", "=", False)])
-        ast = DomainTree(query.second_normal_form)._get_filter_ast()
-        expected = ql.parse("lambda this: not this.attr")
-        self.assertASTEqual(ast, expected)
+        for query_operator, python_expr in (("=", "not"), ("!=", "")):
+            query = Domain([("attr", query_operator, False)])
+            ast = DomainTree(query.second_normal_form)._get_filter_ast()
+            expected = ql.parse(f"lambda this: {python_expr} this.attr")
+            self.assertASTEqual(ast, expected)
 
-    def test_asfilter_not_equal_false(self):
-        query = Domain([("attr", "!=", False)])
-        ast = DomainTree(query.second_normal_form)._get_filter_ast()
-        expected = ql.parse("lambda this: this.attr")
-        self.assertASTEqual(ast, expected)
+    def test_asfilter_equal_false_with_mapped_filtered(self):
+        for query_operator, python_expr in (("=", "not"), ("!=", "")):
+            query = Domain([("parent.attr", query_operator, False)])
+            ast = DomainTree(query.second_normal_form)._get_filter_ast()
+            expected = ql.parse(
+                f"lambda this: this.mapped('parent').filtered(lambda x: {python_expr} x.attr)"
+            )
+            self.assertASTEqual(ast, expected)
 
     def test_asfilter_equal_false_with_convert_false_unset(self):
-        query = Domain([("attr", "=", False)])
-        ast = DomainTree(query.second_normal_form)._get_filter_ast(convert_false=False)
-        expected = ql.parse("lambda this: this.attr == False")
-        self.assertASTEqual(ast, expected)
+        for query_operator, python_operator in (("=", "=="), ("!=", "!=")):
+            query = Domain([("attr", query_operator, False)])
+            ast = DomainTree(query.second_normal_form)._get_filter_ast(
+                convert_false=False
+            )
+            expected = ql.parse(f"lambda this: this.attr {python_operator} False")
+            self.assertASTEqual(ast, expected)
 
-    def test_asfilter_not_equal_false_with_convert_false_unset(self):
-        query = Domain([("attr", "!=", False)])
-        ast = DomainTree(query.second_normal_form)._get_filter_ast(convert_false=False)
-        expected = ql.parse("lambda this: this.attr != False")
-        self.assertASTEqual(ast, expected)
+    def test_asfilter_equal_false_with_convert_false_unset_mapped_filtered(self):
+        for query_operator, python_operator in (("=", "=="), ("!=", "!=")):
+            query = Domain([("parent.attr", query_operator, False)])
+            ast = DomainTree(query.second_normal_form)._get_filter_ast(
+                convert_false=False
+            )
+            expected = ql.parse(
+                f"lambda this: this.mapped('parent').filtered(lambda x: x.attr {python_operator} False)"  # noqa
+            )
+            self.assertASTEqual(ast, expected)
 
     def test_asfilter_equal_none(self):
-        query = Domain([("attr", "=", None)])
-        ast = DomainTree(query.second_normal_form)._get_filter_ast(convert_none=True)
-        expected = ql.parse("lambda this: not this.attr")
-        self.assertASTEqual(ast, expected)
-
-    def test_asfilter_not_equal_none(self):
-        query = Domain([("attr", "!=", None)])
-        ast = DomainTree(query.second_normal_form)._get_filter_ast(convert_none=True)
-        expected = ql.parse("lambda this: this.attr")
-        self.assertASTEqual(ast, expected)
+        for query_operator, python_expr in (("=", "not"), ("!=", "")):
+            query = Domain([("attr", query_operator, None)])
+            ast = DomainTree(query.second_normal_form)._get_filter_ast(
+                convert_none=True
+            )
+            expected = ql.parse(f"lambda this: {python_expr} this.attr")
+            self.assertASTEqual(ast, expected)
 
     def test_asfilter_equal_none_with_convert_none_unset(self):
-        query = Domain([("attr", "=", None)])
-        ast = DomainTree(query.second_normal_form)._get_filter_ast()
-        expected = ql.parse("lambda this: this.attr is None")
-        self.assertASTEqual(ast, expected)
+        for query_operator, python_operator in (("=", "is"), ("!=", "is not")):
+            query = Domain([("attr", query_operator, None)])
+            ast = DomainTree(query.second_normal_form)._get_filter_ast()
+            expected = ql.parse(f"lambda this: this.attr {python_operator} None")
+            self.assertASTEqual(ast, expected)
 
-    def test_asfilter_not_equal_none_with_convert_none_unset(self):
-        query = Domain([("attr", "!=", None)])
-        ast = DomainTree(query.second_normal_form)._get_filter_ast()
-        expected = ql.parse("lambda this: this.attr is not None")
-        self.assertASTEqual(ast, expected)
+    def test_asfilter_equal_none_with_mapped_filtered(self):
+        for query_operator, python_operator in (("=", "is"), ("!=", "is not")):
+            query = Domain([("parent.attr", query_operator, None)])
+            ast = DomainTree(query.second_normal_form)._get_filter_ast()
+            expected = ql.parse(
+                f"lambda this: this.mapped('parent').filtered(lambda x: x.attr {python_operator} None)"  # noqa
+            )
+            self.assertASTEqual(ast, expected)
 
 
 def get_model_domain_machine(this):
