@@ -645,7 +645,15 @@ class DomainTree(object):
             if kind == KIND_TERM:
                 fieldname, op, value = term
                 constructor = _TERM_CONSTRUCTOR[op]
-                stack.append(constructor(this, fieldname, value))
+                stack.append(
+                    constructor(
+                        this,
+                        fieldname,
+                        value,
+                        convert_false=convert_false,
+                        convert_none=convert_none,
+                    )
+                )
             else:
                 assert kind == KIND_OPERATOR
                 if term in BINARY_OPERATORS:
@@ -776,7 +784,8 @@ def _get_constructor(qst):
 
     """
 
-    def result(this, fieldname, value):
+    # We ignore convert_false and convert_none here
+    def result(this, fieldname, value, *, convert_false=None, convert_none=None):
         node = _constructor_getattr(ql.Name(this, ql.Load()), fieldname)
         if not isinstance(node, tuple):
             return ql.Compare(node, [qst()], [_constructor_from_value(value)])
@@ -797,15 +806,60 @@ def _get_constructor(qst):
     return result
 
 
-_constructor_eq = _get_constructor(ql.Eq)
-_constructor_ne = _get_constructor(ql.NotEq)
+def _get_constructor_alt(weak_qst, strong_qst, negate=_constructor_not):
+    """The same as _get_constructor but returns a filter that takes None into
+    account and uses a stronger QST comparator (usually Is and IsNot ) when
+    the value is None.
+
+    """
+
+    def result(this, fieldname, value, *, convert_false, convert_none):
+        node = _constructor_getattr(ql.Name(this, ql.Load()), fieldname)
+        if not isinstance(node, tuple):
+            if value is False and convert_false:
+                return negate(node)
+            elif value is None:
+                if convert_none:
+                    return negate(node)
+                else:
+                    return ql.Compare(
+                        node, [strong_qst()], [_constructor_from_value(value)]
+                    )
+            else:
+                return ql.Compare(node, [weak_qst()], [_constructor_from_value(value)])
+        else:
+            mapped, field = node
+            which = ql.make_attr(ql.Name("x", ql.Load()), field)
+            if value is False and convert_false:
+                body = negate(which)
+            elif value is None:
+                if convert_none:
+                    body = negate(which)
+                else:
+                    body = ql.Compare(
+                        which, [strong_qst()], [_constructor_from_value(value)]
+                    )
+            else:
+                body = ql.Compare(which, [weak_qst()], [_constructor_from_value(value)])
+            lambda_ast = ql.Lambda(ql.make_arguments("x"), body)
+            filtered_fn = ql.make_attr(mapped, "filtered")
+            return ql.make_call(filtered_fn, lambda_ast)
+
+    return result
+
+
+_constructor_eq = _get_constructor_alt(ql.Eq, ql.Is)
+_constructor_ne = _get_constructor_alt(ql.NotEq, ql.IsNot, negate=lambda x: x)
+
 _constructor_le = _get_constructor(ql.LtE)
 _constructor_lt = _get_constructor(ql.Lt)
 _constructor_ge = _get_constructor(ql.GtE)
 _constructor_gt = _get_constructor(ql.Gt)
 
 
-def _constructor_in(this, fieldname, value, qst=ql.In):
+def _constructor_in(
+    this, fieldname, value, qst=ql.In, *, convert_false=None, convert_none=None
+):
     """Create the AST for a term `(fielname, '[not ]in', value)`.
 
     The difference with `standard <_get_constructor>`:func: constructors is
@@ -817,14 +871,27 @@ def _constructor_in(this, fieldname, value, qst=ql.In):
     # also.  See https://github.com/odoo/odoo/pull/31408
     assert qst in (ql.In, ql.NotIn)
     value = [x for x in value if x != False]  # noqa
-    return _get_constructor(qst)(this, fieldname, value)
+    return _get_constructor(qst)(
+        this, fieldname, value, convert_false=convert_false, convert_none=convert_none
+    )
 
 
-def _constructor_not_in(this, fieldname, value):
-    return _constructor_in(this, fieldname, value, qst=ql.NotIn)
+def _constructor_not_in(
+    this, fieldname, value, *, convert_false=None, convert_none=None
+):
+    return _constructor_in(
+        this,
+        fieldname,
+        value,
+        qst=ql.NotIn,
+        convert_false=convert_false,
+        convert_none=convert_none,
+    )
 
 
-def _constructor_like(this, fieldname, value, qst=ql.In):
+def _constructor_like(
+    this, fieldname, value, qst=ql.In, *, convert_false=None, convert_none=None
+):
     """Create the AST for a term `(fielname, '[not ]like', value)`.
 
     We use 'in' ('not in') Python operators; so the procedure AST are those
@@ -855,11 +922,22 @@ def _constructor_like(this, fieldname, value, qst=ql.In):
         return ql.Compare(_constructor_from_value(value), [qst()], [node])
 
 
-def _constructor_not_like(this, fieldname, value):
-    return _constructor_like(this, fieldname, value, qst=ql.NotIn)
+def _constructor_not_like(
+    this, fieldname, value, *, convert_false=None, convert_none=None
+):
+    return _constructor_like(
+        this,
+        fieldname,
+        value,
+        qst=ql.NotIn,
+        convert_false=convert_false,
+        convert_none=convert_none,
+    )
 
 
-def _constructor_ilike(this, fieldname, value, qst=ql.In):
+def _constructor_ilike(
+    this, fieldname, value, qst=ql.In, *, convert_false=None, convert_none=None
+):
     assert qst in (ql.In, ql.NotIn)
     node = _constructor_getattr(ql.Name(this, ql.Load()), fieldname)
     if isinstance(node, tuple):
@@ -896,8 +974,17 @@ def _constructor_ilike(this, fieldname, value, qst=ql.In):
         )
 
 
-def _constructor_not_ilike(this, fieldname, value):
-    return _constructor_ilike(this, fieldname, value, qst=ql.NotIn)
+def _constructor_not_ilike(
+    this, fieldname, value, *, convert_false=None, convert_none=None
+):
+    return _constructor_ilike(
+        this,
+        fieldname,
+        value,
+        qst=ql.NotIn,
+        convert_false=convert_false,
+        convert_none=convert_none,
+    )
 
 
 def _constructor_from_value(value):
