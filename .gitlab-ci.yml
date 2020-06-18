@@ -63,16 +63,6 @@ check formatting with black:
       - .gitlab-ci.yml
       - xoeuf/**/*.py
 
-run all Odoo 13 tests in Python 3.6:
-  <<: *run_tests
-  variables:
-    PYTHON_VERSION: "3.6"
-    ODOO_VERSION: "13"
-    POSTGRES_USER: xoeuf
-    POSTGRES_PASSWORD: xoeuf
-    POSTGRES_HOST: postgres
-
-
 run all Odoo 13 tests in Python 3.8:
   <<: *run_tests
   variables:
