@@ -256,7 +256,7 @@ def make_arguments(*names):
     if (3, 8) <= _py_version:
         return arguments(  # noqa
             posonlyargs=[],
-            args=[arg(name, None) for name in names],  # noqa
+            args=[arg(name, None, None) for name in names],  # noqa
             vararg=None,
             kwonlyargs=[],
             kw_defaults=[],
