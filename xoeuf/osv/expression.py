@@ -314,7 +314,7 @@ class Domain(list):
     def __hash__(self):
         return hash(DomainTree(self.second_normal_form))
 
-    def asfilter(self, this="this"):
+    def asfilter(self, this="this", *, convert_false=True, convert_none=False):
         """Return a callable which is equivalent to the domain.
 
         This method translates the domain to a `ast.Lambda <ast>`:mod: and
@@ -326,14 +326,26 @@ class Domain(list):
 
         The domain cannot use 'child_of', '=like' or '=ilike'.
 
-        .. note:: In Python ``0 == False``, so Odoo treats 0 specially in the
-                  context of 'not in' and 'in'.  See `PR 31408`__ for more
-                  information.
-
         __ https://github.com/odoo/odoo/pull/31408
 
         :param this: The name of the argument in the lambda.  All attributes
             in the domain are get from this argument.
+
+        :keyword convert_false: If True (the default) terms of the form
+               `(x, '=', False)` are translated to `not x` and terms of the
+               form `(x, '!=', False)` are translated to `bool(x)`.  If
+               convert_false is False they get translated to `x = False`,
+               `x != False`.
+
+        :keyword convert_none: Similar to `convert_false` but for None.  If
+                 convert_none is False (the default), terms like
+                 `(x, '=', None)` are translated using ``is``: `x is None`.
+
+        .. note:: In Python ``0 == False``, so Odoo treats 0 specially in the
+                  context of 'not in' and 'in'.  See `PR 31408`__ for more
+                  information.  However, `convert_false` only takes into
+                  account actual False values and terms like `(x, '=', 0)` are
+                  not affected.
 
         The lambda created for::
 
@@ -361,11 +373,23 @@ class Domain(list):
         .. versionchanged:: 0.55.0 Change the behavior of fields traversal, so
            that filters over x2many fields work.
 
-        """
-        return eval(compile(self._get_filter_ast(this), "<domain>", "eval"))
+        .. versionchanged:: 0.82.0 Add parameters `convert_false` and `convert_none`.
 
-    def _get_filter_ast(self, this="this"):
-        return DomainTree(self.second_normal_form)._get_filter_ast(this)
+        """
+        return eval(
+            compile(
+                self._get_filter_ast(
+                    this, convert_false=convert_false, convert_none=convert_none
+                ),
+                "<domain>",
+                "eval",
+            )
+        )
+
+    def _get_filter_ast(self, this="this", *, convert_false=True, convert_none=False):
+        return DomainTree(self.second_normal_form)._get_filter_ast(
+            this, convert_false=convert_false, convert_none=convert_none
+        )
 
 
 class DomainTerm(object):
@@ -614,7 +638,7 @@ class DomainTree(object):
     def __hash__(self):
         return hash(tuple([self.term] + self.sorted_children))
 
-    def _get_filter_ast(self, this="this"):
+    def _get_filter_ast(self, this="this", *, convert_false=True, convert_none=False):
         "Get compilable AST of the lambda obtained by `get_filter`:func:."
         stack = []
         for kind, term in self.walk():

@@ -265,6 +265,8 @@ class TestDomain(BaseCase):
         # ]
         # self.assertEqual(expected, list(tree.walk()))
 
+
+class TestDomainFilter(BaseCase):
     def test_get_filter_ast_simple_one_term_with_in(self):
         self.assertEqual(
             DomainTree(Domain([("state", "in", [1, 2])]))._get_filter_ast(),
@@ -275,7 +277,6 @@ class TestDomain(BaseCase):
                 )
             ),
         )
-        Domain([("state", "in", [1, 2])]).asfilter()
 
     def test_empty_domain(self):
         self.assertTrue(Domain([]).asfilter()(0))
@@ -284,6 +285,61 @@ class TestDomain(BaseCase):
         objects = [opendict(date_from=datetime(2020, 6, 5))]
         domain = Domain([("date_from", ">=", datetime(2020, 1, 1))])
         list(filter(domain.asfilter(), objects))
+
+    def assertASTEqual(self, e1, e2):
+        self.assertEqual(
+            e1,
+            e2,
+            msg=f"Different ASTs:\n{e1!s}\n **** is not equal to ****\n {e2!s}\n",
+        )
+
+    def test_asfilter_equal_false(self):
+        query = Domain([("attr", "=", False)])
+        ast = DomainTree(query.second_normal_form)._get_filter_ast()
+        expected = ql.parse("lambda this: not this.attr")
+        self.assertASTEqual(ast, expected)
+
+    def test_asfilter_not_equal_false(self):
+        query = Domain([("attr", "!=", False)])
+        ast = DomainTree(query.second_normal_form)._get_filter_ast()
+        expected = ql.parse("lambda this: this.attr")
+        self.assertASTEqual(ast, expected)
+
+    def test_asfilter_equal_false_with_convert_false_unset(self):
+        query = Domain([("attr", "=", False)])
+        ast = DomainTree(query.second_normal_form)._get_filter_ast(convert_false=False)
+        expected = ql.parse("lambda this: this.attr == False")
+        self.assertASTEqual(ast, expected)
+
+    def test_asfilter_not_equal_false_with_convert_false_unset(self):
+        query = Domain([("attr", "!=", False)])
+        ast = DomainTree(query.second_normal_form)._get_filter_ast(convert_false=False)
+        expected = ql.parse("lambda this: this.attr != False")
+        self.assertASTEqual(ast, expected)
+
+    def test_asfilter_equal_none(self):
+        query = Domain([("attr", "=", None)])
+        ast = DomainTree(query.second_normal_form)._get_filter_ast(convert_none=True)
+        expected = ql.parse("lambda this: not this.attr")
+        self.assertASTEqual(ast, expected)
+
+    def test_asfilter_not_equal_none(self):
+        query = Domain([("attr", "!=", None)])
+        ast = DomainTree(query.second_normal_form)._get_filter_ast(convert_none=True)
+        expected = ql.parse("lambda this: this.attr")
+        self.assertASTEqual(ast, expected)
+
+    def test_asfilter_equal_none_with_convert_none_unset(self):
+        query = Domain([("attr", "=", None)])
+        ast = DomainTree(query.second_normal_form)._get_filter_ast()
+        expected = ql.parse("lambda this: this.attr is None")
+        self.assertASTEqual(ast, expected)
+
+    def test_asfilter_not_equal_none_with_convert_none_unset(self):
+        query = Domain([("attr", "!=", None)])
+        ast = DomainTree(query.second_normal_form)._get_filter_ast()
+        expected = ql.parse("lambda this: this.attr is not None")
+        self.assertASTEqual(ast, expected)
 
 
 def get_model_domain_machine(this):
