@@ -28,8 +28,12 @@ Additions and changes:
 """
 import operator
 from itertools import chain
+
+from xoutil.deprecation import deprecated
+
 from xoeuf.odoo.osv import expression as _odoo_expression
 from xoeuf.utils import crossmethod
+
 
 from . import ql
 
@@ -388,9 +392,67 @@ class Domain(list):
         )
 
     def _get_filter_ast(self, this="this", *, convert_false=True, convert_none=False):
-        return DomainTree(self.second_normal_form)._get_filter_ast(
-            this, convert_false=convert_false, convert_none=convert_none
+        """Get compilable AST of the lambda obtained by `get_filter`:func:.
+
+        """
+        stack = []
+        for kind, term in self.walk():
+            if kind == KIND_TERM:
+                fieldname, op, value = term
+                constructor = _TERM_CONSTRUCTOR[op]
+                stack.append(
+                    constructor(
+                        this,
+                        fieldname,
+                        value,
+                        convert_false=convert_false,
+                        convert_none=convert_none,
+                    )
+                )
+            else:
+                assert kind == KIND_OPERATOR
+                if term in BINARY_OPERATORS:
+                    args = (stack.pop(), stack.pop())
+                else:
+                    args = (stack.pop(),)
+                constructor = _TERM_CONSTRUCTOR[term]
+                stack.append(constructor(*args))
+        node = stack.pop()
+        assert not stack, "Remaining nodes in the stack: {}".format(stack)
+        fn = ql.ensure_compilable(
+            ql.Expression(ql.Lambda(ql.make_arguments(this), node))
         )
+        return fn
+
+    def walk(self):
+        """Performs a post-fix walk of the domain's second normal form.
+
+        Yields tuples of ``(kind, what)``.  `kind` can be either 'TERM' or
+        'OPERATOR'.  `what` will be the term or operator.  For `term` it will
+        the tuple ``(field, operator, arg)`` in Odoo domains.  For `operator`
+        it will be the string identifying the operator.
+
+        Example:
+
+           >>> from xoeuf.osv.expression import Domain
+           >>> d = Domain([('a', '=', 1), ('b', '=', 2), ('c', '=', 3)])
+           >>> list(d.walk())
+           [('TERM', ('a', '=', 1)),
+            ('TERM', ('b', '=', 2)),
+            ('TERM', ('c', '=', 3)),
+            ('OPERATOR', '&'),
+            ('OPERATOR', '&')]
+
+        .. versionadded:: 1.1.0
+
+        """
+        # Since the only operators we have in 2NF are AND and OR the postfix is simply
+        # the reversed prefix notation of domains.
+        for term in reversed(self.second_normal_form):
+            if this.is_leaf(term):
+                yield "TERM", term
+            else:
+                yield "OPERATOR", term
 
 
 class DomainTerm(object):
@@ -639,37 +701,7 @@ class DomainTree(object):
     def __hash__(self):
         return hash(tuple([self.term] + self.sorted_children))
 
-    def _get_filter_ast(self, this="this", *, convert_false=True, convert_none=False):
-        "Get compilable AST of the lambda obtained by `get_filter`:func:."
-        stack = []
-        for kind, term in self.walk():
-            if kind == KIND_TERM:
-                fieldname, op, value = term
-                constructor = _TERM_CONSTRUCTOR[op]
-                stack.append(
-                    constructor(
-                        this,
-                        fieldname,
-                        value,
-                        convert_false=convert_false,
-                        convert_none=convert_none,
-                    )
-                )
-            else:
-                assert kind == KIND_OPERATOR
-                if term in BINARY_OPERATORS:
-                    args = [stack.pop(), stack.pop()]
-                else:
-                    args = [stack.pop()]
-                constructor = _TERM_CONSTRUCTOR[term]
-                stack.append(constructor(*args))
-        node = stack.pop()
-        assert not stack, "Remaining nodes in the stack: {}".format(stack)
-        fn = ql.ensure_compilable(
-            ql.Expression(ql.Lambda(ql.make_arguments(this), node))
-        )
-        return fn
-
+    @deprecated("Domain.walk()")
     def walk(self):
         """Performs a post-fix walk of the tree.
 
@@ -692,10 +724,12 @@ class DomainTree(object):
             ('OPERATOR', '&'),
             ('OPERATOR', '&')]
 
-        .. note:: DomainTree always simplify its input.  The walk is not a
-           syntactical walk of the input but of its simplified form.  Since
-           all operators are commutative, the order of the children may differ
-           widely from run to the other.
+        .. deprecated:: 1.1.0
+
+           DomainTree always simplify its input.  The walk is not a syntactical walk of
+           the input but of its simplified form.  Since all operators are commutative,
+           the order of the children may differ widely from run to the other.  But
+           short-circuit of AND/OR operators may be affected.
 
         """
         if self.is_leaf:
