@@ -2,23 +2,29 @@
  History
 =========
 
-Beta releases (series 0.X)
-==========================
+Stable releases (series 1.x)
+============================
 
-We're approaching a final 1.0 release.  We're stopping adding new features
-to xoeuf, but the next releases will remove most of the deprecated features
-that remain in the code.
-
-Each major version of xoeuf (1.x, 2.x, etc) will be 100% compatible with
-latest version of Odoo supported by xoeuf (at that moment).  We'll try to make
-each major version backwards-compatible with the two previous versions of
-Odoo.
+The releases 1.x are be compatible with Odoo 12 in Python 3.6 and Python 3.8.
+Deprecations may occur and we may increase compatibility with Odoo 13.  But
+we'll continue to support Odoo 12 during the entire lifespan of xoeuf 1.x.
 
 
-Unreleased.  Release 1.1.0
+Unreleased.  Release 1.2.0
 --------------------------
 
 Nothing yet.
+
+
+2020-07-01.  Release 1.1.0
+--------------------------
+
+- Add `xoeuf.osv.expression.Domain.walk`:meth: and deprecate
+  `xoeuf.osv.expression.DomainTree.walk`:meth:.
+
+  This was part of the solution of bug `#8`__.
+
+  __ https://gitlab.merchise.org/mercurio-2018/xoeuf/-/issues/8
 
 
 2020-06-18.  Release 1.0.0
@@ -37,6 +43,19 @@ Nothing yet.
 
   Likewise comparing with None gets translated to ``is None`` or ``is not
   None`` in the default case.
+
+
+Beta releases (series 0.X)
+==========================
+
+We're approaching a final 1.0 release.  We're stopping adding new features
+to xoeuf, but the next releases will remove most of the deprecated features
+that remain in the code.
+
+Each major version of xoeuf (1.x, 2.x, etc) will be 100% compatible with
+latest version of Odoo supported by xoeuf (at that moment).  We'll try to make
+each major version backwards-compatible with the two previous versions of
+Odoo.
 
 
 2020-06-16.  Release 0.81.0

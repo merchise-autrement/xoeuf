@@ -19,17 +19,21 @@ Additions and changes:
 - The functions `AND`:func: and `OR`:func: don't need to you pass a domain in
   first normal form, they ensure that themselves.
 
-- You can test some a weak form of implication, i.e 'Domain(X).implies(Y)' is
-  True if can proof that whenever X is True, Y also is.  This method can have
-  false negatives, but not false positives: there are cases for which we can't
-  find the proof (we return False) which should be True; but if we return
-  True, there's a proof.
+- You can test some a weak form of implication, i.e ``Domain(X).implies(Y)``
+  is True if we can proof that whenever ``X`` is True, ``Y`` also is.  This
+  method can have false negatives, but not false positives: there are cases
+  for which we can't find the proof (we return False) which should be True;
+  but if we return True, there's a proof.
 
 """
 import operator
 from itertools import chain
+
+from xoutil.deprecation import deprecated
+
 from xoeuf.odoo.osv import expression as _odoo_expression
 from xoeuf.utils import crossmethod
+
 
 from . import ql
 
@@ -332,21 +336,22 @@ class Domain(list):
             in the domain are get from this argument.
 
         :keyword convert_false: If True (the default) terms of the form
-               `(x, '=', False)` are translated to `not x` and terms of the
-               form `(x, '!=', False)` are translated to `bool(x)`.  If
-               convert_false is False they get translated to `x = False`,
-               `x != False`.
+               ``(x, '=', False)`` are translated to ``not x`` and terms of
+               the form ``(x, '!=', False)`` are translated to ``bool(x)``.
+               If `convert_false` is False they get translated to
+               ``x = False``, ``x != False``.
 
         :keyword convert_none: Similar to `convert_false` but for None.
 
-                 If convert_none is False (the default), terms like
-                 `(x, '=', None)` are translated using ``is``: `x is None`.
+                 If `convert_none` is False (the default), terms like
+                 ``(x, '=', None)`` are translated using ``is``:
+                 ``x is None``.
 
         .. note:: In Python ``0 == False``, so Odoo treats 0 specially in the
                   context of 'not in' and 'in'.  See `PR 31408`__ for more
                   information.  However, `convert_false` only takes into
-                  account actual False values and terms like `(x, '=', 0)` are
-                  not affected.
+                  account actual False values and terms like ``(x, '=', 0)``
+                  are not affected.
 
         The lambda created for::
 
@@ -388,9 +393,67 @@ class Domain(list):
         )
 
     def _get_filter_ast(self, this="this", *, convert_false=True, convert_none=False):
-        return DomainTree(self.second_normal_form)._get_filter_ast(
-            this, convert_false=convert_false, convert_none=convert_none
+        """Get compilable AST of the lambda obtained by `get_filter`:func:.
+
+        """
+        stack = []
+        for kind, term in self.walk():
+            if kind == KIND_TERM:
+                fieldname, op, value = term
+                constructor = _TERM_CONSTRUCTOR[op]
+                stack.append(
+                    constructor(
+                        this,
+                        fieldname,
+                        value,
+                        convert_false=convert_false,
+                        convert_none=convert_none,
+                    )
+                )
+            else:
+                assert kind == KIND_OPERATOR
+                if term in BINARY_OPERATORS:
+                    args = (stack.pop(), stack.pop())
+                else:
+                    args = (stack.pop(),)
+                constructor = _TERM_CONSTRUCTOR[term]
+                stack.append(constructor(*args))
+        node = stack.pop()
+        assert not stack, "Remaining nodes in the stack: {}".format(stack)
+        fn = ql.ensure_compilable(
+            ql.Expression(ql.Lambda(ql.make_arguments(this), node))
         )
+        return fn
+
+    def walk(self):
+        """Performs a post-fix walk of the domain's second normal form.
+
+        Yields tuples of ``(kind, what)``.  `kind` can be either 'TERM' or
+        'OPERATOR'.  `what` will be the term or operator.  For `term` it will
+        the tuple ``(field, operator, arg)`` in Odoo domains.  For `operator`
+        it will be the string identifying the operator.
+
+        Example:
+
+           >>> from xoeuf.osv.expression import Domain
+           >>> d = Domain([('a', '=', 1), ('b', '=', 2), ('c', '=', 3)])
+           >>> list(d.walk())
+           [('TERM', ('a', '=', 1)),
+            ('TERM', ('b', '=', 2)),
+            ('TERM', ('c', '=', 3)),
+            ('OPERATOR', '&'),
+            ('OPERATOR', '&')]
+
+        .. versionadded:: 1.1.0
+
+        """
+        # Since the only operators we have in 2NF are AND and OR the postfix is simply
+        # the reversed prefix notation of domains.
+        for term in reversed(self.second_normal_form):
+            if this.is_leaf(term):
+                yield "TERM", term
+            else:
+                yield "OPERATOR", term
 
 
 class DomainTerm(object):
@@ -639,37 +702,7 @@ class DomainTree(object):
     def __hash__(self):
         return hash(tuple([self.term] + self.sorted_children))
 
-    def _get_filter_ast(self, this="this", *, convert_false=True, convert_none=False):
-        "Get compilable AST of the lambda obtained by `get_filter`:func:."
-        stack = []
-        for kind, term in self.walk():
-            if kind == KIND_TERM:
-                fieldname, op, value = term
-                constructor = _TERM_CONSTRUCTOR[op]
-                stack.append(
-                    constructor(
-                        this,
-                        fieldname,
-                        value,
-                        convert_false=convert_false,
-                        convert_none=convert_none,
-                    )
-                )
-            else:
-                assert kind == KIND_OPERATOR
-                if term in BINARY_OPERATORS:
-                    args = [stack.pop(), stack.pop()]
-                else:
-                    args = [stack.pop()]
-                constructor = _TERM_CONSTRUCTOR[term]
-                stack.append(constructor(*args))
-        node = stack.pop()
-        assert not stack, "Remaining nodes in the stack: {}".format(stack)
-        fn = ql.ensure_compilable(
-            ql.Expression(ql.Lambda(ql.make_arguments(this), node))
-        )
-        return fn
-
+    @deprecated("Domain.walk()")
     def walk(self):
         """Performs a post-fix walk of the tree.
 
@@ -692,10 +725,12 @@ class DomainTree(object):
             ('OPERATOR', '&'),
             ('OPERATOR', '&')]
 
-        .. note:: DomainTree always simplify its input.  The walk is not a
-           syntactical walk of the input but of its simplified form.  Since
-           all operators are commutative, the order of the children may differ
-           widely from run to the other.
+        .. deprecated:: 1.1.0
+
+           DomainTree always simplify its input.  The walk is not a syntactical walk of
+           the input but of its simplified form.  Since all operators are commutative,
+           the order of the children may differ widely from run to the other.  But
+           short-circuit of AND/OR operators may be affected.
 
         """
         if self.is_leaf:
