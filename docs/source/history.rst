@@ -10,7 +10,7 @@ Deprecations may occur and we may increase compatibility with Odoo 13.  But
 we'll continue to support Odoo 12 during the entire lifespan of xoeuf 1.x.
 
 
-Unreleased.  Release 1.1.0
+2020-07-01.  Release 1.1.0
 --------------------------
 
 - Add `xoeuf.osv.expression.Domain.walk`:meth: and deprecate
