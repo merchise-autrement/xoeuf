@@ -14,8 +14,11 @@ check code smells (with Bugbear and Python 3.6):
   script:
     - merchise_lint
   only:
-    - master
-    - merge_requests
+    refs:
+      - master
+      - merge_requests
+    changes:
+      - xoeuf/**/*.py
 
 check formatting with black:
   image: registry.merchise.org/merchise/python-dev:3.6-alpine
@@ -23,8 +26,11 @@ check formatting with black:
   script:
     - /usr/local/bin/black --check xoeuf/
   only:
-    - master
-    - merge_requests
+    refs:
+      - master
+      - merge_requests
+    changes:
+      - xoeuf/**/*.py
 
 
 .run_tests: &run_tests
