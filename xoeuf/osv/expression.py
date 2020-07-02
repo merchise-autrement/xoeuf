@@ -19,11 +19,11 @@ Additions and changes:
 - The functions `AND`:func: and `OR`:func: don't need to you pass a domain in
   first normal form, they ensure that themselves.
 
-- You can test some a weak form of implication, i.e 'Domain(X).implies(Y)' is
-  True if can proof that whenever X is True, Y also is.  This method can have
-  false negatives, but not false positives: there are cases for which we can't
-  find the proof (we return False) which should be True; but if we return
-  True, there's a proof.
+- You can test some a weak form of implication, i.e ``Domain(X).implies(Y)``
+  is True if we can proof that whenever ``X`` is True, ``Y`` also is.  This
+  method can have false negatives, but not false positives: there are cases
+  for which we can't find the proof (we return False) which should be True;
+  but if we return True, there's a proof.
 
 """
 import operator
@@ -336,21 +336,22 @@ class Domain(list):
             in the domain are get from this argument.
 
         :keyword convert_false: If True (the default) terms of the form
-               `(x, '=', False)` are translated to `not x` and terms of the
-               form `(x, '!=', False)` are translated to `bool(x)`.  If
-               convert_false is False they get translated to `x = False`,
-               `x != False`.
+               ``(x, '=', False)`` are translated to ``not x`` and terms of
+               the form ``(x, '!=', False)`` are translated to ``bool(x)``.
+               If `convert_false` is False they get translated to
+               ``x = False``, ``x != False``.
 
         :keyword convert_none: Similar to `convert_false` but for None.
 
-                 If convert_none is False (the default), terms like
-                 `(x, '=', None)` are translated using ``is``: `x is None`.
+                 If `convert_none` is False (the default), terms like
+                 ``(x, '=', None)`` are translated using ``is``:
+                 ``x is None``.
 
         .. note:: In Python ``0 == False``, so Odoo treats 0 specially in the
                   context of 'not in' and 'in'.  See `PR 31408`__ for more
                   information.  However, `convert_false` only takes into
-                  account actual False values and terms like `(x, '=', 0)` are
-                  not affected.
+                  account actual False values and terms like ``(x, '=', 0)``
+                  are not affected.
 
         The lambda created for::
 
