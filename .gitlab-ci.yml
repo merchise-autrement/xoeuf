@@ -63,7 +63,6 @@ check formatting with black:
       - master
       - merge_request
     changes:
-      - .gitlab-ci.yml
       - xoeuf/**/*.py
 
 run all Odoo 12 tests in Python 3.6:
@@ -212,7 +211,6 @@ build documentation:
       - tags
       - merge_request
     changes:
-      - .gitlab-ci.yml
       - xoeuf/**/*.py
       - docs/**/*.rst
 
@@ -241,6 +239,5 @@ publish in our rtd:
       - tags
       - merge_request
     changes:
-      - .gitlab-ci.yml
       - xoeuf/**/*.py
       - docs/**/*.rst
