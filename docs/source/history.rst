@@ -18,7 +18,12 @@ Odoo.
 Unreleased.  Release 1.1.0
 --------------------------
 
-Nothing yet.
+- Add `xoeuf.osv.expression.Domain.walk`:meth: and deprecate
+  `xoeuf.osv.expression.DomainTree.walk`:meth:.
+
+  This was part of the solution of bug `#8`__.
+
+  __ https://gitlab.merchise.org/mercurio-2018/xoeuf/-/issues/8
 
 
 2020-06-18.  Release 1.0.0
