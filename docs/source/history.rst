@@ -16,6 +16,8 @@ Unreleased.  Release 1.2.0
 - Add `xoeuf.models.base.iter_descendant_models`:func: and
   `xoeuf.models.BaseModel.iter_descendant_models`:meth:.
 
+- Removed deprecated module ``xoeuf.models.proxy``.
+
 
 2020-07-01.  Release 1.1.0
 --------------------------
