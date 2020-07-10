@@ -8,6 +8,7 @@
 #
 from collections import defaultdict
 from inspect import getmembers
+
 from xoeuf.odoo import api, models, tools
 from xoeuf.osv.expression import Domain
 from xoeuf.modules import get_caller_addon
@@ -255,8 +256,64 @@ def reference_repr(self):
 models.BaseModel.reference_repr = reference_repr
 
 
-@api.model
 def iter_descendant_models(
+    pool_or_env,
+    modelnames,
+    find_inherited=True,
+    find_delegated=True,
+    allow_abstract=False,
+    allow_transient=False,
+):
+    """Return a iterable of `(model_name, model_or_cls)` of models inheriting from others.
+
+    :param pool_or_env: A reference to the ORM registry or an Environment.  If its a
+           Regitrsy, the second component of each pair returned is a model class; it
+           it's an Environment, you'll get an empty recordset of the model.
+
+    :param modelnames: A list of model names.
+
+    :param find_inherited: If True find models which use ``_inherit`` from the models.
+
+    :param find_delegated: If True find models which use ``_inherits`` (or
+           ``delegate=True``) from the models.
+
+    :param allow_abstract: If True, yield models which are AbstractModels.
+
+    :param allow_transient: If True, yield transient models.
+
+    See also `BaseModel.iter_descendant_models`.
+
+    """
+
+    def _yield_all():
+        kinds = ()
+        if find_inherited:
+            kinds += ("_inherit",)
+        if find_delegated:
+            kinds += ("_inherits",)
+        if isinstance(pool_or_env, api.Environment):
+            pool = pool_or_env.registry
+        else:
+            pool = pool_or_env
+        for modelname in pool.descendants(modelnames, *kinds):
+            model = pool_or_env[modelname]
+            yield modelname, model
+
+    def _filter_abstract(models):
+        for modelname, model in models:
+            if not model._abstract or allow_abstract:
+                yield modelname, model
+
+    def _filter_transient(models):
+        for modelname, model in models:
+            if not model._transient or allow_transient:
+                yield modelname, model
+
+    yield from _filter_transient(_filter_abstract(_yield_all()))
+
+
+@api.model
+def _iter_descendant_models(
     self,
     find_inherited=True,
     find_delegated=True,
@@ -277,33 +334,22 @@ def iter_descendant_models(
 
     """
 
-    def _yield_all():
-        kinds = ()
-        if find_inherited:
-            kinds += ("_inherit",)
-        if find_delegated:
-            kinds += ("_inherits",)
-        for modelname in self.pool.descendants([get_modelname(self)], *kinds):
-            model = self.env[modelname]
-            yield modelname, model
-
     def _exclude_self(models):
         this = self.browse()
         for modelname, model in models:
             if model != this:
                 yield modelname, model
 
-    def _filter_abstract(models):
-        for modelname, model in models:
-            if not model._abstract or allow_abstract:
-                yield modelname, model
+    yield from _exclude_self(
+        iter_descendant_models(
+            self.env,
+            [get_modelname(self)],
+            find_inherited=find_inherited,
+            find_delegated=find_delegated,
+            allow_abstract=allow_abstract,
+            allow_transient=allow_transient,
+        )
+    )
 
-    def _filter_transient(models):
-        for modelname, model in models:
-            if not model._transient or allow_transient:
-                yield modelname, model
 
-    yield from _filter_transient(_filter_abstract(_exclude_self(_yield_all())))
-
-
-models.BaseModel.iter_descendant_models = iter_descendant_models
+models.BaseModel.iter_descendant_models = _iter_descendant_models
