@@ -17,11 +17,11 @@ re-exports the functions in `xoeuf.models.base`:mod:
 
    .. property:: reference_repr
 
-	  The string representation compatible for Reference fields
+      The string representation compatible for Reference fields
 
    .. method:: iter_descendant_models(find_inherited=True, find_delegated=True, allow_abstract=False, allow_transient=False, exclude_self=True)
 
-	  Return a iterable of `(model_name, model)` of models inheriting from `self`.
+      Return a iterable of `(model_name, model)` of models inheriting from `self`.
 
       If `find_inherited` is True find models which use ``_inherit`` from
       `self`.  If `find_delegated` is True find models which use ``_inherits``
@@ -32,9 +32,9 @@ re-exports the functions in `xoeuf.models.base`:mod:
 
       If `exclude_self` is True, don't yield `self`.
 
-	  .. seealso:: xoeuf.models.base.iter_descendant_models
+      .. seealso:: xoeuf.models.base.iter_descendant_models
 
-	  .. versionadded:: 1.2.0
+      .. versionadded:: 1.2.0
 
 
 Basic extensions
