@@ -11,7 +11,6 @@
 
 
 """
-from . import proxy  # noqa: ensure the hook is registered.
 from .base import *  # noqa: reexport
 
 from xoeuf.odoo.models import *  # noqa: reexport
