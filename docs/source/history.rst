@@ -13,7 +13,8 @@ we'll continue to support Odoo 12 during the entire lifespan of xoeuf 1.x.
 Unreleased.  Release 1.2.0
 --------------------------
 
-Nothing yet.
+- Add `xoeuf.models.base.iter_descendant_models`:func: and
+  `xoeuf.models.BaseModel.iter_descendant_models`:meth:.
 
 
 2020-07-01.  Release 1.1.0

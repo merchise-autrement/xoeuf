@@ -282,7 +282,9 @@ def iter_descendant_models(
 
     :param allow_transient: If True, yield transient models.
 
-    See also `BaseModel.iter_descendant_models`.
+    .. seealso:: `xoeuf.models.BaseModel.iter_descendant_models`:meth:.
+
+    .. versionadded:: 1.2.0
 
     """
 
