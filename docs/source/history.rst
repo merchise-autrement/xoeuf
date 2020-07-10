@@ -10,6 +10,12 @@ Deprecations may occur and we may increase compatibility with Odoo 13.  But
 we'll continue to support Odoo 12 during the entire lifespan of xoeuf 1.x.
 
 
+Unreleased.  Release 1.3.0
+--------------------------
+
+Nothing yet.
+
+
 2020-07-10.  Release 1.2.0
 --------------------------
 
