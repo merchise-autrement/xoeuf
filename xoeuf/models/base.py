@@ -253,3 +253,57 @@ def reference_repr(self):
 
 
 models.BaseModel.reference_repr = reference_repr
+
+
+@api.model
+def iter_descendant_models(
+    self,
+    find_inherited=True,
+    find_delegated=True,
+    allow_abstract=False,
+    allow_transient=False,
+    exclude_self=True,
+):
+    """Return a iterable of `(model_name, model)` of models inheriting from `self`.
+
+    If `find_inherited` is True find models which use ``_inherit`` from `self`.  If
+    `find_delegated` is True find models which use ``_inherits`` (or ``delegate=True``)
+    from `self`.
+
+    If allow_abstract is True, yield models which are AbstractModels.  If
+    `allow_transient` is True, yield transient models.
+
+    If `exclude_self` is True, don't yield `self`.
+
+    """
+
+    def _yield_all():
+        kinds = ()
+        if find_inherited:
+            kinds += ("_inherit",)
+        if find_delegated:
+            kinds += ("_inherits",)
+        for modelname in self.pool.descendants([get_modelname(self)], *kinds):
+            model = self.env[modelname]
+            yield modelname, model
+
+    def _exclude_self(models):
+        this = self.browse()
+        for modelname, model in models:
+            if model != this:
+                yield modelname, model
+
+    def _filter_abstract(models):
+        for modelname, model in models:
+            if not model._abstract or allow_abstract:
+                yield modelname, model
+
+    def _filter_transient(models):
+        for modelname, model in models:
+            if not model._transient or allow_transient:
+                yield modelname, model
+
+    yield from _filter_transient(_filter_abstract(_exclude_self(_yield_all())))
+
+
+models.BaseModel.iter_descendant_models = iter_descendant_models
