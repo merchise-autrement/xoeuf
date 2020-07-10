@@ -8,6 +8,7 @@
 #
 from odoo import api, fields, models, _
 from xoeuf.osv.expression import Domain, FALSE_LEAF
+from xoeuf.models import iter_descendant_models
 
 
 def get_mixin_descendants(pool, mixin):
@@ -16,9 +17,12 @@ def get_mixin_descendants(pool, mixin):
     :param mixin: mixin name to get it descendants.
 
     """
-    for model_name in pool.descendants([mixin], "_inherit"):
-        if not pool[model_name]._abstract:
-            yield model_name
+    yield from (
+        modelname
+        for modelname, _ in iter_descendant_models(
+            pool, [mixin], find_delegated=False, allow_transient=True
+        )
+    )
 
 
 class TypedReference(fields.Reference):

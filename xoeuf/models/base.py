@@ -263,6 +263,7 @@ def iter_descendant_models(
     find_delegated=True,
     allow_abstract=False,
     allow_transient=False,
+    env=None,
 ):
     """Return a iterable of `(model_name, model_or_cls)` of models inheriting from others.
 
