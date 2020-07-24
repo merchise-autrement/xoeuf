@@ -2,8 +2,6 @@
 stages:
   - pre-check
   - check
-  - build doc
-  - publish doc
   - test
   - build
   - publish
@@ -161,7 +159,7 @@ build documentation:
   variables:
     PYTHON_VERSION: "3.8"
     ODOO_VERSION: "12"
-  stage: build doc
+  stage: build
   script:
     - |
       set -x
@@ -197,7 +195,7 @@ build documentation:
 publish in our rtd:
   variables:
     GIT_STRATEGY: none
-  stage: publish doc
+  stage: publish
   script:
     - scp $CI_PROJECT_NAME-$CI_COMMIT_SHA.tar.bz2 rtd@docs.lahavane.com:.
     - ssh rtd@docs.lahavane.com mkdir -p $CI_PROJECT_NAME/.$CI_COMMIT_SHA
