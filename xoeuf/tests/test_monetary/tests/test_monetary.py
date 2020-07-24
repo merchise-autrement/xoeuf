@@ -8,7 +8,7 @@
 #
 import hypothesis
 from hypothesis import strategies as s
-from xoutil.dim.currencies import currency as Currency
+from xotl.tools.dim.currencies import currency as Currency
 
 from xoeuf.odoo.tests.common import TransactionCase
 

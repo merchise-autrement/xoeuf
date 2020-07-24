@@ -57,8 +57,7 @@ setup(
     install_requires=[
         "pytz",
         "decorator>=4.0,<4.2",
-        'xoutil>=1.9.0,<2.0; python_version < "3.4"',
-        'xoutil>=1.9.0,<2.2; python_version >= "3.4"',
+        'xotl.tools>=1.9.0,<2.2; python_version >= "3.4"',
         'ipython<6; python_version < "3"',
         'ipython; python_version >= "3"',
         "raven>=5.8.0",
@@ -70,10 +69,7 @@ setup(
         'dataclasses;python_version<"3.7"',
     ],
     extra_requires={
-        "odoo": [
-            'odoo==10.0; python_version < "3.0"',
-            'odoo>=11.0,<13.0; python_version >= "3.5"',
-        ],
+        "odoo": ['odoo>=12.0,<13.0; python_version >= "3.5"'],
         "test": ["hypothesis>=3.7.0,<4"],
     },
     python_requires=">=3.6",

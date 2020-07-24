@@ -27,14 +27,14 @@ def savepoint(cr, name=None):
               argument `name` will be ignored in this case.
 
     """
-    from xoutil.symbols import Unset
+    from xotl.tools.symbols import Unset
 
     _savepoint = getattr(cr, "savepoint", Unset)
     if _savepoint is Unset:
         from contextlib import contextmanager
 
         if not name:
-            from xoutil.uuid import uuid
+            from xotl.tools.uuid import uuid
 
             name = uuid(True)
 

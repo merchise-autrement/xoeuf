@@ -2,18 +2,28 @@
  History
 =========
 
+Releases 2.x
+============
+
+The releases 2.x are be compatible with Odoo 12 in Python 3.6 and Python 3.8.
+Deprecations may occur and we may increase compatibility with Odoo 13.  But
+we'll continue to support Odoo 12 during the entire lifespan of xoeuf 2.x.
+
+
+Unreleased.  Release 2.0
+------------------------
+
+- Requires 'xotl.tools' instead of 'xoutil'.  This is a breaking change from
+  the series 1.x.  Applications cannot mix dependencies to both distributions
+  since they share the package tree.
+
+
 Stable releases (series 1.x)
 ============================
 
 The releases 1.x are be compatible with Odoo 12 in Python 3.6 and Python 3.8.
-Deprecations may occur and we may increase compatibility with Odoo 13.  But
-we'll continue to support Odoo 12 during the entire lifespan of xoeuf 1.x.
+We'll continue to support Odoo 12 during the entire lifespan of xoeuf 1.x.
 
-
-Unreleased.  Release 1.3.0
---------------------------
-
-Nothing yet.
 
 
 2020-07-10.  Release 1.2.0

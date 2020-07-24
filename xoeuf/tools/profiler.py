@@ -12,7 +12,7 @@
 For development only purposes.
 
 """
-from xoutil.decorator.meta import decorator
+from xotl.tools.decorator.meta import decorator
 
 
 try:

@@ -20,7 +20,7 @@ class _BaseWriter(object):
     """
 
     def __init__(self, model):
-        from xoutil.future.collections import StackedDict
+        from xotl.tools.future.collections import StackedDict
 
         self.model = model
         self._commands = StackedDict()
@@ -104,7 +104,7 @@ class _BaseWriter(object):
           be either a many2many or one2many column.
 
         """
-        from xoutil.future.types import is_collection
+        from xotl.tools.future.types import is_collection
         from .orm import UPDATE_RELATED
 
         commands = self._commands

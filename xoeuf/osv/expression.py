@@ -29,7 +29,7 @@ Additions and changes:
 import operator
 from itertools import chain
 
-from xoutil.deprecation import deprecated
+from xotl.tools.deprecation import deprecated
 
 from xoeuf.odoo.osv import expression as _odoo_expression
 from xoeuf.utils import crossmethod
@@ -38,9 +38,9 @@ from xoeuf.utils import crossmethod
 from . import ql
 
 
-# TODO: `copy_members` will be deprecated in xoutil 1.8, use instead the same
-# mechanisms as `xoutil.future`.
-from xoutil.modules import copy_members as _copy_python_module_members
+# TODO: `copy_members` is deprecated since xotl.tools 1.8, use instead the same
+# mechanisms as `xotl.tools.future`.
+from xotl.tools.modules import copy_members as _copy_python_module_members
 
 this = _copy_python_module_members(_odoo_expression)
 del _copy_python_module_members

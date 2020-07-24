@@ -15,11 +15,11 @@ patch_modules()
 DEFAULT_COMMAND = str("server")
 
 
-from xoutil.cli import Command as BaseCommand
+from xotl.tools.cli import Command as BaseCommand
 
 
 class CommandsProxy(BaseCommand):
-    """Define a proxy to register all OpenERP CLI commands to "xoutil.cli".
+    """Define a proxy to register all OpenERP CLI commands to "xotl.tools.cli".
 
     """
 

@@ -6,7 +6,7 @@
 #
 # This is free software; you can do what the LICENCE file allows you to.
 #
-from xoutil.symbols import Unset
+from xotl.tools.symbols import Unset
 
 from odoo.release import version_info as ODOO_VERSION_INFO
 from odoo.fields import Field as Base

@@ -324,12 +324,9 @@ texinfo_documents = [
 
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {
-    "py2": ("http://docs.python.org/2.7/", None),
-    "py3": ("http://docs.python.org/", None),
+    "py3": ("http://docs.python.org/3.6", None),
     "xoutil": ("http://xoutil.readthedocs.org/en/latest/", None),
-    "odoo8": ("https://www.odoo.com/documentation/8.0/", None),
-    "odoo10": ("https://www.odoo.com/documentation/10.0/", None),
-    "odoo11": ("https://www.odoo.com/documentation/11.0/", None),
+    "odoo12": ("https://www.odoo.com/documentation/12.0/", None),
 }
 
 intersphinx_cache_limit = 60

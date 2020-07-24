@@ -24,12 +24,12 @@ class Secure(Command):
 
     @classmethod
     def get_arg_parser(cls):
-        from xoutil.crypto import PASS_LEVEL_NAME_MAPPING
-        from xoutil.crypto import DEFAULT_PASS_PHRASE_LEVEL
+        from xotl.tools.crypto import PASS_LEVEL_NAME_MAPPING
+        from xotl.tools.crypto import DEFAULT_PASS_PHRASE_LEVEL
 
         def path(extensions=None):
             """A type-builder for file arguments."""
-            from xoutil.future.types import is_collection
+            from xotl.tools.future.types import is_collection
             from os.path import abspath, isfile, splitext
 
             if extensions and not is_collection(extensions):

@@ -10,7 +10,7 @@
 """An example of an application that use :mod:`xoeuf.cli`.
 
 It behaves similar to "openerp-server" script. This module does not provide any
-external facilities, but uses :func:`xoutil:xoutil.cli.app.main` to run the
+external facilities, but uses :func:`xotl.tools.cli.app.main` to run the
 OpenERP server. Usage::
 
   $ python server.py [options...]
@@ -20,7 +20,7 @@ OpenERP server. Usage::
 
 def server():
     from xoeuf.cli import DEFAULT_COMMAND
-    from xoutil.cli.app import main
+    from xotl.tools.cli.app import main
 
     main(default=DEFAULT_COMMAND)
 

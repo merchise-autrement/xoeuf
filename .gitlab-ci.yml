@@ -85,25 +85,9 @@ run all Odoo 12 tests in Python 3.8:
     ODOO_VERSION: "12"
 
 
-check signature of tag:
-  image: alpine
-  stage: check
-  script:
-    - apk add git gnupg
-    - gpg --recv-key $GNUPG_KEY
-    - git verify-tag $CI_COMMIT_REF_NAME
-  only:
-    refs:
-      - tags
-    variables:
-      - $CI_COMMIT_TAG =~ /^\d+(\.\d+)*(\.post\d+)*$/
-
-
 build source distribution:
   image: python:3.8-alpine
   stage: build
-  needs:
-    - check signature of tag
   script:
     - apk add git
     - rm -f dist/*
@@ -115,11 +99,9 @@ build source distribution:
     refs:
       - tags
     variables:
-      - $CI_COMMIT_TAG =~ /^\d+(\.\d+)*(\.post\d+)*$/
+      - $CI_COMMIT_TAG =~ /^\d+(\.\d+)*(a\d+|b\d+|rc\d+)?(\.post\d+)?$/
 
 build binary distribution:
-  needs:
-    - check signature of tag
   image: python:3.8-alpine
   stage: build
   script:
@@ -133,9 +115,9 @@ build binary distribution:
     refs:
       - tags
     variables:
-      - $CI_COMMIT_TAG =~ /^\d+(\.\d+)*(\.post\d+)*$/
+      - $CI_COMMIT_TAG =~ /^\d+(\.\d+)*(a\d+|b\d+|rc\d+)?(\.post\d+)?$/
 
-publish_locally:
+publish locally:
   stage: publish
   script:
     - ssh manu@gestion.lahavane.com "mkdir -p Repos/$CI_PROJECT_NAME"
@@ -146,17 +128,16 @@ publish_locally:
     refs:
       - tags
     variables:
-      - $CI_COMMIT_TAG =~ /^\d+(\.\d+)*(\.post\d+)*$/
+      - $CI_COMMIT_TAG =~ /^\d+(\.\d+)*(a\d+|b\d+|rc\d+)?(\.post\d+)?$/
   environment:
     name: repo.lahavane.com
     url: http://repo.lahavane.com/pypi/$CI_PROJECT_NAME
   needs:
-    - check signature of tag
     - build source distribution
     - build binary distribution
 
 
-publish_pypi:
+publish pypi:
   image: python:3.8
   stage: publish
   script:
@@ -166,9 +147,8 @@ publish_pypi:
     refs:
       - tags
     variables:
-      - $CI_COMMIT_TAG =~ /^\d+(\.\d+)*(\.post\d+|rc\d+)?$/
+      - $CI_COMMIT_TAG =~ /^\d+(\.\d+)*(a\d+|b\d+|rc\d+)?(\.post\d+)?$/
   needs:
-    - check signature of tag
     - build source distribution
     - build binary distribution
   environment:
@@ -177,7 +157,6 @@ publish_pypi:
 
 
 build documentation:
-  needs: []
   image: registry.merchise.org/mercurio/odoo-docker:o12-3.8
   variables:
     PYTHON_VERSION: "3.8"

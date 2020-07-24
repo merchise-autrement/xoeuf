@@ -13,10 +13,10 @@ import sys
 import logging
 import re
 
-from xoutil.future.functools import lru_cache
-from xoutil.modules import customize
-from xoutil.modules import modulemethod
-from xoutil.string import cut_prefix
+from xotl.tools.future.functools import lru_cache
+from xotl.tools.modules import customize
+from xotl.tools.modules import modulemethod
+from xotl.tools.string import cut_prefix
 
 # In Odoo 10, they allow to import from both 'odoo' and 'openerp'
 _ADDONS_NAMESPACE = re.compile(r"^(?:odoo|openerp)\.addons\.(?P<module>[^\.]+)\.")
@@ -75,7 +75,7 @@ class _PatchesRegistry(object):
     _wrapped = {}
 
     def __call__(self, func):
-        from xoutil.names import nameof
+        from xotl.tools.names import nameof
 
         name = nameof(func, inner=True, full=False)
         self._registry[name] = func
@@ -127,7 +127,7 @@ def find_external_addons(self):
     """
     import os
     from pkg_resources import iter_entry_points
-    from xoutil.future.itertools import delete_duplicates
+    from xotl.tools.future.itertools import delete_duplicates
 
     res = []
     for entry in iter_entry_points(XOEUF_EXTERNAL_ADDON_GROUP):
@@ -152,7 +152,7 @@ def find_external_addons(self):
 @patch
 @modulemethod
 def initialize_sys_path(self):
-    from xoutil.objects import setdefaultattr
+    from xotl.tools.objects import setdefaultattr
     from xoeuf.odoo.modules import module
 
     _super = patch.get_super("initialize_sys_path")
@@ -241,7 +241,7 @@ def get_object_module(obj, typed=False):
     namespace, return None.
 
     """
-    from xoutil.names import nameof
+    from xotl.tools.names import nameof
 
     name = nameof(obj, inner=True, full=True, typed=typed)
     match = _ADDONS_NAMESPACE.match(name)

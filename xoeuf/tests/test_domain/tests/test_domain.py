@@ -10,7 +10,6 @@ import logging
 from datetime import datetime
 from itertools import product
 
-
 from hypothesis import strategies as s, given, settings
 from hypothesis.stateful import RuleBasedStateMachine, rule, Bundle
 from hypothesis.stateful import run_state_machine_as_test
@@ -20,10 +19,7 @@ from xoeuf.osv import ql
 from xoeuf.odoo.osv import expression as odoo_expr
 from xoeuf.osv.expression import Domain
 
-try:
-    from xotl.tools.future.collections import opendict
-except ImportError:
-    from xoutil.future.collections import opendict
+from xotl.tools.future.collections import opendict
 
 from odoo.tests.common import TransactionCase, BaseCase
 

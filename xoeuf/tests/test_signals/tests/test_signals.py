@@ -8,7 +8,7 @@
 #
 import unittest
 
-from xoutil.future.codecs import safe_decode
+from xotl.tools.future.codecs import safe_decode
 
 from xoeuf import MAJOR_ODOO_VERSION
 from xoeuf.odoo.tests.common import TransactionCase, at_install, post_install

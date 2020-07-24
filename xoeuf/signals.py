@@ -14,10 +14,10 @@ from functools import wraps
 from threading import RLock
 
 from xoeuf.odoo import api, models
-from xoutil.objects import temp_attributes
-from xoutil.symbols import Unset
+from xotl.tools.objects import temp_attributes
+from xotl.tools.symbols import Unset
 
-from xoutil.future.contextlib import ExitStack, contextmanager
+from xotl.tools.future.contextlib import ExitStack, contextmanager
 from expiringdict import ExpiringDict
 
 
@@ -225,7 +225,7 @@ class Hook(object):
     """Wraps a hook function, so that we can store some metadata."""
 
     def __init__(self, func, **kwargs):
-        from xoutil.objects import smart_copy
+        from xotl.tools.objects import smart_copy
 
         hash(func)  # Fail if func is not hashable
         self.func = func
@@ -382,7 +382,7 @@ def mock_replace(hook, func, **replacement_attrs):
 
     """
     import contextlib
-    from xoutil.symbols import Undefined
+    from xotl.tools.symbols import Undefined
 
     try:
         from unittest.mock import MagicMock

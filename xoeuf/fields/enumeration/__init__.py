@@ -8,8 +8,8 @@
 #
 import logging
 from collections import namedtuple, Mapping
-from xoutil.string import cut_prefix
-from xoutil.objects import import_object
+from xotl.tools.string import cut_prefix
+from xotl.tools.objects import import_object
 
 from odoo import fields, api, models
 from odoo.fields import Char

@@ -6,7 +6,7 @@
 #
 # This is free software; you can do what the LICENCE file allows you to.
 #
-from xoutil.future.datetime import TimeSpan, parse_date
+from xotl.tools.future.datetime import TimeSpan, parse_date
 
 from datetime import date
 from hypothesis import strategies, given
@@ -33,7 +33,7 @@ class TestTimespan(TransactionCase):
             if isinstance(value1, date):
                 v1 = value1
                 # Ensure we're using date1 with the Python's date.  See
-                # xoutils bug:
+                # xotl.tools bug:
                 # https://gitlab.lahavane.com/merchise/xoutil/issues/3
                 date1 = date(value1.year, value1.month, value1.day)
             else:
