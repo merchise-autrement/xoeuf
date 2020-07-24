@@ -10,7 +10,7 @@
 from xoeuf.tools import add_symbols_to_xmls
 from xoeuf.models import get_modelname as _get_modelname
 
-from xoutil.deprecation import deprecated
+from xotl.tools.deprecation import deprecated
 
 get_modelname = deprecated("xoeuf.models.get_modelname")(_get_modelname)
 del _get_modelname, deprecated
@@ -26,12 +26,12 @@ def guess_id(which, attr="id"):
 
     """
     from xoeuf.odoo.osv.orm import browse_record
-    from xoutil.future.collections import Mapping
+    from xotl.tools.future.collections import Mapping
 
     if isinstance(which, int):
         return which
     elif isinstance(which, (Mapping, browse_record)):
-        from xoutil.objects import smart_getter
+        from xotl.tools.objects import smart_getter
 
         get = smart_getter(which, strict=True)
         return get(attr)

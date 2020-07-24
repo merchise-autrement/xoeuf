@@ -15,7 +15,7 @@ Most of this has been extracted from `xotl.ql` (but we must support Python
 import ast as pyast
 from dataclasses import dataclass
 
-from xoutil.future.types import new_class
+from xotl.tools.future.types import new_class
 
 import sys
 
@@ -33,7 +33,7 @@ class PyASTNode(object):
     def __eq__(self, other):
         from operator import eq
 
-        Unset = object()  # xoutil's Unset is equal to 0!
+        Unset = object()  # xotl.tools's Unset is equal to 0!
         res = True
         i = 0
         # Explicitly deal with NameConstant None.
@@ -221,7 +221,7 @@ class SetAttributesVisitor(pyast.NodeVisitor):
         self.attrs = attrs
 
     def generic_visit(self, node):
-        from xoutil.symbols import Unset
+        from xotl.tools.symbols import Unset
 
         get = lambda a: getattr(node, a, Unset)
         for attr, val in self.attrs.items():

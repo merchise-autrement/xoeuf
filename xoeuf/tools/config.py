@@ -53,7 +53,7 @@ class MetaOptions(type):
         return list(self.wrapped.options) + list(self.__dict__)
 
     def __hash__(self):
-        from xoutil.names import nameof
+        from xotl.tools.names import nameof
 
         return hash(nameof(self, inner=True, full=True))
 
@@ -118,7 +118,7 @@ class MetaOptions(type):
             raise KeyError('read only option "%s"!' % option)
 
     def __getattr__(self, name):
-        from xoutil.symbols import Unset
+        from xotl.tools.symbols import Unset
 
         res = self.wrapped.options.get(name, Unset)
         if res is not Unset:
@@ -140,7 +140,7 @@ class MetaOptions(type):
 
         """
         if _SECTION_SEP in option:
-            from xoutil.symbols import Unset
+            from xotl.tools.symbols import Unset
 
             section, option = option.split(_SECTION_SEP)
             misc = self.wrapped.misc.get(section, Unset)
@@ -175,7 +175,7 @@ class MetaOptions(type):
         """
         count = len(args)
         if count <= 1:
-            from xoutil.symbols import Unset
+            from xotl.tools.symbols import Unset
 
             default = Unset if count == 0 else args[0]
             if _SECTION_SEP in option:
@@ -241,7 +241,7 @@ class MetaOptions(type):
         """
         count = len(args)
         if count <= 1:
-            from xoutil.symbols import Unset
+            from xotl.tools.symbols import Unset
 
             default = Unset if count == 0 else args[0]
             if _SECTION_SEP in option:

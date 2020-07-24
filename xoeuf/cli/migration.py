@@ -300,8 +300,8 @@ class Module(object):
 
 
 def main():
-    from xoutil.cli.app import main
-    from xoutil.cli import command_name
+    from xotl.tools.cli.app import main
+    from xotl.tools.cli import command_name
 
     main(default=command_name(Migration))
 

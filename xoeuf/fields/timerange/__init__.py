@@ -63,7 +63,7 @@ class TimeRange(Selection):
     _slots = {"time_field": None, "readonly": True}
 
     def __init__(self, time_field, selection=DEFAULT, *args, **kwargs):
-        from xoutil.symbols import Unset
+        from xotl.tools.symbols import Unset
 
         kwargs = dict(dict(copy=False, readonly=True), **kwargs)
         super(TimeRange, self).__init__(

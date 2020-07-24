@@ -10,7 +10,7 @@
 """(Old fashioned) extensions to fields in the ORM.
 
 """
-from xoutil.deprecation import deprecated
+from xotl.tools.deprecation import deprecated
 
 # FIX: Next doesn't work any more in version 10
 from openerp.osv import fields as _v7_fields

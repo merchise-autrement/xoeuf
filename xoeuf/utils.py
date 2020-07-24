@@ -7,7 +7,7 @@
 # This is free software; you can do what the LICENCE file allows you to.
 #
 try:
-    from xoutil.objects import crossmethod  # TODO: migrate
+    from xotl.tools.objects import crossmethod  # TODO: migrate
 except ImportError:
 
     class crossmethod(object):
@@ -45,7 +45,7 @@ except ImportError:
 
 
 try:
-    from xoutil.objects import hybridmethod  # TODO: migrate
+    from xotl.tools.objects import hybridmethod  # TODO: migrate
 except ImportError:
     # Code taken from SQLAlchemy
     #

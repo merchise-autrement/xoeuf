@@ -7,7 +7,7 @@
 # This is free software; you can do what the LICENCE file allows you to.
 #
 try:
-    from xoutil.future.datetime import TimeRange  # TODO: migrate
+    from xotl.tools.future.datetime import TimeRange  # TODO: migrate
 except ImportError:
     from datetime import datetime, time
 
@@ -95,7 +95,7 @@ except ImportError:
 
         @staticmethod
         def _format_time(time):
-            from xoutil.string import cut_suffix
+            from xotl.tools.string import cut_suffix
 
             return cut_suffix(time.isoformat(), ":00")
 

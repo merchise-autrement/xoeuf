@@ -10,14 +10,14 @@
 """Odoo API Extensons.
 
 """
-from xoutil.decorator.meta import decorator as _xdecorator
+from xotl.tools.decorator.meta import decorator as _xdecorator
 
 from xoeuf.odoo import api as _odoo_api
 
 
-# TODO: `copy_members` will be deprecated in xoutil 1.8, use instead the same
-# mechanisms as `xoutil.future`.
-from xoutil.modules import copy_members as _copy_python_module_members
+# TODO: `copy_members` is deprecated since xotl.tools 1.8, use instead the same
+# mechanisms as `xotl.tools.future`.
+from xotl.tools.modules import copy_members as _copy_python_module_members
 
 this = _copy_python_module_members(_odoo_api)
 del _copy_python_module_members
@@ -106,7 +106,7 @@ def from_active_ids(f, leak_context=False):
 
     """
     from functools import wraps
-    from xoutil.context import Context
+    from xotl.tools.context import Context
 
     @multi  # noqa
     @wraps(f)
@@ -135,7 +135,7 @@ _DONT_SKIP_ACTIVE_IDS = object()
 
 
 def leaking_context(leak=False):
-    from xoutil.context import Context
+    from xotl.tools.context import Context
 
     if not leak:
         return Context(_SKIP_ACTIVE_IDS)

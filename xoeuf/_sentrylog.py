@@ -32,7 +32,7 @@ except ImportError:
 # This module is about logging-only, not wrapping the WSGI application in a
 # middleware, etc.
 
-from xoutil.objects import setdefaultattr
+from xotl.tools.objects import setdefaultattr
 
 # A dictionary holding the Raven's client keyword arguments.  You should
 # modify this dictionary before patching the logging.
@@ -191,7 +191,7 @@ def patch_logging(override=True, force=False):
                 tags["db"] = db
 
         def _handle_fingerprint(self, record):
-            from xoutil.names import nameof
+            from xotl.tools.names import nameof
 
             exc_info = record.exc_info
             if exc_info:

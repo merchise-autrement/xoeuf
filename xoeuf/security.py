@@ -14,14 +14,14 @@
 - :func:`reset_invalid_passwords`: to reset all invalid passwords in a
   data-base.
 
-Previous two functions uses `xoutil.crypto.generate_password` to generate new
-passwords using as `pass_phrase` the user login, `level` means a generation
-method.  Each level implies all other with an inferior numerical value.  See
-`xoutil.crypto.generate_password` for more information about defined
-constants of security level.
+Previous two functions uses `xotl.tools.crypto.generate_password` to generate
+new passwords using as `pass_phrase` the user login, `level` means a
+generation method.  Each level implies all other with an inferior numerical
+value.  See `xotl.tools.crypto.generate_password` for more information about
+defined constants of security level.
 
 """
-from xoutil.crypto import (  # noqa
+from xotl.tools.crypto import (  # noqa
     PASS_PHRASE_LEVEL_BASIC,
     PASS_PHRASE_LEVEL_MAPPED,
     PASS_PHRASE_LEVEL_MAPPED_MIXED,
@@ -31,7 +31,7 @@ from xoutil.crypto import (  # noqa
 )
 
 
-from xoutil.names import strlist as strs
+from xotl.tools.names import strlist as strs
 
 __all__ = strs(
     "PASS_PHRASE_LEVEL_BASIC",
@@ -70,8 +70,8 @@ def _reset_passwords(self, security_level, verbose, check=None):
              `login` the user login identifier.
 
     """
-    from xoutil.crypto import generate_password
-    from xoutil.future.codecs import safe_encode
+    from xotl.tools.crypto import generate_password
+    from xotl.tools.future.codecs import safe_encode
 
     users = self.search([])
     for user in users:

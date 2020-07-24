@@ -15,10 +15,9 @@ class Monetary(Base):
     This is the same as Odoo's original `odoo.fields.Monetary`:class:, with an
     additional attribute:
 
-    :param concrete: If set to True record-set will return the value as a
-                     `concrete monetary value <xoutil.dim.currencies>`:mod:.
-                     Which means you can only operate it with commensurable
-                     monetary values.
+    :param concrete: If set to True record-set will return the value as a `concrete
+                     monetary value <xotl.tools.dim.currencies>`:mod:.  Which means you
+                     can only operate it with commensurable monetary values.
 
     """
 
@@ -30,7 +29,7 @@ class Monetary(Base):
     # the cache.  So the best approach is just to override the __get__ of the
     # descriptor.
     def __get__(self, instance, owner):
-        from xoutil.dim.currencies import currency as Currency
+        from xotl.tools.dim.currencies import currency as Currency
 
         result = super(Monetary, self).__get__(instance, owner)
         if instance and self.concrete:

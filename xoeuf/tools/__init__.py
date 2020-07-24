@@ -13,7 +13,7 @@
 import datetime
 from typing import Union, Any  # noqa
 
-from xoutil.names import nameof
+from xotl.tools.names import nameof
 
 try:
     from xoeuf.odoo.tools import safe_eval, float_round  # noqa: reexport
@@ -149,7 +149,7 @@ def normalize_datetime(which):
     For instance, having ``now`` and ``today`` values like::
 
        >>> import datetime
-       >>> from xoutil.objects import validate_attrs
+       >>> from xotl.tools.objects import validate_attrs
        >>> now = datetime.datetime(2014, 12, 20, 16, 0, 17, 678233)
        >>> today = now.date()
 
@@ -390,7 +390,7 @@ def add_symbols_to_xmls(*objs, **symbols):
     function once and update the global dict
 
     :param objs: Objects to be made available under its `proper name
-                 <xoutil.names.nameof>`:func:.
+                 <xotl.tools.names.nameof>`:func:.
 
     :param symbols: Objects to be made available under the keyword argument.
 
