@@ -473,7 +473,7 @@ class DomainTerm(object):
             self.left, self.operator, self.right = term
         else:
             # TODO: May be a # TypeError.
-            raise ValueError("Invalid domain term %r" % term)
+            raise ValueError("Invalid domain term %r" % (term,))
 
     def __getitem__(self, x):
         if self.is_leaf:
@@ -658,7 +658,7 @@ class DomainTree(object):
         if self.is_leaf:
             return repr(self.term)
         else:
-            return "(%s)" % (" %r " % self.term).join(
+            return "(%s)" % (" %r " % (self.term,)).join(
                 repr(child) for child in self.sorted_children
             )
 

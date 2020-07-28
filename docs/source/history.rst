@@ -10,6 +10,15 @@ Deprecations may occur and we may increase compatibility with Odoo 13.  But
 we'll continue to support Odoo 12 during the entire lifespan of xoeuf 2.x.
 
 
+Unreleased.  Release 2.1.0
+--------------------------
+
+- Fixes bug `#10`__: TypeError: not all arguments converted during string
+  formatting
+
+  __ https://gitlab.merchise.org/mercurio-2018/xoeuf/-/issues/10
+
+
 2020-07-24.  Release 2.0.1
 --------------------------
 
