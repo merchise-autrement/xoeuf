@@ -6,6 +6,7 @@
 #
 # This is free software; you can do what the LICENCE file allows you to.
 #
+from pytz import timezone
 from datetime import datetime, time
 from functools import partial
 
@@ -13,7 +14,7 @@ from odoo.fields import Selection, Datetime, Float, Default as DEFAULT
 
 from .utils import TimeRange as _TimeRangeObject
 
-from ...tools import normalize_datetime, get_time_from_float
+from ...tools import get_time_from_float
 
 
 class TimeField(_TimeRangeObject):
@@ -47,6 +48,9 @@ class TimeRange(Selection):
 
     :param t_field: The name of the column that contains the day time.
 
+    :param tzone_field: The name of the field from which to read the timezone 
+           where the event happens.  If None, UTC is used.
+
     :param selection: The possible ranges for this field.  It is given as
         either a list of tuples ``(value, string, start, end)``, a model
         method, or a method name.  `value` is the range identifier; `string`
@@ -60,23 +64,30 @@ class TimeRange(Selection):
 
     type = "timerange"  # Q: Do we need to change the type?
 
-    _slots = {"time_field": None, "readonly": True}
+    _slots = {"time_field": None, "readonly": True, "tzone_field": None}
 
-    def __init__(self, time_field, selection=DEFAULT, *args, **kwargs):
+    def __init__(
+        self, time_field, tzone_field=None, selection=DEFAULT, *args, **kwargs
+    ):
         from xotl.tools.symbols import Unset
 
         kwargs = dict(dict(copy=False, readonly=True), **kwargs)
         super(TimeRange, self).__init__(
-            time_field=time_field or Unset, selection=selection, *args, **kwargs
+            time_field=time_field or Unset,
+            tzone_field=tzone_field or Unset,
+            selection=selection,
+            *args,
+            **kwargs,
         )
         self.time_field = time_field or Unset
+        self.tzone_field = tzone_field or Unset
 
     def new(self, **kwargs):
         # Pass original args to the new one.  This ensures that the
         # t_field and selection are present.  In odoo/models.py, Odoo calls
         # this `new()` without arguments to duplicate the fields from parent
         # classes.
-        return type(self)(self.time_field, **kwargs)
+        return type(self)(self.time_field, self.tzone_field, **kwargs)
 
     def setup_full(self, model):
         super(TimeRange, self).setup_full(model)
@@ -93,7 +104,7 @@ class TimeRange(Selection):
         # with a timerange. In such a case, we don't override the
         # compute method.
         super(TimeRange, self)._setup_regular_full(env)
-        self.depends = (self.time_field,)
+        self.depends = tuple(f for f in (self.time_field, self.tzone_field) if f)
         self.compute = self._compute
 
     def _description_selection(self, env):
@@ -148,13 +159,15 @@ class TimeRange(Selection):
 
     def _compute(self, records):
         time_field = self.time_field
+        tzone_field = self.tzone_field or ""
         env = records.env
         field = records._fields[time_field]
         for item in records:
             t_value = getattr(item, time_field)
             if isinstance(field, Datetime):
-                dt = normalize_datetime(t_value)
-                _time = dt.time()
+                tz = timezone(getattr(item, tzone_field, False) or "UTC")
+                t_value_localized = t_value.astimezone(tz)
+                _time = t_value_localized.time()
             if isinstance(field, Float):
                 _time = get_time_from_float(t_value)
             setattr(item, self.name, self._compute_selection(_time, env))
