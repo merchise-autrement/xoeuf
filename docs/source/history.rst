@@ -10,6 +10,13 @@ Deprecations may occur and we may increase compatibility with Odoo 13.  But
 we'll continue to support Odoo 12 during the entire lifespan of xoeuf 2.x.
 
 
+2020-08-31.  Release 2.2.0
+--------------------------
+
+- Add an argument to `xoeuf.fields.TimeRange`:class: to select the time zone
+  the underlying date is to be regarded.
+
+
 2020-07-28.  Release 2.1.0
 --------------------------
 
