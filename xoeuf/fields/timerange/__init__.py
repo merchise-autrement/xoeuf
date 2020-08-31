@@ -48,17 +48,17 @@ class TimeRange(Selection):
 
     :param t_field: The name of the column that contains the day time.
 
-    :param tzone_field: The name of the field from which to read the timezone 
-           where the event happens.  If None, UTC is used.
+    :param tzone_field: The name of the field from which to read the timezone
+        where the event happens. If None, UTC is used.
 
-    :param selection: The possible ranges for this field.  It is given as
+    :param selection: The possible ranges for this field. It is given as
         either a list of tuples ``(value, string, start, end)``, a model
-        method, or a method name.  `value` is the range identifier; `string`
+        method, or a method name. `value` is the range identifier; `string`
         is the translatable text to show; `start` and `end` are values of
         times expressed in the 'hour:minutes' format.
 
-    :param selection_add: Adds more options to the `selection`.  Only needed
-                          if your extending an existing model's field.
+    :param selection_add: Adds more options to the `selection`. Only needed
+        if your extending an existing model's field.
 
     """
 
