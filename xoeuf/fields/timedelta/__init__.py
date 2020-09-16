@@ -22,7 +22,7 @@ class TimeDelta(Float):
 
     @staticmethod
     def ensure_timedelta(value):
-        """ If `value` is not an timedelta value is assume as float that
+        """If `value` is not an timedelta value is assume as float that
         represent the quantity of seconds.
 
         :param value:

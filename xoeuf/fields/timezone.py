@@ -20,7 +20,5 @@ def _tz_get(self):
 
 
 def TimezoneSelection(*args, **kwargs):
-    """A selection field for installed timezones.
-
-    """
+    """A selection field for installed timezones."""
     return fields.Selection(_tz_get, *args, **kwargs)

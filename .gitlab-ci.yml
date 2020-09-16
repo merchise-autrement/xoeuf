@@ -7,10 +7,13 @@ stages:
   - publish
 
 check code smells (with Bugbear and Python 3.6):
-  image: registry.merchise.org/merchise/python-dev:3.6-alpine
+  image: python:3.6-alpine
   stage: check
   script:
-    - merchise_lint
+    - |
+      apk add git
+      pip install 'flake8-bugbear~=20.1' 'xoutil~=2.1' merchise.lint>=0.16 git+https://github.com/pycqa/pyflakes@4ed1ba41d1406dbb6c9ffbd369c2f523c2dc48f3
+      merchise_lint
   only:
     refs:
       - master
@@ -19,10 +22,11 @@ check code smells (with Bugbear and Python 3.6):
       - xoeuf/**/*.py
 
 check formatting with black:
-  image: registry.merchise.org/merchise/python-dev:3.6-alpine
+  image: python:3.6
   stage: check
   script:
-    - /usr/local/bin/black --check xoeuf/
+    - pip install 'black==20.8b1'
+    - black --check xoeuf/
   only:
     refs:
       - master

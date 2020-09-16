@@ -108,8 +108,8 @@ class TimeRange(Selection):
         self.compute = self._compute
 
     def _description_selection(self, env):
-        """ return the selection list (tuple (value, label, start, end)); labels
-            are translated according to context language
+        """return the selection list (tuple (value, label, start, end)); labels
+        are translated according to context language
         """
         selection = self.selection
         if isinstance(selection, str):
