@@ -12,7 +12,7 @@ from unittest import skipIf
 from hypothesis import strategies as s, given
 
 from xoeuf import fields, MAJOR_ODOO_VERSION
-from xoeuf.odoo.tests.common import TransactionCase, at_install, post_install
+from odoo.tests.common import TransactionCase, at_install, post_install
 
 from ..models import COLORS, Pax, CARS, WORK_TYPE
 

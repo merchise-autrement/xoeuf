@@ -16,11 +16,11 @@ from hypothesis.stateful import run_state_machine_as_test
 
 from xoeuf.osv import expression as expr
 from xoeuf.osv import ql
-from xoeuf.odoo.osv import expression as odoo_expr
 from xoeuf.osv.expression import Domain
 
 from xotl.tools.future.collections import opendict
 
+from odoo.osv import expression as odoo_expr
 from odoo.tests.common import TransactionCase, BaseCase
 
 names = s.text(alphabet="abdefgh", min_size=1, max_size=5)

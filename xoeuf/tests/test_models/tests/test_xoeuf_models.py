@@ -6,7 +6,8 @@
 #
 # This is free software; you can do what the LICENCE file allows you to.
 #
-from xoeuf.odoo.tests.common import TransactionCase
+from odoo.tests.common import TransactionCase
+
 from xoeuf.models.extensions import get_ref
 
 

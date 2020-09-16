@@ -6,10 +6,11 @@
 #
 # This is free software; you can do what the LICENCE file allows you to.
 #
-
 """Helpers to generate ``BaseModel.write`` commands.
 
 """
+
+from odoo import fields
 
 
 class _BaseWriter(object):
@@ -32,30 +33,10 @@ class _BaseWriter(object):
     __getitem__ = _get_field
 
     def _is_many2many(self, attrname):
-        from xoeuf.odoo.fields import Many2many
-
-        rel_types = (Many2many,)
-        try:
-            from openerp.osv.fields import many2many
-
-            rel_types += (many2many,)
-        except ImportError:
-            pass
-        return isinstance(self[attrname], rel_types)
+        return isinstance(self[attrname], fields.Many2many)
 
     def _is_one2many(self, attrname):
-        from xoeuf.odoo.fields import One2many
-
-        # XXX: Don't understand next
-        try:
-            from openerp.osv.fields import one2many
-        except ImportError:
-
-            class one2many(object):
-                # I have no instances
-                pass
-
-        return isinstance(self[attrname], (one2many, One2many))
+        return isinstance(self[attrname], fields.One2many)
 
     @property
     def commands(self):

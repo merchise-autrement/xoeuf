@@ -18,56 +18,8 @@ from xotl.tools.modules import customize
 from xotl.tools.modules import modulemethod
 from xotl.tools.string import cut_prefix
 
-# In Odoo 10, they allow to import from both 'odoo' and 'openerp'
 _ADDONS_NAMESPACE = re.compile(r"^(?:odoo|openerp)\.addons\.(?P<module>[^\.]+)\.")
-
 XOEUF_EXTERNAL_ADDON_GROUP = "xoeuf.addons"
-
-
-# XXX: @manu, probably the prefix 'xoeuf.' could be avoided.
-class OdooHook(object):
-    """Hook for 'odoo' (or 'openerp') package to be available as 'xoeuf.odoo'.
-
-    """
-
-    try:
-        import openerp as _mod
-    except ImportError:
-        # In Odoo 9 they have an 'odoo.py' that is importable when developing
-        # (buildout, etc), so we have to try to import 'openerp' before trying
-        # 'odoo'.
-        import odoo as _mod
-    NAME = _mod.__name__
-    del _mod
-    REGEX = r"^xoeuf[.](?:openerp|odoo)\b"
-
-    def find_module(self, name, path=None):
-        import re
-
-        if re.match(self.REGEX, name):
-            return self
-
-    def load_module(self, name):
-        import sys
-        import re
-        import importlib
-
-        assert name not in sys.modules
-        regex = self.REGEX + r"(.*)"
-        canonical = re.sub(regex, self.NAME + r"\g<1>", name)
-        if canonical in sys.modules:
-            mod = sys.modules[canonical]
-        else:
-            # probable failure
-            mod = importlib.import_module(canonical)
-        # just set the original module at the new location. Don't proxy,
-        # it breaks *-import (unless you can find how `from a import *` lists
-        # what's supposed to be imported by `*`, and manage to override it)
-        sys.modules[name] = mod
-        return sys.modules[name]
-
-
-sys.meta_path.insert(0, OdooHook())
 
 
 class _PatchesRegistry(object):
@@ -85,7 +37,7 @@ class _PatchesRegistry(object):
         return self._wrapped[name]
 
     def apply(self):
-        from xoeuf.odoo.modules import module
+        from odoo.modules import module
 
         patched = getattr(module, "__xoeuf_patched__", False)
         if patched:
@@ -153,7 +105,7 @@ def find_external_addons(self):
 @modulemethod
 def initialize_sys_path(self):
     from xotl.tools.objects import setdefaultattr
-    from xoeuf.odoo.modules import module
+    from odoo.modules import module
 
     _super = patch.get_super("initialize_sys_path")
     external_addons = setdefaultattr(self, "__addons", [])
@@ -169,9 +121,7 @@ def initialize_sys_path(self):
 
 
 def patch_modules():
-    """Patches OpenERP `modules.module` to work with external addons.
-
-    """
+    """Patches OpenERP `modules.module` to work with external addons."""
     patch.apply()
 
 
@@ -210,8 +160,8 @@ def get_dangling_modules(db):
 
     """
     from xoeuf import api
-    from xoeuf.odoo import SUPERUSER_ID
-    from xoeuf.odoo.modules.module import get_modules
+    from odoo import SUPERUSER_ID
+    from odoo.modules.module import get_modules
 
     registry = _get_registry(db)
     cr = registry.cursor()
@@ -297,4 +247,4 @@ def get_caller_addon(depth=0, max_depth=5):
     return res
 
 
-del re, logging, OdooHook
+del re, logging

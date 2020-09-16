@@ -31,7 +31,7 @@ from itertools import chain
 
 from xotl.tools.deprecation import deprecated
 
-from xoeuf.odoo.osv import expression as _odoo_expression
+from odoo.osv import expression as _odoo_expression
 from xoeuf.utils import crossmethod
 
 
@@ -58,7 +58,7 @@ KIND_OPERATOR = "OPERATOR"
 KIND_TERM = "TERM"
 
 
-# Exports normalize_leaf so that we can replace 'from xoeuf.odoo.
+# Exports normalize_leaf so that we can replace 'from odoo.
 def normalize_leaf(term):
     if this.is_leaf(term):
         left, operator, right = this.normalize_leaf(term)
@@ -87,7 +87,7 @@ class Domain(list):
         # TODO: Can you do some sanity check to avoid common mistakes?  For
         # me, it's normal that I do ``Model.search(['field', '=', value])``
         # and forget the tuple...
-        from xoeuf.odoo.tools.safe_eval import const_eval
+        from odoo.tools.safe_eval import const_eval
 
         seq = seq or ()
         # some times the domains are saved in db in char or text fields.
@@ -301,9 +301,7 @@ class Domain(list):
         return Domain(["!"] + self.second_normal_form)
 
     def __eq__(self, other):
-        """Two domains are equivalent if both have similar DomainTree.
-
-        """
+        """Two domains are equivalent if both have similar DomainTree."""
         # TODO: In logic, we can identify two predicates if: a implies
         # b and b implies a, although this has nothing to do with them being
         # the *same* predicate.  However, since this implementation only
@@ -393,9 +391,7 @@ class Domain(list):
         )
 
     def _get_filter_ast(self, this="this", *, convert_false=True, convert_none=False):
-        """Get compilable AST of the lambda obtained by `get_filter`:func:.
-
-        """
+        """Get compilable AST of the lambda obtained by `get_filter`:func:."""
         stack = []
         for kind, term in self.walk():
             if kind == KIND_TERM:
@@ -618,9 +614,7 @@ class DomainTree(object):
         return not self.is_operator
 
     def _simplify(self):
-        """Remove redundant branches.
-
-        """
+        """Remove redundant branches."""
         for child in set(self.children):
             if self.term == this.AND_OPERATOR:
                 # If current `child` is implied by any other ignore it.
@@ -747,7 +741,7 @@ class DomainTree(object):
                     yield (KIND_OPERATOR, self.term)
 
 
-# Exports AND and OR so that we can replace 'from xoeuf.odoo.
+# Exports AND and OR so that we can replace 'from odoo.
 def AND(domains):
     return Domain.AND(*domains)
 

@@ -9,7 +9,7 @@
 from collections import defaultdict
 from inspect import getmembers
 
-from xoeuf.odoo import api, models, tools
+from odoo import api, models, tools
 from xoeuf.osv.expression import Domain
 from xoeuf.modules import get_caller_addon
 
@@ -31,7 +31,7 @@ def get_modelname(model):
        <xoeuf.models.proxy>`:mod: is an error.
 
     """
-    from xoeuf.odoo.models import BaseModel
+    from odoo.models import BaseModel
 
     if not isinstance(model, BaseModel) and not issubclass(model, BaseModel):
         msg = "Invalid argument '%s' for param 'model'" % model
@@ -101,7 +101,7 @@ models.BaseModel._setup_complete = _setup_complete
 # add :meth:`odoo.models.BaseModel.resolve_deps`
 @api.model
 def resolve_deps(self, method):
-    """ Get the `method` dependencies list.
+    """Get the `method` dependencies list.
 
     Return the list of dependencies of ``method`` as tuples
     ``(model, field, path)``, where ``path`` is an optional list of field
@@ -136,7 +136,7 @@ models.BaseModel.resolve_deps = resolve_deps
 # add :meth:`odoo.models.BaseModel.setup_triggers`
 @api.model
 def setup_triggers(self):
-    """ Add the necessary triggers to execute updater methods.
+    """Add the necessary triggers to execute updater methods.
 
     Abstract models do not add triggers, these are not instantiated directly.
 

@@ -25,7 +25,7 @@ def guess_id(which, attr="id"):
     TypeError.
 
     """
-    from xoeuf.odoo.osv.orm import browse_record
+    from odoo.osv.orm import browse_record
     from xotl.tools.future.collections import Mapping
 
     if isinstance(which, int):

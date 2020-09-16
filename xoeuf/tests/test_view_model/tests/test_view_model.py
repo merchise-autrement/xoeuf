@@ -6,8 +6,8 @@
 #
 # This is free software; you can do what the LICENCE file allows you to.
 #
-from xoeuf.odoo.tests.common import TransactionCase
-from xoeuf.odoo.exceptions import ValidationError
+from odoo.tests.common import TransactionCase
+from odoo.exceptions import ValidationError
 
 
 class TestViewModel(TransactionCase):

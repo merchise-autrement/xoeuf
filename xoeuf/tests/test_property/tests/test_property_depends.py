@@ -8,8 +8,8 @@
 #
 from hypothesis import given, strategies as st, assume
 
-from xoeuf.odoo.tests.common import TransactionCase
-from xoeuf.odoo.addons.test_property.models import Undefined
+from odoo.tests.common import TransactionCase
+from odoo.addons.test_property.models import Undefined
 
 
 values = st.floats(allow_infinity=False, allow_nan=False) | st.integers()

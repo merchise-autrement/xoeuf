@@ -6,13 +6,13 @@
 #
 # This is free software; you can do what the LICENCE file allows you to.
 #
-from xoeuf.odoo.tests.common import BaseCase
+from odoo.tests.common import BaseCase
 
 try:
-    from xoeuf.odoo.addons.base.models.ir_model import FIELD_TYPES
+    from odoo.addons.base.models.ir_model import FIELD_TYPES
 except ImportError:
     try:
-        from xoeuf.odoo.addons.base.ir.ir_model import FIELD_TYPES
+        from odoo.addons.base.ir.ir_model import FIELD_TYPES
     except ImportError:
         # Odoo 10 is cool
         FIELD_TYPES = None

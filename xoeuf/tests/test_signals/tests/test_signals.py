@@ -11,7 +11,6 @@ import unittest
 from xotl.tools.future.codecs import safe_decode
 
 from xoeuf import MAJOR_ODOO_VERSION
-from xoeuf.odoo.tests.common import TransactionCase, at_install, post_install
 from xoeuf.signals import (
     mock_replace,
     post_create,
@@ -20,7 +19,11 @@ from xoeuf.signals import (
     pre_fields_view_get,
     no_signals,
 )
-from xoeuf.odoo.addons.test_signals.models import (
+
+from odoo.tests.common import TransactionCase, at_install, post_install
+
+# Don't import relatively
+from odoo.addons.test_signals.models import (
     post_save_receiver,
     post_save_receiver_all_models,
     pre_save_receiver,
