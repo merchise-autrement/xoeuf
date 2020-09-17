@@ -5,6 +5,7 @@ stages:
   - test
   - build
   - publish
+  - clean up
 
 check code smells (with Bugbear and Python 3.6):
   image: python:3.6-alpine
@@ -224,3 +225,14 @@ publish in our rtd:
     changes:
       - xoeuf/**/*.py
       - docs/**/*.rst
+
+automatically remove MR documentation from our RTD server after 4 hours:
+  stage: clean up
+  rules:
+    - if: '$CI_COMMIT_REF_NAME == "master"'
+      when: never
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: on_success
+    - when: never
+  trigger:
+    include: ci/cleanup.yml
