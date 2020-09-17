@@ -16,7 +16,7 @@ from typing import Union, Any  # noqa
 from xotl.tools.names import nameof
 
 try:
-    from xoeuf.odoo.tools import safe_eval, float_round  # noqa: reexport
+    from odoo.tools import safe_eval, float_round  # noqa: reexport
 except ImportError:
     # This allows to generate the documentation without actually installing
     # Odoo
@@ -24,7 +24,7 @@ except ImportError:
 
 
 try:
-    from xoeuf.odoo.tools import (
+    from odoo.tools import (
         DEFAULT_SERVER_DATE_FORMAT as _SVR_DATE_FMT,
         DEFAULT_SERVER_DATETIME_FORMAT as _SVR_DATETIME_FMT,
     )
@@ -64,7 +64,7 @@ def localize_datetime(self, datetime_value=None, from_tz="UTC", to_tz="UTC"):
     If `from_tz` is the same as `to_tz`, return `datetime_value`.
 
     """
-    from xoeuf.odoo import fields
+    from odoo import fields
 
     if not from_tz:
         from_tz = self.env.user.tz or "UTC"
@@ -250,7 +250,7 @@ def normalize_date(which):
 
 def dt_as_timezone(dt, tz_name=None):
     # type: (datetime.datetime, str) -> datetime.datetime
-    """ Localize datetime in desired timezone.
+    """Localize datetime in desired timezone.
 
     :param datetime dt: datetime
     :param string tz_name: name of the timezone to localize the datetime
@@ -300,16 +300,14 @@ def localtime_as_remotetime(dt_UTC, from_tz=utc, as_tz=utc, ignore_dst=False):
 
 
 def get_time_from_float(value):
-    """Get time tuple ``(h, m, s)`` from a float `value`.
-
-    """
+    """Get time tuple ``(h, m, s)`` from a float `value`."""
     hours, minutes = divmod(value * 60, 60)
     minutes, seconds = divmod(minutes * 60, 60)
     return datetime.time(hour=int(hours), minute=int(minutes), second=int(seconds))
 
 
 def get_time_string(time, up_24=True, include_seconds=False):
-    """ Get a human friendly representation of `time`.
+    """Get a human friendly representation of `time`.
 
     :param time_value: time value.
 
@@ -345,7 +343,7 @@ def get_time_string(time, up_24=True, include_seconds=False):
 
 
 def get_time_string_from_float(value, up_24=True, include_seconds=False):
-    """ Get a human friendly representation of time from a float value.
+    """Get a human friendly representation of time from a float value.
 
     :param value: float value that represent a time value.
 
@@ -405,7 +403,7 @@ def add_symbols_to_xmls(*objs, **symbols):
 
 
 # HACK to make TERM_RELATIONSHIP_KIND available in XMLs.
-from xoeuf.odoo.tools import convert
+from odoo.tools import convert
 
 _safe_eval = convert.safe_eval
 

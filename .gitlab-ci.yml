@@ -7,10 +7,13 @@ stages:
   - publish
 
 check code smells (with Bugbear and Python 3.6):
-  image: registry.merchise.org/merchise/python-dev:3.6-alpine
+  image: python:3.6-alpine
   stage: check
   script:
-    - merchise_lint
+    - |
+      apk add git
+      pip install 'flake8-bugbear~=20.1' 'xoutil~=2.1' merchise.lint>=0.16 git+https://github.com/pycqa/pyflakes@4ed1ba41d1406dbb6c9ffbd369c2f523c2dc48f3
+      merchise_lint
   only:
     refs:
       - master
@@ -19,10 +22,11 @@ check code smells (with Bugbear and Python 3.6):
       - xoeuf/**/*.py
 
 check formatting with black:
-  image: registry.merchise.org/merchise/python-dev:3.6-alpine
+  image: python:3.6
   stage: check
   script:
-    - /usr/local/bin/black --check xoeuf/
+    - pip install 'black==20.8b1'
+    - black --check xoeuf/
   only:
     refs:
       - master
@@ -176,11 +180,9 @@ build documentation:
       pip install -e .
       pip install sphinx sphinx-rtd-theme
       make -C docs/ html
-      cd docs/build/html
-      tar -cjf ../../../$CI_PROJECT_NAME-$CI_COMMIT_SHA.tar.bz2 ./
   artifacts:
     paths:
-      - $CI_PROJECT_NAME-$CI_COMMIT_SHA.tar.bz2
+      - docs/build/html
     expire_in: 4 days
   only:
     refs:
@@ -193,18 +195,22 @@ build documentation:
 
 
 publish in our rtd:
+  image: alpine
   variables:
     GIT_STRATEGY: none
   stage: publish
   script:
-    - scp $CI_PROJECT_NAME-$CI_COMMIT_SHA.tar.bz2 rtd@docs.lahavane.com:.
-    - ssh rtd@docs.lahavane.com mkdir -p $CI_PROJECT_NAME/.$CI_COMMIT_SHA
-    - ssh rtd@docs.lahavane.com tar -xf $CI_PROJECT_NAME-$CI_COMMIT_SHA.tar.bz2 -C $CI_PROJECT_NAME/.$CI_COMMIT_SHA
-    - ssh rtd@docs.lahavane.com "rm -r /var/www/html/$CI_PROJECT_NAME/$CI_COMMIT_REF_NAME; ln -sr /var/www/html/$CI_PROJECT_NAME/.$CI_COMMIT_SHA /var/www/html/$CI_PROJECT_NAME/$CI_COMMIT_REF_NAME"
-    - ssh rtd@docs.lahavane.com rm $CI_PROJECT_NAME-$CI_COMMIT_SHA.tar.bz2
-    - ssh rtd@docs.lahavane.com "cd /var/www/html/$CI_PROJECT_NAME; ls -al | grep -oE '\.([0-9]|[a-z])*$' | sort | uniq -c | grep '1 ' | grep -oE '\.([0-9]|[a-z])*$' | xargs rm -rf"
-  tags:
-    - rtd@docs.lahavane.com
+    - |
+      apk add openssh rsync
+      mkdir -p $HOME/.ssh
+      chmod 700 $HOME/.ssh
+      cp $RSA_KEY_FILE $HOME/.ssh/id_rsa
+      chmod 600 $HOME/.ssh/id_rsa
+      cp $SSH_CONFIG_FILE $HOME/.ssh/config
+      ssh docs.lahavane.com mkdir -p /data/$CI_PROJECT_NAME/.$CI_COMMIT_SHA
+      rsync -auvp -e ssh ./docs/build/html/ docs.lahavane.com:/data/$CI_PROJECT_NAME/.$CI_COMMIT_SHA/
+      ssh docs.lahavane.com "cd /data/$CI_PROJECT_NAME; rm -r $CI_COMMIT_REF_NAME; ln -s .$CI_COMMIT_SHA $CI_COMMIT_REF_NAME"
+      ssh docs.lahavane.com "cd /data/$CI_PROJECT_NAME; ls -al | grep -oE '\.([0-9]|[a-z])*$' | sort | uniq -c | grep '1 ' | grep -oE '\.([0-9]|[a-z])*$' | xargs rm -rf"
   needs:
     - build documentation
   environment:

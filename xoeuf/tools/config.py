@@ -35,7 +35,7 @@ class MetaOptions(type):
 
     def __new__(cls, name, bases, attrs):
         if cls.__singleton__ is None:
-            from xoeuf.odoo.tools import config
+            from odoo.tools import config
 
             attrs["__new__"] = None  # can't be instantiated!
             attrs["wrapped"] = config
@@ -136,7 +136,7 @@ class MetaOptions(type):
     def get(self, option, default=None):
         """returns options[option] if option in options, else default
 
-            default is None if not given.
+        default is None if not given.
 
         """
         if _SECTION_SEP in option:

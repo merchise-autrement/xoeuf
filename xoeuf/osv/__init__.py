@@ -53,7 +53,7 @@ def savepoint(cr, name=None):
 
 
 def datetime_user_to_server_tz(cr, uid, userdate, tz_name=None, context=None):
-    """ Convert date values expressed in user's timezone to
+    """Convert date values expressed in user's timezone to
     server-side UTC timestamp.
 
     :param datetime userdate: datetime in user time zone
@@ -77,7 +77,7 @@ def datetime_user_to_server_tz(cr, uid, userdate, tz_name=None, context=None):
 
 
 def datetime_server_to_user_tz(cr, uid, serverdate, tz_name=None, context=None):
-    """ Convert date values expressed in server-side UTC timestamp to
+    """Convert date values expressed in server-side UTC timestamp to
     user's timezone.
 
     :param datetime serverdate: datetime in server-side UTC timestamp.

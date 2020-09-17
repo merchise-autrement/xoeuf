@@ -19,9 +19,7 @@ from xotl.tools.cli import Command as BaseCommand
 
 
 class CommandsProxy(BaseCommand):
-    """Define a proxy to register all OpenERP CLI commands to "xotl.tools.cli".
-
-    """
+    """Define a proxy to register all OpenERP CLI commands to "xotl.tools.cli"."""
 
     __new__ = None  # Can't be instantiated
 
@@ -35,12 +33,8 @@ class CommandsProxy(BaseCommand):
         name = "__commands_cache__"
         res = getattr(cls, name, None)
         if not res:
-            try:
-                # TODO: which version is that? do we support it?
-                from openerp.cli import commands
-            except ImportError:
-                from xoeuf.odoo.cli.command import commands
-            from xoeuf.odoo.modules.module import initialize_sys_path
+            from odoo.cli.command import commands
+            from odoo.modules.module import initialize_sys_path
 
             cls._discover_addons_path()
             initialize_sys_path()
@@ -56,7 +50,7 @@ class CommandsProxy(BaseCommand):
         prefix = "--addons-path="
         addons_path = next((a for a in args if a.startswith(prefix)), None)
         if addons_path:
-            from xoeuf.odoo.tools import config
+            from odoo.tools import config
 
             config.parse_config([addons_path])
 

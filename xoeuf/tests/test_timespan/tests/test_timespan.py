@@ -10,7 +10,8 @@ from xotl.tools.future.datetime import TimeSpan, parse_date
 
 from datetime import date
 from hypothesis import strategies, given
-from xoeuf.odoo.tests.common import TransactionCase
+
+from odoo.tests.common import TransactionCase
 
 
 maybe_dates = strategies.dates(min_value=date(1900, 1, 1)) | strategies.none()

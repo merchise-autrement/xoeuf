@@ -18,9 +18,7 @@ from . import Command
 
 
 class Secure(Command):
-    """The secure command.
-
-    """
+    """The secure command."""
 
     @classmethod
     def get_arg_parser(cls):
@@ -92,8 +90,8 @@ class Secure(Command):
 
     @classmethod
     def database_factory(cls, database):
-        from xoeuf.odoo import api, SUPERUSER_ID
-        from xoeuf.odoo.modules.registry import Registry
+        from odoo import api, SUPERUSER_ID
+        from odoo.modules.registry import Registry
 
         db = Registry(database)
         env = api.Environment(db.cursor(), SUPERUSER_ID, {})
@@ -143,7 +141,7 @@ class Secure(Command):
 
     @staticmethod
     def load_config_from_inifile(filename):
-        from xoeuf.odoo.tools import config
+        from odoo.tools import config
 
         config.rcfile = filename
         config.load()

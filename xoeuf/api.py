@@ -6,13 +6,12 @@
 #
 # This is free software; you can do what the LICENCE file allows you to.
 #
-
 """Odoo API Extensons.
 
 """
 from xotl.tools.decorator.meta import decorator as _xdecorator
 
-from xoeuf.odoo import api as _odoo_api
+from odoo import api as _odoo_api
 
 
 # TODO: `copy_members` is deprecated since xotl.tools 1.8, use instead the same

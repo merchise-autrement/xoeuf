@@ -18,8 +18,8 @@ from . import modules  # noqa; bootstrap 'xoeuf.odoo'
 from . import signals  # noqa; bootstrap signals
 from .osv import orm  # bootstrap 'orm' (injects _RELATED in XMLs 'eval')
 
-from xoeuf.odoo import SUPERUSER_ID  # noqa
-from xoeuf.odoo.release import version_info as ODOO_VERSION_INFO  # noqa
+from odoo import SUPERUSER_ID  # noqa
+from odoo.release import version_info as ODOO_VERSION_INFO  # noqa
 
 MAJOR_ODOO_VERSION = ODOO_VERSION_INFO[0]  # noqa
 

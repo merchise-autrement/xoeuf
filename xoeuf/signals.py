@@ -13,16 +13,14 @@ import logging
 from functools import wraps
 from threading import RLock
 
-from xoeuf.odoo import api, models
-from xotl.tools.objects import temp_attributes
-from xotl.tools.symbols import Unset
-
-from xotl.tools.future.contextlib import ExitStack, contextmanager
 from expiringdict import ExpiringDict
 
+from odoo import api, models
+from odoo.release import version_info as ODOO_VERSION_INFO
 
-# Cannot import 'from xoeuf' because of import cycle
-from xoeuf.odoo.release import version_info as ODOO_VERSION_INFO
+from xotl.tools.objects import temp_attributes
+from xotl.tools.symbols import Unset
+from xotl.tools.future.contextlib import ExitStack, contextmanager
 
 MAJOR_ODOO_VERSION = ODOO_VERSION_INFO[0]
 
@@ -120,9 +118,7 @@ class HookDefinition(object):
 
 
 class Signal(HookDefinition):
-    """Base class for all signals
-
-    """
+    """Base class for all signals"""
 
     def send(self, sender, **kwargs):
         """Send signal from sender to all connected receivers.

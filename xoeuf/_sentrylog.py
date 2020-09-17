@@ -48,7 +48,7 @@ _sentry_client = None
 
 
 def get_client():
-    from xoeuf.odoo.tools import config
+    from odoo.tools import config
 
     global _sentry_client
     overrides = config.misc.get("sentry", {})
@@ -56,7 +56,7 @@ def get_client():
     if not _sentry_client and "dsn" in conf:
         releasetag = conf.pop("release-tag", "")
         if "release" not in conf:
-            from xoeuf.odoo.release import version
+            from odoo.release import version
 
             conf["release"] = "%s/%s" % (version, releasetag)
         transport = conf.get("transport", None)
@@ -90,7 +90,7 @@ def patch_logging(override=True, force=False):
 
     """
     try:
-        from xoeuf.odoo import sentrylog  # noqa
+        from odoo import sentrylog  # noqa
     except ImportError:
         sentrylog = None
     if sentrylog and not force:
@@ -100,14 +100,14 @@ def patch_logging(override=True, force=False):
 
     import logging
     from raven.handlers.logging import SentryHandler as Base
-    from xoeuf.odoo.netsvc import init_logger
+    from odoo.netsvc import init_logger
 
     init_logger()
 
     def _require_httprequest(func):
         def inner(self, record):
             try:
-                from xoeuf.odoo.http import request
+                from odoo.http import request
 
                 httprequest = getattr(request, "httprequest", None)
                 if httprequest:
@@ -207,8 +207,8 @@ def patch_logging(override=True, force=False):
                     record.fingerprint = fingerprint
 
         def _get_http_request_data(self, request):
-            from xoeuf.odoo.http import JsonRequest, HttpRequest
-            from xoeuf.odoo.http import request  # Let it raise
+            from odoo.http import JsonRequest, HttpRequest
+            from odoo.http import request  # Let it raise
 
             # We can't simply use `isinstance` cause request is actual a
             # 'werkzeug.local.LocalProxy' instance.
@@ -226,16 +226,16 @@ def patch_logging(override=True, force=False):
             exc_info = record.exc_info
             if not exc_info:
                 return res
-            from xoeuf.odoo.exceptions import Warning
+            from odoo.exceptions import Warning
 
             ignored = (Warning,)
             try:
-                from xoeuf.odoo.exceptions import RedirectWarning
+                from odoo.exceptions import RedirectWarning
 
                 ignored += (RedirectWarning,)
             except ImportError:
                 pass
-            from xoeuf.odoo.exceptions import except_orm
+            from odoo.exceptions import except_orm
 
             ignored += (except_orm,)
             _type, value, _tb = exc_info

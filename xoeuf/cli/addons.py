@@ -10,9 +10,7 @@ from . import Command
 
 
 class Addons(Command):
-    """List all non-uninstallable addons found in the DB.
-
-    """
+    """List all non-uninstallable addons found in the DB."""
 
     @classmethod
     def get_arg_parser(cls):
@@ -46,7 +44,7 @@ class Addons(Command):
             print(addon)
 
     def get_addons(self, filters):
-        from xoeuf.odoo.modules import get_modules
+        from odoo.modules import get_modules
 
         return [
             addon

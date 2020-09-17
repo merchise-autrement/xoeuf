@@ -11,7 +11,7 @@ import numbers
 import pickle
 
 from xoeuf import models, fields, api
-from xoeuf.odoo.tools.safe_eval import safe_eval
+from odoo.tools.safe_eval import safe_eval
 
 logger = logging.getLogger(__name__)
 del logging

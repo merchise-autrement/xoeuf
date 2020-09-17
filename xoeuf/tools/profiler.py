@@ -63,9 +63,7 @@ except ImportError:
 
     @decorator
     def profile(func, model=None, stream=None):
-        """Decorate `func` to activate the line profiler.
-
-        """
+        """Decorate `func` to activate the line profiler."""
         warnings.warn(
             "Trying to the profiler without the line_profiler package.  "
             "Are you trying to use the profiler in production?! "

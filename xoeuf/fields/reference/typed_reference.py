@@ -12,7 +12,7 @@ from xoeuf.models import iter_descendant_models
 
 
 def get_mixin_descendants(pool, mixin):
-    """ Get the models that inherit from `mixin`.
+    """Get the models that inherit from `mixin`.
 
     :param mixin: mixin name to get it descendants.
 

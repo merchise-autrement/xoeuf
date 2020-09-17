@@ -12,9 +12,9 @@ import os
 import pprint
 import textwrap
 
-from xoeuf.odoo import SUPERUSER_ID
-from xoeuf.odoo.fields import date, Date
-from xoeuf.odoo.modules.module import get_module_path
+from odoo import SUPERUSER_ID
+from odoo.fields import date, Date
+from odoo.modules.module import get_module_path
 
 from . import Command
 
@@ -86,16 +86,12 @@ def read_bool_value(prompt=None):
 
 
 def make_reference_name(field):
-    """Get ir_model_data name generated for given model-field pair.
-
-    """
+    """Get ir_model_data name generated for given model-field pair."""
     return "field_%s_%s" % (field[0].replace(".", "_"), field[1])
 
 
 def get_fields(db, src):
-    """ Get all fields created on `src` module.
-
-    """
+    """Get all fields created on `src` module."""
     with db(transactional=True) as cr:
         cr.execute(
             """
@@ -156,7 +152,7 @@ def check_fields(fields, valid_fields):
 
 
 class Migration(Command):
-    """ Generates a migration file to move field references from a module to
+    """Generates a migration file to move field references from a module to
     an other.
 
     """
@@ -256,9 +252,7 @@ class Module(object):
         return "%s/migrations/%s/" % (self.module_path, self.new_version)
 
     def get_file_name(self, src):
-        """ Get a valid file name for the migration module.
-
-        """
+        """Get a valid file name for the migration module."""
         base_name = "pre-migrate_fields_reference_from_%s_to_%s" % (
             src.module_name,
             self.module_name,

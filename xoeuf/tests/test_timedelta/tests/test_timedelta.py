@@ -8,7 +8,8 @@
 #
 from datetime import timedelta
 from hypothesis import strategies, given
-from xoeuf.odoo.tests.common import TransactionCase
+
+from odoo.tests.common import TransactionCase
 
 
 timedeltas = strategies.timedeltas()
