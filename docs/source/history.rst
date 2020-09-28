@@ -10,7 +10,7 @@ Deprecations may occur and we may increase compatibility with Odoo 13.  But
 we'll continue to support Odoo 12 during the entire lifespan of xoeuf 2.x.
 
 
-Unreleased.  Release 2.3.0
+2020-09-28.  Release 2.3.0
 --------------------------
 
 - Remove hook to import from the ``xoeuf.odoo`` namespace.
