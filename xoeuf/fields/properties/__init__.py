@@ -8,7 +8,6 @@
 #
 from xotl.tools.symbols import Unset
 
-from odoo.release import version_info as ODOO_VERSION_INFO
 from odoo.fields import Field as Base
 
 
@@ -202,43 +201,23 @@ class PropertyField(Base):
         else:
             raise TypeError("Deleting undeletable Property")
 
-    if ODOO_VERSION_INFO < (11, 0):
-
-        def _cache_and_recompute_dependants(self, instance, value):
-            spec = [
-                (field, ids)
-                for field, ids in self.modified(instance)
-                # The result of `modified` may include Property fields with
-                # memoize_result set; we don't to invalidate those.
-                if not isinstance(field, PropertyField) or not field.memoize_result
-            ]
-            _invalidate_cache(instance, spec)
-            if self.memoize_result:
-                if value is Removed:
-                    _del_from_cache(instance, self)
-                else:
-                    _set_to_cache(instance, self, value)
-            if instance.env.recompute and instance._context.get("recompute", True):
-                instance.recompute()
-
-    else:
-        # Since Odoo 11 (commit e25bcf41e2f312536a00ef8531b2f6c6e0334ebc),
-        # fields no longer have a `modified()` method.  Instead they merged
-        # that into the `modified()` method of models; but
-        # `BaseModel.modified()` calls the invalidation of the cache without
-        # regards of our semantics for memoization.
-        #
-        # So we need to reset the cache before triggering the recomputation of
-        # dependant fields.
-        def _cache_and_recompute_dependants(self, instance, value):
-            instance.modified([self.name])
-            if self.memoize_result:
-                if value is not Removed:
-                    _set_to_cache(instance, self, value)
-                # we don't need to call _del_from_cache because
-                # `instance.modified` did it already.
-            if instance.env.recompute and instance._context.get("recompute", True):
-                instance.recompute()
+    # Since Odoo 11 (commit e25bcf41e2f312536a00ef8531b2f6c6e0334ebc), fields
+    # no longer have a `modified()` method.  Instead they merged that into the
+    # `modified()` method of models; but `BaseModel.modified()` calls the
+    # invalidation of the cache without regards of our semantics for
+    # memoization.
+    #
+    # So we need to reset the cache before triggering the recomputation of
+    # dependant fields.
+    def _cache_and_recompute_dependants(self, instance, value):
+        instance.modified([self.name])
+        if self.memoize_result:
+            if value is not Removed:
+                _set_to_cache(instance, self, value)
+            # we don't need to call _del_from_cache because
+            # `instance.modified` did it already.
+        if instance.env.recompute and instance._context.get("recompute", True):
+            instance.recompute()
 
 
 class _PropertyType(type):
@@ -284,34 +263,20 @@ class Property(metaclass=_PropertyType):
 Property.__doc__ = PropertyField.__doc__
 
 
-if ODOO_VERSION_INFO < (11, 0):
-
-    def _get_from_cache(record, field, default):
-        return record.env.cache[field].get(record.id, default)
-
-    def _set_to_cache(record, field, value):
-        record.env.cache[field][record.id] = value
-
-    def _del_from_cache(record, field):
-        del record.env.cache[field][record.id]
-
-    def _invalidate_cache(record, spec):
-        record.env.invalidate(spec)
+def _get_from_cache(record, field, default):
+    return record.env.cache.get_value(record, field, default)
 
 
-else:
+def _set_to_cache(record, field, value):
+    record.env.cache.set(record, field, value)
 
-    def _get_from_cache(record, field, default):
-        return record.env.cache.get_value(record, field, default)
 
-    def _set_to_cache(record, field, value):
-        record.env.cache.set(record, field, value)
+def _del_from_cache(record, field):
+    record.env.cache.remove(record, field)
 
-    def _del_from_cache(record, field):
-        record.env.cache.remove(record, field)
 
-    def _invalidate_cache(record, spec):
-        record.env.cache.invalidate(spec)
+def _invalidate_cache(record, spec):
+    record.env.cache.invalidate(spec)
 
 
 # Sentinel object to know we're removing a key from the cache

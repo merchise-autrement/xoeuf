@@ -8,7 +8,7 @@
 #
 from collections import Mapping
 from enum import IntEnum, Enum
-from xoeuf import api, models, fields, MAJOR_ODOO_VERSION
+from xoeuf import api, models, fields
 
 
 class COLORS(IntEnum):
@@ -79,16 +79,6 @@ class Model(models.Model):
 
     dynamic_enum = fields.Enumeration(_get_enumclass)
 
-    # def _compute_color_rgb(self):
-    #     for record in self:
-    #         record.color_rgb = "#000"
-
-
-if MAJOR_ODOO_VERSION < 12:
-    api_create_signature = api.model
-else:
-    api_create_signature = api.model_create_multi
-
 
 class DelegatedModel(models.Model):
     _name = "test.enum.model_delegated"
@@ -96,7 +86,7 @@ class DelegatedModel(models.Model):
 
     model_id = fields.Many2one("test.enum.model")
 
-    @api_create_signature
+    @api.model_create_multi
     def create(self, values):
         if isinstance(values, Mapping):
             values = self._pre_create_model_id(values)

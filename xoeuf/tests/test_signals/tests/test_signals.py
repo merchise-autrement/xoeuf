@@ -6,11 +6,8 @@
 #
 # This is free software; you can do what the LICENCE file allows you to.
 #
-import unittest
-
 from xotl.tools.future.codecs import safe_decode
 
-from xoeuf import MAJOR_ODOO_VERSION
 from xoeuf.signals import (
     mock_replace,
     post_create,
@@ -106,7 +103,6 @@ class TestXoeufSignals(TransactionCase):
                 self.Model.create(dict(name="My name"))
                 self.assertFalse(mock.called)
 
-    @unittest.skipIf(MAJOR_ODOO_VERSION < 12, "create accepts a list from Odoo 12+")
     def test_model_create_multi(self):
         with mock_replace(pre_create, pre_save_receiver) as mock:
             result = self.Model.create([dict(name="My name"), dict(name="Second obj")])

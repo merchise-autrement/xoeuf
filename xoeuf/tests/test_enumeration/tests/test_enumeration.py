@@ -7,11 +7,10 @@
 # This is free software; you can do what the LICENCE file allows you to.
 #
 import contextlib
-from unittest import skipIf
 
 from hypothesis import strategies as s, given
 
-from xoeuf import fields, MAJOR_ODOO_VERSION
+from xoeuf import fields
 from odoo.tests.common import TransactionCase, at_install, post_install
 
 from ..models import COLORS, Pax, CARS, WORK_TYPE
@@ -179,7 +178,6 @@ class TestEnum(TransactionCase):
             obj.write({"color": value})
             self.assertEqual(obj.color_name, name)
 
-    @skipIf(MAJOR_ODOO_VERSION < 12, "Supported only for  Odoo 12+")
     @given(color_pairs, color_pairs)
     def test_color_computed_field_set_on_create_delegated(self, pair, update):
         with force_ready(self.env.registry):
@@ -197,7 +195,6 @@ class TestEnum(TransactionCase):
             obj = self.DelegatedModel.create({"color": value})
             self.assertEqual(obj.color_name, name)
 
-    @skipIf(MAJOR_ODOO_VERSION < 12, "Supported only for  Odoo 12+")
     @given(color_pairs, color_pairs)
     def test_color_computed_field_set_on_assignment_delegated(self, pair, update):
         with force_ready(self.env.registry):
@@ -217,7 +214,6 @@ class TestEnum(TransactionCase):
             obj.color = name
             self.assertEqual(obj.color_name, name)
 
-    @skipIf(MAJOR_ODOO_VERSION < 12, "Supported only for  Odoo 12+")
     @given(color_pairs, color_pairs)
     def test_api_model_create_multi(self, pair1, pair2):
         name1, value1 = pair1
