@@ -10,6 +10,15 @@ Deprecations may occur and we may increase compatibility with Odoo 13.  But
 we'll continue to support Odoo 12 during the entire lifespan of xoeuf 2.x.
 
 
+Unreleased.  Release 2.4.0
+--------------------------
+
+- Remove code to make things work in Odoo 11.  Since release `0.81.0
+  <release-0.81.0>`:ref: we don't test anymore in Odoo 11.
+
+  This mark the actual end of support for Odoo 11.
+
+
 2020-09-28.  Release 2.3.0
 --------------------------
 
@@ -104,6 +113,8 @@ latest version of Odoo supported by xoeuf (at that moment).  We'll try to make
 each major version backwards-compatible with the two previous versions of
 Odoo.
 
+
+.. _release-0.81.0:
 
 2020-06-16.  Release 0.81.0
 ---------------------------
@@ -288,6 +299,8 @@ __ https://github.com/merchise-autrement/odoo
 .. _xoutil: https://pypi.org/project/xoutil
 
 
+.. _release-0.61.0:
+
 2019-05-11.  Release 0.61.0
 ---------------------------
 
@@ -352,7 +365,7 @@ __ https://github.com/merchise-autrement/odoo
 
 
 2019-03-03.  Release 0.56.0
----------------------------
+p---------------------------
 
 - `xoeuf.signals.receiver`:func: can take an iterable of signals.
 

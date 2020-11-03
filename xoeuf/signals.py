@@ -16,13 +16,10 @@ from threading import RLock
 from expiringdict import ExpiringDict
 
 from odoo import api, models
-from odoo.release import version_info as ODOO_VERSION_INFO
 
 from xotl.tools.objects import temp_attributes
 from xotl.tools.symbols import Unset
 from xotl.tools.future.contextlib import ExitStack, contextmanager
-
-MAJOR_ODOO_VERSION = ODOO_VERSION_INFO[0]
 
 
 logger = logging.getLogger(__name__)
@@ -657,6 +654,7 @@ def _fvg_for_signals(
     return result
 
 
+@api.model_create_multi
 @api.returns("self", lambda value: value.id if value else value)
 @wraps(super_create)
 def _create_for_signals(self, vals):
@@ -664,12 +662,6 @@ def _create_for_signals(self, vals):
     res = super_create(self, vals)
     post_create.safe_send(sender=self, result=res, values=vals)
     return res
-
-
-if MAJOR_ODOO_VERSION < 12:
-    _create_for_signals = api.model(_create_for_signals)
-else:
-    _create_for_signals = api.model_create_multi(_create_for_signals)
 
 
 @api.multi

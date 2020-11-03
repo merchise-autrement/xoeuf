@@ -13,16 +13,10 @@ from xotl.tools.objects import import_object
 
 from odoo import fields, api, models
 from odoo.fields import Char
-from odoo.release import version_info as ODOO_VERSION_INFO
 
 
 logger = logging.getLogger(__name__)
 
-
-if ODOO_VERSION_INFO < (12,):
-    api_create_signature = api.model
-else:
-    api_create_signature = api.model_create_multi
 
 __all__ = ["Enumeration"]
 
@@ -413,7 +407,7 @@ class EnumerationAdapter(Adapter):
                     args[index] = (fieldname, operator, values)
         return super(EnumerationAdapter, self).search(args, *pos_args, **kwargs)
 
-    @api_create_signature
+    @api.model_create_multi
     @api.returns("self", lambda value: value.id)
     def create(self, values):
         if isinstance(values, Mapping):
@@ -476,26 +470,13 @@ def constant(value):
     return result
 
 
-if ODOO_VERSION_INFO < (11, 0):
-
-    @api.model
-    def _setup_fields(self, partial):
-        cls = type(self)
-        for field in dict(cls._fields).values():
-            if isinstance(field, Enumeration):
-                field._add_selection_field(self)
-        _super_setup_fields(self, partial)
-
-
-else:
-
-    @api.model
-    def _setup_fields(self):
-        cls = type(self)
-        for field in dict(cls._fields).values():
-            if isinstance(field, Enumeration):
-                field._add_selection_field(self)
-        _super_setup_fields(self)
+@api.model
+def _setup_fields(self):
+    cls = type(self)
+    for field in dict(cls._fields).values():
+        if isinstance(field, Enumeration):
+            field._add_selection_field(self)
+    _super_setup_fields(self)
 
 
 _super_setup_fields = models.BaseModel._setup_fields
