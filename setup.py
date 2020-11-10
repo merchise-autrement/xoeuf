@@ -57,7 +57,7 @@ setup(
         "raven>=5.8.0",
         "raven-sanitize-openerp",
         'enum34; python_version < "3.4"',
-        "celery>=4.1.0,<5",
+        "celery>=4.1.0,<6",
         'typing;python_version<"3.5"',
         "expiringdict~=1.2.0",
         'dataclasses;python_version<"3.7"',
