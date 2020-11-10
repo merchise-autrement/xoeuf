@@ -21,6 +21,8 @@ check code smells (with Bugbear and Python 3.6):
       - merge_requests
     changes:
       - xoeuf/**/*.py
+      - setup.py
+      - setup.cfg
 
 check formatting with black:
   image: python:3.6
@@ -34,7 +36,9 @@ check formatting with black:
       - merge_requests
     changes:
       - xoeuf/**/*.py
-
+      - setup.py
+      - setup.cfg
+      - pyproject.toml
 
 .run_tests: &run_tests
   needs:
@@ -54,7 +58,7 @@ check formatting with black:
       pip install -U wheel setuptools
       pip install "futures<3"
       pip install -r requirements.txt
-      pip install -U "six>=1.9.0" "decorator>=4.0,<4.2" "hypothesis>=3.24"
+      pip install -U "six>=1.9.0" "decorator>=4.0,<4.2" "hypothesis>=3.24" "celery~=5.0"
       pip install -e .
       cd ../../
       pip install -e .
@@ -67,6 +71,7 @@ check formatting with black:
       - merge_request
     changes:
       - xoeuf/**/*.py
+      - setup.py
 
 run all Odoo 12 tests in Python 3.6:
   <<: *run_tests

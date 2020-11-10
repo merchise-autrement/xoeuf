@@ -18,6 +18,8 @@ Unreleased.  Release 2.4.0
 
   This mark the actual end of support for Odoo 11.
 
+- Update the distribution to be compatible with Celery 5.0.
+
 
 2020-09-28.  Release 2.3.0
 --------------------------
