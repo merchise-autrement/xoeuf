@@ -177,6 +177,7 @@ build documentation:
       - tags
       - merge_request
     changes:
+      - .gitlab-ci.yml
       - xoeuf/**/*.py
       - docs/**/*.rst
 
@@ -209,8 +210,32 @@ publish in our rtd:
       - tags
       - merge_request
     changes:
+      - .gitlab-ci.yml
       - xoeuf/**/*.py
       - docs/**/*.rst
+
+pages:
+  image: alpine
+  variables:
+    GIT_STRATEGY: none
+  stage: publish
+  needs:
+    - build documentation
+  script:
+    - |
+      mkdir -p public
+      cp -rf docs/build/html/* public/
+  artifacts:
+    paths:
+      - public
+  only:
+    refs:
+      - master
+    changes:
+      - .gitlab-ci.yml
+      - xoeuf/**/*.py
+      - docs/**/*.rst
+
 
 automatically remove MR documentation from our RTD server after 4 hours:
   stage: clean up
