@@ -17,7 +17,7 @@ check code smells (with Bugbear and Python 3.6):
       merchise_lint
   only:
     refs:
-      - master
+      - main
       - merge_requests
     changes:
       - xoeuf/**/*.py
@@ -32,7 +32,7 @@ check formatting with black:
     - black --check xoeuf/
   only:
     refs:
-      - master
+      - main
       - merge_requests
     changes:
       - xoeuf/**/*.py
@@ -67,7 +67,7 @@ check formatting with black:
       ../../runtests-odoo.sh -i $ADDONS --db_host=$POSTGRES_HOST --db_password=$POSTGRES_PASSWORD --db_user=$POSTGRES_USER
   only:
     refs:
-      - master
+      - main
       - merge_request
     changes:
       - xoeuf/**/*.py
@@ -173,7 +173,7 @@ build documentation:
     expire_in: 4 days
   only:
     refs:
-      - master
+      - main
       - tags
       - merge_request
     changes:
@@ -206,7 +206,7 @@ publish in our rtd:
     url: http://docs.lahavane.com/$CI_PROJECT_NAME/$CI_COMMIT_REF_NAME
   only:
     refs:
-      - master
+      - main
       - tags
       - merge_request
     changes:
@@ -230,7 +230,7 @@ pages:
       - public
   only:
     refs:
-      - master
+      - main
     changes:
       - .gitlab-ci.yml
       - xoeuf/**/*.py
@@ -240,7 +240,7 @@ pages:
 automatically remove MR documentation from our RTD server after 4 hours:
   stage: clean up
   rules:
-    - if: '$CI_COMMIT_REF_NAME == "master"'
+    - if: '$CI_COMMIT_REF_NAME == "main"'
       when: never
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
       when: on_success
