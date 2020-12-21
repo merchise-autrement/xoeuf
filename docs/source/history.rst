@@ -13,7 +13,10 @@ we'll continue to support Odoo 12 during the entire lifespan of xoeuf 2.x.
 Unreleased.  Release 2.5.0
 --------------------------
 
-Nothing yet.
+- Add `Domain.TRUE <xoeuf.osv.expression.Domain.TRUE>`:any: and `Domain.FALSE
+  <xoeuf.osv.expression.Domain.FALSE>`:any:.
+
+  These are useful as start values for `functools.reduce`:func:.
 
 
 2020-11-10.  Release 2.4.0

@@ -30,6 +30,7 @@ import operator
 from itertools import chain
 
 from xotl.tools.deprecation import deprecated
+from xotl.tools.objects import classproperty
 
 from odoo.osv import expression as _odoo_expression
 from xoeuf.utils import crossmethod
@@ -108,6 +109,16 @@ class Domain(list):
         """
         other = DomainTree(Domain(other).second_normal_form)
         return DomainTree(self.second_normal_form).implies(other)
+
+    @classproperty
+    def TRUE(cls):
+        "The domain which is True.  Implemented as ``[(1, '=', 1)]``."
+        return cls(this.TRUE_LEAF)
+
+    @classproperty
+    def FALSE(cls):
+        "The domain which is False.  Implemented as ``[(0, '=', 1)]``."
+        return cls(this.TRUE_LEAF)
 
     @property
     def first_normal_form(self):
@@ -328,8 +339,6 @@ class Domain(list):
 
         The domain cannot use 'child_of', '=like' or '=ilike'.
 
-        __ https://github.com/odoo/odoo/pull/31408
-
         :param this: The name of the argument in the lambda.  All attributes
             in the domain are get from this argument.
 
@@ -351,6 +360,9 @@ class Domain(list):
                   account actual False values and terms like ``(x, '=', 0)``
                   are not affected.
 
+        __ https://github.com/odoo/odoo/pull/31408
+
+
         The lambda created for::
 
             Domain([('state', 'in', ('draft', 'open'))]).asfilter()
@@ -363,7 +375,7 @@ class Domain(list):
 
         If your domain uses field traversal (e.g ``('line_ids.state', ...)``)
         the generated lambda will use ``mapped()`` and ``filtered()`` instead
-        of simple ``ast.Attribute`` nodes.  Thus the lamda for::
+        of simple ``ast.Attribute`` nodes.  Thus the lambda for::
 
           Domain([('order_id.line_ids.state', '=', 'open')]).asfilter(this='t')
 
