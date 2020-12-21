@@ -30,6 +30,7 @@ import operator
 from itertools import chain
 
 from xotl.tools.deprecation import deprecated
+from xotl.tools.objects import classproperty
 
 from odoo.osv import expression as _odoo_expression
 from xoeuf.utils import crossmethod
@@ -108,6 +109,16 @@ class Domain(list):
         """
         other = DomainTree(Domain(other).second_normal_form)
         return DomainTree(self.second_normal_form).implies(other)
+
+    @classproperty
+    def TRUE(cls):
+        "The domain which is True.  Implemented as ``[(1, '=', 1)]``."
+        return cls(this.TRUE_LEAF)
+
+    @classproperty
+    def FALSE(cls):
+        "The domain which is False.  Implemented as ``[(0, '=', 1)]``."
+        return cls(this.TRUE_LEAF)
 
     @property
     def first_normal_form(self):
