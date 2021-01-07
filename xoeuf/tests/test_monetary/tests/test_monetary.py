@@ -12,6 +12,8 @@ from xotl.tools.dim.currencies import currency as Currency
 
 from odoo.tests.common import TransactionCase
 
+from xoeuf.testing.db import rollbacked
+
 finite_floats = s.floats(
     min_value=-(2 ** 32), max_value=2 ** 32, allow_nan=False, allow_infinity=False
 )
@@ -32,6 +34,7 @@ class TestMonetary(TransactionCase):
 
     @hypothesis.given(finite_floats)
     @hypothesis.settings(max_examples=5)
+    @rollbacked
     def test_monetary_concrete(self, value):
         Line = self.env["test.monetary.concrete"]
         EUR = self.env.ref("base.EUR")
@@ -40,6 +43,7 @@ class TestMonetary(TransactionCase):
 
     @hypothesis.given(finite_floats)
     @hypothesis.settings(max_examples=5)
+    @rollbacked
     def test_monetary_related(self, value):
         Line = self.env["test.monetary.related"]
         company = self.env.ref("base.main_company")

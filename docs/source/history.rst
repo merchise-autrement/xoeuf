@@ -18,6 +18,8 @@ Unreleased.  Release 2.5.0
 
   These are useful as start values for `functools.reduce`:func:.
 
+- Add module `xoeuf.testing.db`:mod:
+
 
 2020-11-10.  Release 2.4.0
 --------------------------
