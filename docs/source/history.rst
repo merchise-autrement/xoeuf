@@ -10,7 +10,7 @@ Deprecations may occur and we may increase compatibility with Odoo 13.  But
 we'll continue to support Odoo 12 during the entire lifespan of xoeuf 2.x.
 
 
-Unreleased.  Release 2.5.0
+2021-02-25.  Release 2.5.0
 --------------------------
 
 - Add `Domain.TRUE <xoeuf.osv.expression.Domain.TRUE>`:any: and `Domain.FALSE
