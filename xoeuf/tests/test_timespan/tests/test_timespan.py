@@ -13,6 +13,8 @@ from hypothesis import strategies, given
 
 from odoo.tests.common import TransactionCase
 
+from xoeuf.testing.db import rollbacked
+
 
 maybe_dates = strategies.dates(min_value=date(1900, 1, 1)) | strategies.none()
 
@@ -51,17 +53,20 @@ class TestTimespan(TransactionCase):
             return value1 in (False, None) and value2 in (False, None)
 
     @given(timespans())
+    @rollbacked
     def test_create(self, value):
         obj = self.Value.create({"period": value})
         self.assertDateEqual(obj.start_date, value.start_date)
         self.assertDateEqual(obj.end_date, value.end_date)
 
     @given(maybe_dates, maybe_dates)
+    @rollbacked
     def test_create2(self, start, end):
         obj = self.Value.create({"start_date": start, "end_date": end})
         self.assertEqual(obj.period, TimeSpan(start, end))
 
     @given(timespans())
+    @rollbacked
     def test_set(self, value):
         obj = self.Value.create({})
         obj.period = value
@@ -69,6 +74,7 @@ class TestTimespan(TransactionCase):
         self.assertDateEqual(obj.end_date, value.end_date)
 
     @given(maybe_dates, maybe_dates)
+    @rollbacked
     def test_set2(self, start, end):
         obj = self.Value.create({})
         obj.start_date = start

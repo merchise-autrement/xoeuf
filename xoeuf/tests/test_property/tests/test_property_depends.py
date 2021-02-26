@@ -11,12 +11,15 @@ from hypothesis import given, strategies as st, assume
 from odoo.tests.common import TransactionCase
 from odoo.addons.test_property.models import Undefined
 
+from xoeuf.testing.db import rollbacked
+
 
 values = st.floats(allow_infinity=False, allow_nan=False) | st.integers()
 
 
 class TestPropertyDepends(TransactionCase):
     @given(values, values)
+    @rollbacked
     def test_setting_property(self, value1, value2):
         assume(value1 != value2)
         Value = self.env["test.property.value"]
@@ -36,6 +39,7 @@ class TestPropertyDepends(TransactionCase):
         self.assertEqual(obj.price_display, "--")
 
     @given(values, values)
+    @rollbacked
     def test_setting_dependant(self, value1, value2):
         Value = self.env["test.property.value"]
         obj = Value.create({})
@@ -43,6 +47,7 @@ class TestPropertyDepends(TransactionCase):
         self.assertIs(obj.price, Undefined)
 
     @given(values, values)
+    @rollbacked
     def test_setting_property_and_reading(self, value1, value2):
         assume(value1 != value2)
         Value = self.env["test.property.value"]
